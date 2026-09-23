@@ -31,8 +31,9 @@ export async function POST(request: NextRequest) {
     if (!input.success) return fail("Écrivez une question de 3 à 1 500 caractères.", 400);
     // Trust Vercel's platform header only on Vercel; local clients share one bucket.
     const ip = process.env.VERCEL ? (request.headers.get("x-vercel-forwarded-for")?.split(",")[0]?.trim() || "unknown") : "local";
-    if (!await reserveQuota(session.id, ip, aiEnabled())) return fail("La limite de questions est atteinte. Réessayez plus tard ; les documents restent consultables.", 429);
-    const result = await answer(input.data.message, input.data.history, requestId);
+    const grant = await reserveQuota(session.id, ip, aiEnabled());
+    if (grant === "refuse") return fail("La limite de questions est atteinte. Réessayez plus tard ; les documents restent consultables.", 429);
+    const result = await answer(input.data.message, input.data.history, requestId, grant === "ia");
     const response = NextResponse.json(result, { headers: { "Cache-Control": "no-store" } });
     response.cookies.set("pc_session", session.cookie, { httpOnly: true, sameSite: "strict", secure: process.env.NODE_ENV === "production", maxAge: 3600, path: "/" });
     return response;

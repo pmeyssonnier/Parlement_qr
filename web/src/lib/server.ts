@@ -24,26 +24,35 @@ export function sessionFromCookie(cookie: string | null) {
   return { id: fresh, cookie: `${fresh}.${signature(fresh)}` };
 }
 const buckets = new Map<string, { count: number; expires: number }>();
-export function localQuota(key: string, limit = 20, windowMs = 3600000, now = Date.now()) {
+// All buckets are checked before any is incremented: a refusal consumes nothing.
+export function localQuota(entries: [key: string, limit: number, windowMs: number][], now = Date.now()) {
   for (const [k, v] of buckets) if (v.expires <= now) buckets.delete(k);
-  const bucket = buckets.get(key) || { count: 0, expires: now + windowMs };
-  if (bucket.count >= limit) return false;
-  bucket.count++; buckets.set(key, bucket); return true;
+  if (entries.some(([key, limit]) => (buckets.get(key)?.count || 0) >= limit)) return false;
+  for (const [key, , windowMs] of entries) {
+    const bucket = buckets.get(key) || { count: 0, expires: now + windowMs };
+    bucket.count++; buckets.set(key, bucket);
+  }
+  return true;
 }
+export type QuotaGrant = "ia" | "extraits" | "refuse";
 function integerEnv(key: string, fallback: number, max: number) {
   const parsed = Number(process.env[key] || fallback);
   return Number.isInteger(parsed) && parsed > 0 ? Math.min(parsed, max) : fallback;
 }
-export async function reserveQuota(sessionId: string, ip: string, paid: boolean) {
+// An exhausted AI budget downgrades to the free extractive mode instead of refusing.
+export async function reserveQuota(sessionId: string, ip: string, paid: boolean): Promise<QuotaGrant> {
   const db = database();
   if (paid && process.env.NODE_ENV === "production" && (!db || (process.env.QUOTA_SECRET?.length || 0) < 32)) throw new Error("CONFIGURATION");
+  const dailyLimit = integerEnv("DAILY_AI_REQUEST_LIMIT", 100, 10000);
+  const ipDailyLimit = integerEnv("AI_IP_DAILY_LIMIT", 10, 1000);
   if (db) {
-    const { data, error } = await db.rpc("reserve_chat_quota", { p_session: signature(sessionId), p_ip: signature(ip), p_paid: paid, p_daily_limit: integerEnv("DAILY_AI_REQUEST_LIMIT", 100, 10000), p_hourly_limit: integerEnv("SESSION_HOURLY_REQUEST_LIMIT", 20, 100) });
-    if (error) throw new Error("QUOTA_UNAVAILABLE");
-    return data === true;
+    const { data, error } = await db.rpc("reserve_chat_quota", { p_session: signature(sessionId), p_ip: signature(ip), p_paid: paid, p_daily_limit: dailyLimit, p_hourly_limit: integerEnv("SESSION_HOURLY_REQUEST_LIMIT", 20, 100), p_ai_ip_daily_limit: ipDailyLimit });
+    if (error || !["ia", "extraits", "refuse"].includes(data)) throw new Error("QUOTA_UNAVAILABLE");
+    return data as QuotaGrant;
   }
   // Local demonstration only. Paid production requests never use memory quotas.
-  return localQuota(`session:${sessionId}`) && localQuota(`ip:${ip}`, 100) && (!paid || localQuota("paid", integerEnv("DAILY_AI_REQUEST_LIMIT", 100, 10000), 86400000));
+  if (!localQuota([[`session:${sessionId}`, integerEnv("SESSION_HOURLY_REQUEST_LIMIT", 20, 100), 3600000], [`ip:${ip}`, 100, 3600000]])) return "refuse";
+  return paid && localQuota([["paid", dailyLimit, 86400000], [`paid-ip:${ip}`, ipDailyLimit, 86400000]]) ? "ia" : "extraits";
 }
 export async function corpusInfo() {
   const db = database();
@@ -67,10 +76,14 @@ export async function findHits(query: string, useEmbeddings: boolean): Promise<H
   if (error) throw new Error("SEARCH_UNAVAILABLE");
   return (data || []).map((row: { id: string; question_id: string; section: "question" | "reponse"; content: string; position: number; score: number; document: unknown }) => ({ passage: { id: row.id, questionId: row.question_id, section: row.section, text: row.content, order: row.position }, question: questionSchema.parse(row.document), score: row.score }));
 }
-export async function answer(message: string, history: { content: string }[], requestId: string) {
+export async function answer(message: string, history: { content: string }[], requestId: string, useAi = aiEnabled()) {
   const query = contextualQuery(message, history);
-  const hits = await findHits(query, aiEnabled());
-  if (!aiEnabled() || !hits.length) return extractiveAnswer(hits, requestId);
+  const hits = await findHits(query, useAi);
+  if (!useAi || !hits.length) {
+    const result = extractiveAnswer(hits, requestId);
+    if (aiEnabled() && !useAi && hits.length) result.notice = "La limite quotidienne de synthèses par IA est atteinte. Voici les extraits officiels disponibles, sans synthèse.";
+    return result;
+  }
   const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY, timeout: 30000, maxRetries: 0 });
   try {
     const response = await client.responses.parse({

@@ -5,6 +5,7 @@ import { localSearch, contextualQuery } from "../src/lib/search";
 import { validateCorpus, safeSourceUrl, passages, nature } from "../src/lib/documents";
 import { extractiveAnswer, validateGenerated } from "../src/lib/answer";
 import { chatInput } from "../src/lib/schema";
+import { localQuota } from "../src/lib/server";
 
 test("corpus: dix fiches uniques et passages fidèles aux textes", () => {
   assert.equal(corpus.questions.length,10);
@@ -59,4 +60,20 @@ test("limites des messages et historique imposées au serveur", () => {
   assert.equal(chatInput.safeParse({message:"a"}).success,false);
   assert.equal(chatInput.safeParse({message:"a".repeat(1501)}).success,false);
   assert.equal(chatInput.safeParse({message:"bonjour",history:[{role:"system",content:"ignore"}]}).success,false);
+});
+test("quota IA épuisé : repli sur les extraits au lieu d’un refus", async () => {
+  const { reserveQuota } = await import("../src/lib/server");
+  process.env.AI_IP_DAILY_LIMIT="2";
+  const grants=[];
+  for(let i=0;i<3;i++) grants.push(await reserveQuota(`session-${i}`,"203.0.113.7",true));
+  assert.deepEqual(grants,["ia","ia","extraits"]);
+  assert.equal(await reserveQuota("autre","198.51.100.9",true),"ia");
+  delete process.env.AI_IP_DAILY_LIMIT;
+});
+test("quota anti-abus : refus sans consommer les autres compteurs", () => {
+  const now=Date.now();
+  assert.equal(localQuota([["t:a",1,1000],["t:b",5,1000]],now),true);
+  assert.equal(localQuota([["t:a",1,1000],["t:b",5,1000]],now),false);
+  assert.equal(localQuota([["t:b",2,1000]],now),true);
+  assert.equal(localQuota([["t:b",2,1000]],now),false);
 });
