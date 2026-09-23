@@ -1,0 +1,371 @@
+{
+  "schema_version": "1.0",
+  "extrait_le": "2026-09-23T11:59:52.359785+00:00",
+  "source_index": "https://www.parlement.brussels/prb_includes/weblex/data/dos_qu_legis_24-29.json",
+  "institution": "Parlement de la Région de Bruxelles-Capitale",
+  "methode_echantillonnage": "Dix questions écrites PRB reçues au plus tard le 30 juin 2025 : tri décroissant par date et moncode, première question pour chacun de dix auteurs distincts. Échantillon exploratoire non représentatif, choisi avec recul temporel pour examiner les réponses.",
+  "limites": [
+    "Le décompte porte sur l’index téléchargé, sans garantie d’exhaustivité ou de fraîcheur du site.",
+    "Une réponse absente de la fiche ne prouve pas une absence de réponse institutionnelle.",
+    "Textes HTML convertis en texte brut ; mise en forme supprimée. Annexes référencées mais non extraites.",
+    "La date de réponse est celle indiquée par le site, sans interprétation supplémentaire."
+  ],
+  "statistiques_index": {
+    "total_fiches": 7187,
+    "par_assemblee": {
+      "PRB": 6083,
+      "ARCCC": 1104
+    },
+    "par_type_toutes_assemblees": {
+      "question écrite": 2941,
+      "question orale": 2633,
+      "demande d'explication": 871,
+      "question d'actualité": 677,
+      "interpellation": 65
+    },
+    "questions_ecrites_prb": 2577
+  },
+  "nombre_elements": 10,
+  "questions": [
+    {
+      "id": "PRB-1-167744",
+      "moncode": "167744",
+      "base": 1,
+      "assemblee": "PRB",
+      "legislature": "2024-2029",
+      "session": "24/25",
+      "type": "question_ecrite",
+      "numero": 161,
+      "langue": "fr",
+      "titre": "Question écrite concernant les actions mises en place pour informer les expatriés de leur droit de vote aux élections communales de 2024",
+      "titre_nl": "Schriftelijke vraag betreffende de uitgevoerde initiatieven om expats te informeren over hun stemrecht bij de gemeenteraadsverkiezingen van 2024",
+      "auteur": "Françoise Schepmans",
+      "destinataire": "Ans Persoons - Secrétaire d'État à la Région de Bruxelles-Capitale, chargée de l'Urbanisme et du Patrimoine, des Relations européennes et internationales, du Commerce extérieur et de la Lutte contre l'Incendie et l'Aide médicale urgente",
+      "date_reception": "2025-06-30",
+      "date_publication": "2026-01-08",
+      "date_reponse": "2026-01-08",
+      "question": "Les élections communales d’octobre 2024 ont représenté une occasion majeure de participation démocratique au niveau local. Depuis plusieurs années, les citoyens européens et les ressortissants de pays tiers résidant en Belgique peuvent exercer leur droit de vote aux communales, à condition de s’inscrire dans les délais impartis. Pourtant, les taux d’inscription restent structurellement faibles chez ces publics, notamment parmi les expatriés vivant à Bruxelles.\nOr, Bruxelles est une ville hautement cosmopolite, où la présence d’expatriés est particulièrement importante, notamment dans les quartiers proches des institutions européennes ou des organisations internationales. Dès lors, l’enjeu est double : il s’agit à la fois de garantir l’accès à un droit démocratique, et de favoriser l’intégration locale de ces citoyens.\nDans cette perspective, la qualité et l’intensité de l’information transmise par les pouvoirs publics régionaux, en lien avec les communes, revêtent une importance particulière.\nQuel est le bilan des campagnes de sensibilisation et d’information menées par la Région en amont des élections communales de 2024 à destination des expatriés ?\nQuels canaux ont été utilisés, quelles langues ont été mobilisées et quels partenariats ont été mis en place pour maximiser la portée de ces actions ?\nDisposez-vous d’éléments permettant d’évaluer leur efficacité, notamment en termes d’inscriptions enregistrées et une analyse globale de l’impact concret sur les communes ?",
+      "reponse": "Comme lors de précédentes échéances électorales, L'Expat Welcome Desk du Commissariat à l’Europe et aux Organisations Internationales a organisé une série d'activités de sensibilisation afin d'informer nos publics cibles de ce deadline crucial et de les encourager à user de leurs droits électoraux.\nLa campagne se concentrait en premier lieu sur la date du 31 juillet 2024, date limite de l’inscription sur les listes électorales puisque contrairement aux citoyens belges, les non-Belges éligibles devaient s'inscrire sur la liste électorale de leur propre initiative.\nBruxelles Pouvoirs Locaux, l’administration responsable pour l'organisation des élections, avait lancé un appel à projets visant à susciter l'intérêt de certains groupes cibles (dont la communauté internationale) pour les élections communales via des actions sur le terrain.\nMalgré le fait que le CEOI ait été exclu de cet appel à projets, il a réussi à mettre en place une campagne d’information et de sensibilisation avec des moyens très limités afin d'informer et d’accompagner au mieux la communauté internationale résidant à Bruxelles.\nPlus particulièrement il a :\n• publié des informations neutres et fiables en anglais, agrémentées d'articles et d'une FAQ hyper-détaillé sur son site Internet, le site web officiel ne donnant que des informations en français et en néerlandais il était important de mettre à disposition tout un dispositif en anglais.\n• envoyé des newsletters autour de ce thème via la liste d'expats de visit.brussels ainsi que sa propre plateforme Brussels Voice et les pages intranet des institutions européennes.\n• élaboré et mis à disposition tout un ensemble d'outils de sensibilisation comportant de la documentation en anglais: des graphiques, une carte postale, une affiche et des codes QR.\n• collaboré avec la presse et les médias locaux pour apporter des renseignements clairs et de bonnes raisons de voter.\n• organisé plusieurs événements, dont un webinaire le 28 mai, qui ont attiré un public très actif.\n• participé, à titre d'experts, aux événements d'autres acteurs pour parler de l'inscription, du vote par procuration, des listes électorales, etc. entre autre organisé des séances d'information à la Commission européenne et au Comité européen des régions.\n• offert un soutien personnalisé par le biais de l'Expat Welcome Desk pour tout Bruxellois international souhaitant poser des questions spécifiques.\n• servi d'intermédiaires entre les pouvoirs publics et des représentants de la société civile sélectionnés lors de l'appel à projets lancé par le ministre des Pouvoirs locaux, et plus particulièrement avec Restless Brussels. Et ce, en organisant des ateliers de coordination; en transférant les questions techniques au ministère belge de l'Intérieur; en encourageant les communes à promouvoir activement la participation aux élections; et enfin, en fournissant une aide logistique lors d'une journée d'action de la société civile.\nCette campagne a abouti à des résultats mitigés. Pour la première fois, les non-Belges inscrits dans la Région de Bruxelles-Capitale étaient plus de 50 000 au total, tandis que les ressortissants de l'UE ont été plus nombreux à s'inscrire: 16,75 % en 2018 contre 17,09 % en 2024. En revanche, le taux d'inscription des ressortissants non-européens est passé de 19,27 % en 2018 à 13,25 % en 2024, et le taux cumulé a légèrement diminué, de 17 % à 16,2 %.\nSi nous voulons inciter un maximum de non-Belges à s’inscrire aux prochaines élections communales, il conviendra de mener une campagne par l’ensemble des acteurs et à tous les niveaux, dans laquelle surtout les communes devraient jouer un rôle crucial.\nElles ne sont pas seulement l’instance pour laquelle les citoyens sont appelés à voter, mais elles ont également un lien de confiance et de proximité avec les habitants. Elles sont donc fondamentales dans la période d’inscription, et c’est leur engagement et proactivité qui pourra faire la différence.\nMais les disparités entre communes restent grandes. La commune de Saint-Gilles, par exemple, envoie des courriers dans plusieurs langues aux habitants pour les inviter à s’inscrire sur les listes électorales. D’autres communes vont beaucoup moins loin.\nDes actions que les communes pourraient prévoir et qui auraient un impact important: mettre des infos en anglais sur leur site et/ou mettre un lien vers les informations sur le site du Commissariat à l’Europe; publier des articles dans le magazine communal; organiser des séances d’information, etc.\nL'envoi d'une lettre officielle aux internationaux éligibles, aussi bien par la Région que par chaque commune, rappelant leurs droits et expliquant le processus pour s’inscrire est nécessaire, car c'est le seul moyen d'atteindre cette population aussi importante, qui représente un tiers de tous les électeurs potentiels en Région bruxelloise.\nLe fait qu’il y a eu en 2024 des délais dans l’envoi de ces lettres informationnelles aux électeurs potentiels non-belges par certaines communes devrait à tout prix être évité en 2029.",
+      "statut_extraction_reponse": "texte_present",
+      "actes": [
+        {
+          "date": "2025-12-17",
+          "acte": "Question orale transformée en question écrite",
+          "acteur": "Françoise Schepmans"
+        },
+        {
+          "date": "2025-12-17",
+          "acte": "Recevable",
+          "acteur": "p.m."
+        }
+      ],
+      "documents": [],
+      "url_source": "https://www.parlement.brussels/weblex-quest-det/?moncode=167744&montitre=&base=1",
+      "source_locale": "sources/167744.html"
+    },
+    {
+      "id": "PRB-1-167388",
+      "moncode": "167388",
+      "base": 1,
+      "assemblee": "PRB",
+      "legislature": "2024-2029",
+      "session": "24/25",
+      "type": "question_ecrite",
+      "numero": 155,
+      "langue": "fr",
+      "titre": "Question écrite concernant le projet WePulse",
+      "titre_nl": "Schriftelijke vraag betreffende het project WePulse",
+      "auteur": "Anne-Charlotte d'Ursel",
+      "destinataire": "Bernard Clerfayt - Ministre du Gouvernement de la Région de Bruxelles-Capitale chargé de l'Emploi et de la Formation professionnelle, de la Transition numérique, des Pouvoirs locaux et du Bien-Être animal",
+      "date_reception": "2025-06-30",
+      "date_publication": "2025-12-23",
+      "date_reponse": "2025-12-23",
+      "question": "Le projet WePulse, dont l'ambition est de moderniser les outils de gestion des communes et des CPAS en matière de finances, de ressources humaines et sociale, engage les pouvoirs locaux dans une transformation numérique majeure en vue d’une amélioration de la qualité du service entre usagers et administrations locales grâce à un suivi personnalisé. Ce projet lancé en mars 2021, piloté par Paradigm en partenariat avec Bruxelles Pouvoirs Locaux, représente un investissement global de 70 millions d’euros.\nLe 30 juin était la date à laquelle les pouvoirs locaux devaient confirmer leur adhésion pour bénéficier des conditions tarifaires de Microsoft en 2024, de nombreuses communes et CPAS sont restées longtemps dans l’expectative, observant les décisions de leurs voisins.\nDe nombreuses interrogations persistent : sur l’efficacité des outils, la clarté des coûts, la qualité de la gouvernance, et surtout sur la capacité de ce programme à réellement répondre aux besoins opérationnels des administrations locales, tout en évitant les écueils connus d’autres expériences informatiques régionales ou locales.\nDès lors, je souhaiterais vous poser les questions suivantes :\nQuel est aujourd’hui le taux d’adhésion des communes et des CPAS au projet We Pulse, ventilé par volet (finances, RH, social), Build et Run ?\nQuelles conclusions en tirez-vous ?\nEstimez-vous que Paradigm disposent aujourd’hui des ressources suffisantes (humaines, techniques et financières) pour mener à bien les déploiements “dans les délais impartis” ?\nPouvez-vous détailler les engagements financiers et en personnel de la Région dans ce projet, ainsi que la part éventuellement prise en charge par les communes et CPAS eux-mêmes ? Disposez-vous d’une estimation précise des coûts additionnels pour la maintenance, l’usage des logiciels et les changements fréquents des solutions logicielles imposés par les fournisseurs ?\nLes marchés pour les différents volets ont-ils été tous attribués à ce jour ? Le cas échéant, pouvez-vous préciser pour chaque volet où en sont les travaux de déploiement dans les communes et CPAS concernés ?\nLes formations des utilisateurs aux nouveaux logiciels, en collaboration avec l’ERAP, ont-elles été organisées (pour quel nombre de participants et quels sont les profils concernés) ?\nEn cas de désengagement d’une commune ou d’un CPAS, quelles sont les conséquences techniques, juridiques et financières pour ces entités et pour les autres ? A quelles conditions les communes et CPAS “montés” dans le build sans le run, pourront-ils monter en cours de route dans le run ?\nDes audits de performance, de coût et de pertinence ont-ils été réalisés ou commandités pour évaluer si ce projet répond réellement aux attentes opérationnelles des pouvoirs locaux ? Si oui, pouvez-vous en partager les résultats ?\nEnfin, allez-vous revoir/adapter le modèle de gouvernance ou le périmètre fonctionnel du projet, afin de répondre aux craintes exprimées par plusieurs communes et CPAS, notamment en termes de perte d’autonomie, de rigidité ou de coûts ?",
+      "reponse": "1.\nÀ ce jour le taux d’adhésion des communes et des CPAS au programme Wepulse par domaine est de :\n● 33 Pouvoirs locaux (16 Communes et 17 CPAS) sur 34 (ayant exprimé leur intention d’adhérer au domaine en 2023) ont adhéré à la phase de développement (Build) du domaine Finances. Par ailleurs, 19 Pouvoirs locaux (10 Communes et 9 CPAS) ont adhéré à la phase d'exploitation (Run).\nLe marché a été attribué et le travail de développement a démarré dans les communes et CPAS pilotes.\n● 31 ont déclaré leur intention pour le domaine Soft RH en 2023. Le marché a été attribué (décembre 2023), les travaux ont débuté. 2 pouvoirs locaux sont en production, et 3 administrations sont en cours de déploiement. L’adhésion finale est en cours.\n● 14 CPAS ont déjà exprimé leur intention d’adhérer au domaine social en juin 2024.\n● 31 pouvoirs locaux ont déclaré leur intention d’adhérer au domaine Hard RH.\nÀ ce jour, les offres de marché sont encore attendues pour les domaines Social et Hard Rh. Une fois disponibles, chaque pouvoir local pourra confirmer ou non son intérêt pour adhérer aux domaines, ce qui permettra de lancer la phase du développement (Build) et puis la phase d’exploitation (Run).\nJe constate que les pouvoirs locaux démontrent qu’il n’est pas toujours nécessaire de fusionner pour collaborer efficacement : ils peuvent mutualiser des outils tout en maintenant des services adaptés aux réalités locales.\nC’est un exemple à suivre pour la Région et la mutualisation des outils informatiques au sein des administrations régionales.\nLa Région prend en charge le financement d’une équipe mutualisée au sein de Paradigm, couvrant l’ensemble des domaines et réunissant les expertises nécessaires à la bonne gestion du projet jusqu’à la finalisation du projet.\nLa Région finance ce projet à hauteur de 61,4 millions d’euros, répartis entre trois axes budgétaires : 10,3 millions d’euros pour la Mission 7, 26,1 millions d’euros pour la Mission 10 et 25 millions d’euros pour le FRBRTC. Elle prend également en charge le financement d’une équipe mutualisée au sein de Paradigm, couvrant l’ensemble des domaines et réunissant les expertises nécessaires à la bonne gestion du projet. En parallèle, les pouvoirs locaux assument les frais de maintenance, déterminés par les marchés publics, et mobilisent leurs équipes pour assurer la prise en main des outils ainsi que leur intégration en fonction de leurs besoins spécifiques.\nLes coûts d’exploitation, incluant les coûts de maintenance, ont été estimés pour chaque domaine lors de la première phase du projet.\nLes pouvoirs locaux ont connaissance des coûts d'exploitation au moment de la réception des cadres particuliers envoyés après réception des offres remises par les adjudicataires. IRISteam s’est engagée, auprès des pouvoirs locaux, à obtenir les meilleurs prix du marché auprès des prestataires impliqués, dans l’intérêt exclusif des Pouvoirs locaux. Dans tous les cas, les montants facturés aux Pouvoirs locaux le seront à prix coûtant.\nLes marchés Finances et Soft HR ont été attribués.\nLes marchés Social et Hard HR sont en cours d’analyse par Paradigm et les pouvoirs locaux.\nVoir question 1 pour le détail des déploiements.\nEn collaboration avec l’ERAP, 47 sessions ont déjà été organisées sur les modules Évaluation, Performance, Recrutement et Reporting de la solution Cornerstone pour le domaine Soft RH, réunissant un total de 309 participants. Ces formations ont ciblé à la fois des utilisateurs clés, des acteurs impliqués dans le déploiement et des utilisateurs finaux.\nÀ la demande des pouvoirs locaux, il a été prévu qu’ils puissent se désengager à tout moment tant que le marché n’a pas encore été attribué. Une fois celui-ci attribué, toutes les parties signataires sont tenues de respecter les clauses contractuelles ainsi que les coûts prévus jusqu’à la finalisation du programme.\nL’adhésion après la date limite reste techniquement possible, mais sera évaluée en fonction des contraintes opérationnelles et pourra éventuellement entraîner une révision des conditions financières.\nToute demande d’adhésion aux outils déployés par le programme sera évaluée par la gouvernance mise en place et le COMEX qui est composé d’un représentant des communes, d’un représentant des CPAS, d’un représentant de BPL, d’un représentant de Paradigm et d’un représentant du Cabinet du Ministre de la Transition numérique.\nÀ la demande des pouvoirs locaux, dès le début du programme, une société indépendante (Gartner) a été mandatée pour analyser le marché et s’assurer que les solutions choisies répondent pleinement à leurs besoins opérationnels. Cette étude a permis de confirmer l’existence de solutions adaptées, de proposer différents scénarios de déploiement et d’estimer les coûts, tant d’investissement que de fonctionnement. Ses conclusions ont été partagées avec les communes et CPAS et ont servi de base à l’élaboration de feuilles de route précises, définissant les objectifs, les bénéfices attendus et les fourchettes de coûts pour la phase d’exploitation.\nCe projet a été conçu par et pour les pouvoirs locaux : chaque étape a été soumise à la validation des conseils communaux, garantissant que les décisions émanent directement des administrations elles-mêmes. Les pouvoirs locaux sont par ailleurs représentés à tous les niveaux de gouvernance du programme, ainsi qu’au sein d’IRISteam, qui assure le rôle d’agrégateur par l'intermédiaire d’un membre du conseil d’administration représentant les pouvoirs locaux. Cette organisation garantit une transparence totale et une vision cohérente de l’ensemble du programme.\nIl n’est pas prévu d’adapter cette gouvernance et le périmètre est validé par les pouvoirs locaux.",
+      "statut_extraction_reponse": "texte_present",
+      "actes": [
+        {
+          "date": "2025-11-18",
+          "acte": "Demande d'explications transformée en question écrite",
+          "acteur": "p.m."
+        },
+        {
+          "date": "2025-11-19",
+          "acte": "Recevable",
+          "acteur": "p.m."
+        }
+      ],
+      "documents": [],
+      "url_source": "https://www.parlement.brussels/weblex-quest-det/?moncode=167388&montitre=&base=1",
+      "source_locale": "sources/167388.html"
+    },
+    {
+      "id": "PRB-1-167374",
+      "moncode": "167374",
+      "base": 1,
+      "assemblee": "PRB",
+      "legislature": "2024-2029",
+      "session": "24/25",
+      "type": "question_ecrite",
+      "numero": 335,
+      "langue": "fr",
+      "titre": "Question écrite concernant le plan canicule à la STIB",
+      "titre_nl": "Schriftelijke vraag betreffende het hitteplan van de MIVB",
+      "auteur": "Oliver Rittweger de Moor",
+      "destinataire": "Elke Van den Brandt - Ministre du Gouvernement de la Région de Bruxelles-Capitale, chargée de la Mobilité, des Travaux publics et de la Sécurité routière",
+      "date_reception": "2025-06-30",
+      "date_publication": "2026-01-13",
+      "date_reponse": "2026-01-13",
+      "question": "Les 12 et 13 juin 2025, Bruxelles a suffoqué de chaleur.\nSur le réseau de la STIB, conducteurs et voyageurs en ont été victimes.\nEn cause, notamment, des bus, trams et métros de la STIB non équipés d'Air-co, ou d'un système de climatisation défaillant.\nDe nombreux bus, principalement du modèle Iveco, ont présenté de graves problèmes de dysfonctionnement de la climatisation.\nLes vieux trams PCC et les rames de métro MX ont été construits à une époque où l'air-co n'existait sans doute pas encore. Ces véhicules sont encore trop nombreux à circuler sur le réseau.\nLes syndicats ont adopté des mesures de prévention ces dernières années pour soulager les souffrances des conducteurs par forte chaleur, tant pour le bien-être des conducteurs que pour le confort et la sécurité des voyageurs. Mais il reste encore beaucoup à faire pour protéger le personnel et les voyageurs d'une chaleur embarquée qui peut s'avérer mortelle.\nIl y a d'ailleurs eu des malaises, tant chez les conducteurs que chez les voyageurs à cause de ces véhicules transformés en fournaise les 12 et 13 juin.\nMes questions sont donc :\nQue prévoient les procédures à la STIB en cas de climatisation défectueuse lors de canicule? Pouvez-vous nous confirmer qu'elles ont bien été suivies par la direction de la STIB ces deux journées des 12 et 13 juin?\nQuelles sont les procédures prévues quand un chauffeur ou un voyageur risque un malaise en cas de chaleur étouffante dans le véhicule? Quelles sont toutes les mesures de prévention déjà mises en place? Il nous revient qu'il y a eu de nombreux dysfonctionnements, et plusieurs causes à ceux-ci. Pouvez-vous demander des explications à la direction de la STIB?\nSur plusieurs modèles de bus Iveco, des fuites d’eau s'écoulant du plafond à l'intérieur du véhicule seraient liées aux dysfonctionnements de la climatisation? Pourquoi et quelles sont les mesures prises par la STIB pour y remédier en prévision d'un été qui s'annonce parfois caniculaire?",
+      "reponse": "Je renvoie volontiers aux éléments détaillés que j'ai fournis dans ma réponse à la question écrite n° 332 de Mme Pans.\nLa STIB entretient ses équipements selon des plans de maintenance rigoureux, respectant les recommandations des constructeurs. Une attention particulière est portée aux vérifications avant les périodes estivales, moment où le système est le plus sollicité. Outre l’entretien des véhicules, la STIB à la vérification des équipements sur le terrain, comme les lignes aériennes, particulièrement sensibles aux vagues de chaleur.\nDes pannes ne sont cependant pas à exclure. Le cas échéant, le véhicule concerné est, dans la mesure du possible, retiré de la circulation le temps d’effectuer la réparation. Ce délai peut varier en fonction de la nature de la panne. De plus, l’efficacité du refroidissement peut être limitée au vu des fréquentes ouvertures des portes, des ouvertures prolongées aux terminus ou encore ouverture des fenêtres par les voyageurs. Dans ces situations, l’air frais produit s’échappe rapidement, ce qui peut donner l’impression que la climatisation ne fonctionne pas. Mais cette ventilation naturelle n’est toutefois pas inutile, car elle participe au renouvellement de l’air à bord.",
+      "statut_extraction_reponse": "texte_present",
+      "actes": [
+        {
+          "date": "2025-11-17",
+          "acte": "Question orale transformée en question écrite",
+          "acteur": "p.m."
+        },
+        {
+          "date": "2025-11-18",
+          "acte": "Recevable",
+          "acteur": "p.m."
+        }
+      ],
+      "documents": [],
+      "url_source": "https://www.parlement.brussels/weblex-quest-det/?moncode=167374&montitre=&base=1",
+      "source_locale": "sources/167374.html"
+    },
+    {
+      "id": "PRB-1-167348",
+      "moncode": "167348",
+      "base": 1,
+      "assemblee": "PRB",
+      "legislature": "2024-2029",
+      "session": "24/25",
+      "type": "question_ecrite",
+      "numero": 332,
+      "langue": "fr",
+      "titre": "Question écrite concernant les conditions dans les transports en commun lors de fortes chaleurs",
+      "titre_nl": "Schriftelijke vraag betreffende de omstandigheden op het openbaar vervoer bij heel warm weer",
+      "auteur": "Amélie Pans",
+      "destinataire": "Elke Van den Brandt - Ministre du Gouvernement de la Région de Bruxelles-Capitale, chargée de la Mobilité, des Travaux publics et de la Sécurité routière",
+      "date_reception": "2025-06-30",
+      "date_publication": "2026-01-07",
+      "date_reponse": "2026-01-07",
+      "question": "Le 18 juin 2025, un témoignage publié par RTL Info fait état d’un incident préoccupant survenu dans un bus de la STIB. Une famille, dont deux enfants en bas âge, a été contrainte de descendre en urgence du véhicule en raison d’une chaleur insoutenable. Selon le père, ses filles « n’arrivaient plus à respirer ».\nL’absence de climatisation et de ventilation suffisante dans le bus a clairement mis en danger la santé des passagers.\nCe type de situation, qui pourrait se multiplier avec l’intensification des vagues de chaleur, met en lumière des lacunes dans l’adaptation du réseau de transports en commun aux conditions climatiques extrêmes.\nDans un contexte où les autorités bruxelloises encouragent activement l’usage des transports publics, il est essentiel de garantir un niveau minimal de sécurité, de confort et de salubrité, y compris lors des périodes de fortes chaleurs.\nD’où mes questions, Madame la Ministre :\nQuelles sont les températures relevées dans les véhicules de la STIB lors des épisodes récents de chaleur (juin 2025 notamment) ?\nCombien de véhicules actuellement en circulation ne disposent pas de système de climatisation ou disposent d’un système défectueux ?\nQuels sont les standards techniques exigés par la Région bruxelloise ou la STIB en matière de ventilation et de climatisation pour les véhicules de transport public ? Quels sont les délais fixés pour la mise à niveau ou le remplacement des véhicules ne respectant pas ces standards ?\nQuels protocoles ou consignes ont été transmis aux conducteurs pour assurer la sécurité des passagers lors des périodes de forte chaleur ?\nCombien d’incidents liés à des malaises ou à des conditions de chaleur excessive ont été recensés dans les transports en commun bruxellois depuis janvier 2024 ?\nQuelles mesures concrètes sont actuellement en place pour garantir le confort thermique des passagers pendant les périodes de canicule (renfort de flotte, adaptation des horaires, surveillance technique renforcée, etc.) ?\nQuelle information est diffusée aux usagers en cas de conditions climatiques extrêmes et par quels canaux (applications, affichage en station, réseaux sociaux) ?\nExiste-t-il un plan régional d’adaptation du réseau de transport public aux impacts du changement climatique, incluant notamment la question des fortes chaleurs ? Si oui, quel est son état d’avancement ?",
+      "reponse": "La STIB applique toute une série de mesures afin de faire face aux épisodes de fortes chaleurs dans la capitale et d’offrir les meilleures conditions de confort possibles dans ses véhicules, tout en tenant compte des contraintes opérationnelles.\nTous les bus de la STIB, soit quelque 850 véhicules, sont équipés d’air conditionné.\nEnviron 35% des métros, les M7, sont équipés d’un système d’air conditionné. Les M6 et MX sont équipées d’une ventilation forcée. Techniquement, l’ajout d’un système d’air conditionné sur les MX ou M6 n’est pas possible en raison du gabarit des tunnels. Pour les M7, une solution innovante a été mise en place : le système de climatisation est intégré dans une grande ouverture sur le toit, à moitié en surface et à moitié encastré.\nPour les trams, les T3000, T4000 et TNG disposent de l’air conditionné. Aujourd’hui, ces véhicules représentent plus de 60% de la flotte de trams et cette proportion continue d’augmenter grâce à l’arrivée progressive des nouveaux trams TNG. En été, la STIB privilégie dans la mesure du possible la circulation des trams récents afin de limiter l’utilisation des PCC non climatisés.\nLa STIB diffuse régulièrement des messages de prévention à l’attention de son personnel. Elle a par exemple communiqué des consignes et conseils à travers son Intranet et des affiches, pour rappeler les réflexes à adopter en cas de fortes chaleurs. Elle s’assure que son personnel ait accès à des ressources pour s’hydrater en mettant à disposition de contenants isothermes et en assurant l’accès à des points d’eau fraîche. En cas de canicule, des bouteilles d’eau fraîche sont distribuées dès 30°C et des renforts de personnel sont prévus pour assurer des remplacements sur les véhicules non équipés de climatisation dès 35°C.\nLa STIB a noté une déclaration d’accident en juillet 2025 avec au moins 1 jour d’incapacité de travail, attribué à de fortes chaleurs. La STIB ne dispose pas de chiffres relatifs à de tels incidents pour les voyageurs.\nSi une personne est victime d’un malaise dans un véhicule, le conducteur ou la conductrice prend contact avec le dispatching. Celui-ci se chargera de déclencher l’intervention des services de secours ainsi que l’envoi de personnel encadrant sur place afin de prendre en charge la situation.",
+      "statut_extraction_reponse": "texte_present",
+      "actes": [
+        {
+          "date": "2025-11-14",
+          "acte": "Question orale transformée en question écrite",
+          "acteur": "p.m."
+        },
+        {
+          "date": "2025-11-14",
+          "acte": "Recevable",
+          "acteur": "p.m."
+        }
+      ],
+      "documents": [],
+      "url_source": "https://www.parlement.brussels/weblex-quest-det/?moncode=167348&montitre=&base=1",
+      "source_locale": "sources/167348.html"
+    },
+    {
+      "id": "PRB-1-167091",
+      "moncode": "167091",
+      "base": 1,
+      "assemblee": "PRB",
+      "legislature": "2024-2029",
+      "session": "24/25",
+      "type": "question_ecrite",
+      "numero": 141,
+      "langue": "fr",
+      "titre": "Question écrite concernant l'impact des mesures Arizona sur les demandeuses et demandeurs d'emploi bruxellois",
+      "titre_nl": "Schriftelijke vraag betreffende de gevolgen van de Arizona-maatregelen voor de Brusselse werkzoekenden",
+      "auteur": "Farida Tahar",
+      "destinataire": "Bernard Clerfayt - Ministre du Gouvernement de la Région de Bruxelles-Capitale chargé de l'Emploi et de la Formation professionnelle, de la Transition numérique, des Pouvoirs locaux et du Bien-Être animal",
+      "date_reception": "2025-06-30",
+      "date_publication": "2025-11-14",
+      "date_reponse": "2025-11-14",
+      "question": "La mobilisation nationale du 25 juin, qui a rassemblé près de 30 000 manifestants et manifestantes dans les rues de Bruxelles, témoigne de l'inquiétude légitime de la population face aux mesures du gouvernement Arizona, particulièrement concernant la limitation des allocations de chômage à deux ans.\nCes préoccupations sont d'autant plus justifiées que nous savons qu'une part importante des personnes demandeuses d'emploi bruxelloises de plus de 55 ans risquent d'être exclues du système d'allocations de chômage. Malgré les promesses du gouvernement fédéral concernant une exception pour les plus de 55 ans, les conditions sont tellement strictes que près de 80 % des personnes concernées en seraient exclues.\nPar ailleurs, à la Chambre des représentants, plusieurs partis de l'opposition ont obtenu le renvoi de 103 amendements à la loi-programme au Conseil d'État. Ce renvoi suspend l'examen du texte en séance plénière et empêche la loi-programme d'entrer en vigueur le 1er juillet comme le souhaitait la coalition Arizona.\nCe délai supplémentaire, imposé par la procédure au Conseil d'État, constitue une opportunité précieuse qui pourrait être mise à profit pour permettre aux entités fédérées de mieux se concerter et de préparer un accompagnement renforcé des chercheurs d'emploi. C'est précisément ce que nous avions tenté d'obtenir, en vain, via la motion relative au conflit d'intérêt.\nLa région bruxelloise ne peut rester passive face à une réforme qui risque de précariser davantage les publics les plus vulnérables. Il est urgent d'agir pour que ce délai serve à anticiper et renforcer les mesures d'accompagnement des chercheurs d'emploi.\nJ'en viens à mes questions:\nDisposez-vous d'une évaluation précise du nombre de personnes demandeuses d'emploi bruxellois de plus de 55 ans qui seraient effectivement exclues des allocations de chômage par la loi-programme (volet emploi)?\nAllez-vous profiter du délai supplémentaire généré par la saisine du Conseil d'État pour renforcer la concertation avec le gouvernement fédéral et les autres entités fédérées en vue d'améliorer l'accompagnement des demandeurs d'emploi les plus vulnérables ?\nQuelles mesures spécifiques mettez-vous en place pour anticiper l'impact de ces réformes sur le marché de l'emploi bruxellois, notamment pour les travailleurs âgés qui risquent de se retrouver sans filet de sécurité sociale ?\nDans quelle mesure Actiris et les partenaires sociaux bruxellois sont-ils associés à la préparation de ces adaptations, et quels moyens supplémentaires allez-vous mobiliser pour faire face à l'afflux prévisible de demandeurs d'emploi en fin de droits ?",
+      "reponse": "Je vous remercie pour votre question\n1/\nIl n’existe pas, à ce stade, d’évaluation précise du nombre de demandeurs d’emploi bruxellois de plus de 55 ans qui seraient effectivement exclus des allocations de chômage suite à l’entrée en vigueur de la loi-programme. Les comportements pouvant évoluer d’ici les premières exclusions, nous devons encore nous en tenir aux estimations de l’ONEm.\nSelon ces dernières, cela concernerait une population d’environ 12 000 chercheurs d’emploi bruxellois de plus de 55 ans ne disposant pas d’une carrière professionnelle d’au moins 30 ans, contre environ 800 chercheurs d’emploi du même âge disposant des 30 années de passé professionnel requises pour être exemptés de la limitation dans le temps de leurs allocations de chômage.\nEn tenant compte des flux de sortie du chômage (vers l’emploi, la maladie, la pension, etc.) et des éventuelles prolongations de la période d’indemnisation, l’ONEm estime qu’environ 9 000 chercheurs d’emploi bruxellois de 55 ans et plus pourraient se retrouver en fin de droit en 2026, sur la base des conditions actuellement fixées dans le projet de loi-programme.\n2/\nLa saisine du conseil d’état n’a retardé les travaux du processus législatif de la loi-programme que de quelques jours. En effet, la Chambre a adopté la loi-programme le 18 juillet, elle a été publiée au Moniteur belge le 29 juillet et entre en vigueur le 1er janvier 2026.\nDes concertations sont effectivement en cours, tant au niveau politique qu’entre les administrations des entités fédérées, via trois canaux principaux :\n· Les CIM Emploi informelles, en complément des CODECO, où je relaie mes points d’attention et demandes ;\n· Le Collège des fonctionnaires dirigeants, où Actiris peut faire de même directement auprès de l’ONEm ;\n· Synerjob, où Actiris et Bruxelles Formation se coordonnent avec le FOREM, le VDAB et l’ADG.\nJ’ai également obtenu d’être observateur dans les discussions menées entre la Ministre Van Bossuyt et les fédérations de CPAS, afin de débattre des compensations et d’évaluer les impacts de la réforme des allocations de chômage sur les emplois d’insertion dits article 60.\n3/\nIl est important de rappeler qu’en amont de l’adoption de la loi-programme, dès le mois d’avril, le Comité de gestion d’Actiris a approuvé un plan d’action visant un triple objectif pour préparer l’entrée en vigueur de la réforme et anticiper ses effets sur le public bruxellois :\n· Adapter les prises en charge des chercheurs d’emploi aux nouvelles temporalités et aux nouveaux publics imposés par les réformes fédérales ;\n· Limiter et accompagner les fins de droit ;\n· Adapter les leviers et outils au nouveau contexte.\nActiris a ainsi commencé à mettre en place des actions d’information et d’orientation pour les publics susceptibles de se retrouver en fin de droit, et a engagé des discussions avec la Fédération des CPAS et les acteurs locaux afin d’identifier les collaborations possibles.\nCes questions ont ensuite été abordées au sein de la Table ronde régionale, initiée en juin, qui vise à anticiper l’impact de la réforme et à en assurer la mise en œuvre. Cette instance définit les urgences, priorise les actions à mener et élabore une stratégie régionale, avec un suivi mensuel et un reporting au gouvernement.\nLes trois chantiers en cours sont :\n1. La mise en place d’une information rapide des futurs exclus ;\n2. L’assurance d’une orientation claire et d’une prise en charge pour tous les publics concernés ;\n3. La simplification des processus, notamment entre Actiris et les CPAS, au bénéfice des personnes accompagnées.\nCette Table ronde réunit Actiris, Bruxelles Formation, la Fédération des CPAS, le VDAB, le Ministre-Président et le Ministre de l’Action sociale. Selon les thématiques abordées, les partenaires sociaux et d’autres acteurs de l’emploi et de la formation peuvent également y être associés.\nEn parallèle, le Gouvernement bruxellois s’est accordé, le 17 juillet dernier, sur une série de mesures visant à améliorer l’orientation vers la formation, à renforcer la montée en compétences et à maintenir l’effectivité de l’accompagnement et des services d’activation, dans un objectif de retour à l’emploi plus rapide et plus durable.\nCes mesures sont regroupées dans un Plan d’action régional, faisant l’objet d’un suivi régulier en gouvernement, et comprennent notamment :\n1. La réforme de la procédure de contrôle de la disponibilité des chercheurs d’emploi ;\n2. La modification du rythme d’accompagnement ;\n3. La généralisation du bilan de compétences ;\n4. La généralisation de la formation dans le cadre du PAI ;\n5. La réforme des aides à l’emploi ;\n6. L’adaptation de l’offre de formation professionnelle ;\n7. L’incitation à la reprise d’études dans les métiers en pénurie.\nLes comités de gestion d’Actiris et de Bruxelles Formation, où les partenaires sociaux sont représentés, travaillent sur les modalités d’accompagnement et de déploiement d’offres de services adaptées pour s’assurer que personne ne soit laissé de côté.\nEnfin, un Sommet social élargi à l’ensemble des acteurs de la formation et de l’emploi a été organisé par le Ministre-Président, à la suite de la demande de dialogue régional formulée par les partenaires sociaux dans leur mémorandum du 5 juin 2025.\nCe sommet a débouché sur la décision de mener des concertations avec les partenaires sociaux pour tous les textes réglementaires, en amont de leur première lecture, selon un modèle inspiré des priorités partagées.\nC’est déjà le cas pour le projet de réforme de l’arrêté du Gouvernement de la Région de Bruxelles-Capitale du 16 février 2017 organisant le contrôle de la disponibilité des demandeurs d'emploi résidant sur le territoire de la Région de Bruxelles-Capitale.\nL’ensemble de ces démarches visent à garantir que la Région bruxelloise soit pleinement préparée à faire face aux conséquences sociales de la réforme fédérale et à assurer une transition juste pour tous les chercheurs d’emploi.\n4/\nCes éléments sont décrits ci-avant à la troisième sous-question.",
+      "statut_extraction_reponse": "texte_present",
+      "actes": [
+        {
+          "date": "2025-10-22",
+          "acte": "Question orale transformée en question écrite",
+          "acteur": "p.m."
+        },
+        {
+          "date": "2025-10-22",
+          "acte": "Recevable",
+          "acteur": "p.m."
+        }
+      ],
+      "documents": [],
+      "url_source": "https://www.parlement.brussels/weblex-quest-det/?moncode=167091&montitre=&base=1",
+      "source_locale": "sources/167091.html"
+    },
+    {
+      "id": "PRB-1-167067",
+      "moncode": "167067",
+      "base": 1,
+      "assemblee": "PRB",
+      "legislature": "2024-2029",
+      "session": "24/25",
+      "type": "question_ecrite",
+      "numero": 247,
+      "langue": "fr",
+      "titre": "Question écrite concernant la fin du service Villo, le retrait des panneaux publicitaires et les réaménagements requis en voirie",
+      "titre_nl": "Schriftelijke vraag betreffende het einde van Villo, de verwijdering van de reclameborden en de vereiste wegaanpassingen",
+      "auteur": "Ibrahim Dönmez",
+      "destinataire": "Alain Maron - Ministre du Gouvernement de la Région de Bruxelles-Capitale chargé de la Transition climatique, de l'Environnement, de l'Énergie et de la Démocratie participative",
+      "date_reception": "2025-06-30",
+      "date_publication": "2025-11-10",
+      "date_reponse": "2025-11-10",
+      "question": "Si à notre grand regret, le modèle du système de vélos en libre-service Villo! lancé en 2009 n’a jamais été intégrée au champs de l’ordonnance cyclopartage et que l’occasion de l'adoption en 2018 de l’avenant 3 de la convention initiale intégrant l’électrification d’une partie de la flotte Villo n’a pas non plus été saisie pour intégrer des disposition fines et objectives permettant d’évaluer l’apport logistique de ce service ou la qualité de sa gestion par l’opérateur, il est évident aujourd’hui qu’avec l’émergence de nouveaux services et opérateurs de location de deux roues en free floating le service Villo! a perdu énormément d’attractivité ces dernières années.\nLes travaux de cette commission ont déjà abordé à plusieurs reprise le principe même de cette convention de prestation d’un service contre affichage publicitaire et tout particulièrement la question de la légalité des nouveaux panneaux d’affichage dynamiques introduits à partir de 2018 et qui semblent contrevenir au code de la route. En Commission de l’Environnement c’était la gabegie énergétique de ce type de panneaux qui avait fait débat. Que ce soit dans cette commission comme en commission de l’Environnement ou de l’urbanisme, un large consensus s’était dégagé quant à l’opportunité d’alléger l’espace public de ce type de support publicitaire et de nettement mieux les encadrer.\nEn tout état de cause, la concession d’exploitation confiée au un concessionnaire privé JCDecaux pendra tout prochainement fin en septembre 2026.\nDès lors, malgré la période de transition actuelle, nous souhaitons savoir où en sont concrètement les préparatifs de « l’après Villo! ».\nC’est pourquoi, Madame la Ministre, par souci de clarté, je vous saurai gré de répondre distinctement aux questions suivantes :\nEn 2020, au sein de cette même commission, vous nous informiez que l’opérateur JCDecaux était en possession d’un cadastre complet des différents types de panneaux. Lors de nos précédents débats, vous nous aviez confirmé demander un cadastre de tous les panneaux et dispositifs publicitaires déployés dans le cadre des conventions en vigueur arrivant à échéance en 2026.\nÊtes-vous en mesure de transmettre ce cadastre ainsi que l’emplacement exact des 200 panneaux a écrans numériques dynamiques ?\nNul doute que le maintient de ces panneaux fera l’objet d’un intense lobying, mais nous vous avions déjà interrogées quant à la légalité des nouveaux dispositifs d’affichage dynamique au regard du RRU et code de la route. Vous êtes également en charge de la Sécurité routière.\nNous n’avons toujours pas eu de réponse claire quant à la conformité de l’implantation de ce type de panneaux dans l’espace public.\nAvez-vous pu faire le point sur cette question avec vos services ainsi qu’avec ceux de votre collègue en charge de l’urbanisme ? Qu’en est-il ?\nEst-ce que ces panneaux à écrans numériques dynamiques on fait l’objet de nouveaux permis d’urbanismes délivrés en dérogation aux prescriptions du code de la route ?\nOn compterais environ 360 stations Villo! réparties dans les 19 communes. Cela représente des surfaces importantes en voirie et un maillage potentiellement intéressant pour le déploiement de nouveaux équipements (drop-zones, arceaux, points de recharge pour vélos électriques,...).\nL’administration de Bruxelles Mobilité a-t-elle déjà procédé à une analyse en opportunité à ce sujet ?\nUne concertation formelle avec les communes a-t-elle déjà été initiée sur cette question ? Quels en sont les résultats ?\nQui de la région ou de l’opérateur va financer la remise en pristin étant de ces espaces aménagés à l’occasion du démontage des stations Villo ?\nEnfin, pouvez-vous confirmer que ces dispositifs étaient exonérés de toutes taxes et que leur retrait de l’espace public ne constituera pas de pertes financières pour les pouvoirs locaux ?",
+      "reponse": "Aucune des questions ne relève de la compétence du ministre de l'Environnement.",
+      "statut_extraction_reponse": "texte_present",
+      "actes": [
+        {
+          "date": "2025-10-16",
+          "acte": "Demande d'explications transformée en question écrite",
+          "acteur": "Ibrahim Dönmez"
+        },
+        {
+          "date": "2025-10-16",
+          "acte": "Recevable",
+          "acteur": "p.m."
+        }
+      ],
+      "documents": [],
+      "url_source": "https://www.parlement.brussels/weblex-quest-det/?moncode=167067&montitre=&base=1",
+      "source_locale": "sources/167067.html"
+    },
+    {
+      "id": "PRB-1-166382",
+      "moncode": "166382",
+      "base": 1,
+      "assemblee": "PRB",
+      "legislature": "2024-2029",
+      "session": "24/25",
+      "type": "question_ecrite",
+      "numero": 88,
+      "langue": "fr",
+      "titre": "Question écrite concernant les anomalies apparentes dans l’exécution des marchés publics de la STIB en 2023",
+      "titre_nl": "Schriftelijke vraag betreffende de duidelijke anomalieën in de uitvoering van de overheidsopdrachten van de MIVB in 2023",
+      "auteur": "Ismail Luahabi",
+      "destinataire": "Sven Gatz - Ministre du Gouvernement de la Région de Bruxelles-Capitale, chargé des Finances, du Budget, de la Fonction publique, de la Promotion du Multilinguisme et de l'Image de Bruxelles",
+      "date_reception": "2025-06-30",
+      "date_publication": null,
+      "date_reponse": "2025-08-20",
+      "question": "L’analyse des lignes de liquidation budgétaire 2023 de la STIB, telle qu’extraite du fichier référencé sous le numéro BCE 0247499953, fait apparaître plusieurs anomalies ou zones d’ombre dans la gestion des marchés publics passés par cet organisme régional.\nPlusieurs lignes présentent des liquidations très faibles ou symboliques (ex. : 1 euro ou quelques centaines d’euros), et ce pour des prestataires récurrents, sans qu’il soit possible d’en identifier clairement l’objet ni le lien avec un marché public attribué.\nIl apparaît également que certains libellés budgétaires sont excessivement vagues, du type « autres biens meubles » ou « prestations de services (études, honoraires, etc.) », ne permettant pas d’identifier précisément le type de marché concerné ni sa justification.\nDe nombreux paiements sont effectués en l’absence d’informations sur l’adresse, le numéro de TVA ou la commune du bénéficiaire, ce qui pose une question de traçabilité.\nEnfin, il est permis de s’interroger sur un éventuel fractionnement de marchés : certains fournisseurs semblent faire l’objet de liquidations répétées pour des montants proches, sans regroupement apparent.\nDans un souci de bonne gouvernance et de contrôle parlementaire, je souhaite dès lors vous poser les questions suivantes.\nDisposez-vous d’un audit ou d’une vérification interne de la STIB portant sur la conformité des liquidations budgétaires aux règles des marchés publics ?\nComment expliquez-vous la présence de liquidations aussi faibles, voire symboliques, sans objet clairement identifié ?\nQuelles mesures sont mises en œuvre pour garantir la traçabilité complète des bénéficiaires des marchés et le respect des exigences de transparence ?\nQuelles garanties pouvez-vous apporter que le fractionnement de marchés ne constitue pas une pratique tolérée ou banalisée au sein de la STIB ?",
+      "reponse": "Par la présente, je tiens à vous signaler que Madame Elke Van den Brandt, en tant que Ministre bruxelloise de la Mobilité, est compétente pour la STIB.\nDès lors, je vous prie de bien vouloir adresser toutes vos questions à ma collègue.",
+      "statut_extraction_reponse": "texte_present",
+      "actes": [
+        {
+          "date": "2025-07-23",
+          "acte": "Recevable",
+          "acteur": "Bureau élargi du Parlement"
+        }
+      ],
+      "documents": [],
+      "url_source": "https://www.parlement.brussels/weblex-quest-det/?moncode=166382&montitre=&base=1",
+      "source_locale": "sources/166382.html"
+    },
+    {
+      "id": "PRB-1-166346",
+      "moncode": "166346",
+      "base": 1,
+      "assemblee": "PRB",
+      "legislature": "2024-2029",
+      "session": "24/25",
+      "type": "question_ecrite",
+      "numero": 198,
+      "langue": "fr",
+      "titre": "Question écrite concernant le bilan de clean.brussels – Objectif 13",
+      "titre_nl": "Schriftelijke vraag betreffende de balans van clean.brussels - Doelstelling 13",
+      "auteur": "Aurélie Czekalski",
+      "destinataire": "Alain Maron - Ministre du Gouvernement de la Région de Bruxelles-Capitale chargé de la Transition climatique, de l'Environnement, de l'Énergie et de la Démocratie participative",
+      "date_reception": "2025-06-30",
+      "date_publication": "2025-09-09",
+      "date_reponse": "2025-09-09",
+      "question": "En 2023, deux ans après le lancement de groupes de travail pour la coconstruction d’une stratégie clean.brussels, d’évaluation des politiques publiques de propreté et d’éclairage pour comprendre les comportements de (mal)propreté, clean.brussels a commencé à mettre en œuvre des actions concrètes. Pour rappel, les objectifs primordiaux de clean.brussels sont doubles. Il s’agit d’améliorer le cadre de vie et l’attractivité de la Région de Bruxelles-Capitale, ainsi que d’améliorer l’environnement et la biodiversité. Pour ce faire ont été établis 14 objectifs répartis en 65 mesures concrètes afin de rendre la Région plus propre et de mettre en place une coopération durable entre les différents niveaux de pouvoir, les entreprises et les citoyens.\nAprès deux ans d’activité, il me semble désormais nécessaire d’établir le bilan de cet organisme. Par rapport à l’objectif 13 de clean.brussels (« Réduire la production des déchets et augmenter l’efficacité des mécanismes de responsabilité élargie des producteurs »), permettez-moi donc de vous poser les questions suivantes :\nLa volonté de réduction globale des emballages pour les produits destinés aux consommateurs et aux commerces et industries via les accords de coopération interrégionaux (ACI) et les agréments de Fost Plus et de Valipac a-t-elle été rencontrée dans les faits ?\nLe cadre de la responsabilité élargie des producteurs est-il pleinement mis en œuvre ? À quels nouveaux flux le cadre de la responsabilité élargie des producteurs est-il censé s’élargir ?",
+      "reponse": "QUESTION 1\nLa volonté de réduction globale des emballages pour les produits destinés aux consommateurs et aux commerces et industries via les accords de coopération interrégionaux (ACI) et les agréments de Fost Plus et de Valipac a-t-elle été rencontrée dans les faits ?\nContraint par le cadre juridique, le secteur de l'emballage a pris plusieurs initiatives pour respecter le principe de prévention des déchets d'emballages énoncé dans l'accord de coopération sur les emballages et les objectifs fixés dans les agréments de Valipac et de Fost Plus (à savoir une réduction de 5 % des emballages à usage unique à atteindre d'ici la fin des agréments respectivement par rapport à 2021 et 2023).\nCes initiatives prennent la forme de plans de prévention tels que prévu dans l’accord de coopération Emballages et de programme d’actions en matière de prévention tels que prévu dans les agréments, de projets visant à promouvoir le réemploi et de campagnes de sensibilisation et d'information. Ainsi, l’agrément de Fost Plus précise que l’organisme de gestion devra consacrer 2% de son budget annuel à des actions de prévention et de réutilisation des emballages.\nCes programmes d’actions sont en cours de finalisation pour couvrir la période de l’agrément jusqu’en 2028. Au niveau industriel, différents projets sont aussi testés et étudiés.\nLes chiffres rapportés annuellement démontrent que les objectifs n’ont pas encore été atteints : une légère baisse des déchets d’emballages de 1,33% a été enregistrée entre 2021 et 2022 alors que l’on constatait une augmentation continue des déchets d’emballages entre 2000 et 2021.\nToutefois, le règlement européen sur les emballages (dit PPWR) prévoit un effort harmonisé au niveau de l'UE avec un objectif de réduction des emballages à usage unique de 5 % en 2030, 10 % en 2035 et 15 % en 2040, ainsi qu'une interdiction de seulement quelques formats d’emballages en plastique à usage unique (emballages pour fruits et légumes, portions individuelles (condiments, sauces, etc.) pour la consommation sur place dans l’horeca et les emballages miniatures dans les hôtels).\nQUESTION 2\nLe cadre de la responsabilité élargie des producteurs est-il pleinement mis en œuvre ? À quels nouveaux flux le cadre de la responsabilité élargie des producteurs est-il censé s’élargir ?\nLe cadre actuel de la REP en Région bruxelloise repose sur la délivrance d’agréments pour le flux emballages et la négociation de conventions environnementales pour les autres flux. Ce cadre s'est révélé insuffisant pour mettre en œuvre une politique efficace en matière de REP. Par exemple, l’outil régional des conventions environnementales n’offre pas la possibilité de sanctionner les producteurs en cas de non-atteinte des objectifs car la mise sur le marché des produits s’effectue sur l’ensemble du territoire belge et non au niveau régional. Le cadre juridique des REP (à l’exception du flux emballages) n’est pas harmonisé avec les deux autres Régions, ce qui rend difficile le respect des enjeux et positionnements bruxellois.\nLe projet d'accord de coopération REP-Déchets sauvages vise à harmoniser les systèmes de REPs existants entre les trois Régions, à l’image de ce qui existe pour le flux emballages.\nPar ailleurs, le texte prévoit la création d’un régime de REP sur certains déchets sauvages, dont les emballages ainsi que 3 régimes de REP futurs : les textiles, les meubles et les langes. Pour les textiles, la règlementation européenne en cours d’adoption établit un régime de REP obligatoire, qui sera en vigueur dans les 27 Etats membres. Pour les langes et les meubles, un accord politique avec les deux autres Régions sera nécessaire pour la mise en place d’un système de REP harmonisé.",
+      "statut_extraction_reponse": "texte_present",
+      "actes": [
+        {
+          "date": "2025-07-23",
+          "acte": "Recevable",
+          "acteur": "Bureau élargi du Parlement"
+        }
+      ],
+      "documents": [],
+      "url_source": "https://www.parlement.brussels/weblex-quest-det/?moncode=166346&montitre=&base=1",
+      "source_locale": "sources/166346.html"
+    },
+    {
+      "id": "PRB-1-166345",
+      "moncode": "166345",
+      "base": 1,
+      "assemblee": "PRB",
+      "legislature": "2024-2029",
+      "session": "24/25",
+      "type": "question_ecrite",
+      "numero": 85,
+      "langue": "fr",
+      "titre": "Question écrite concernant l'application concrète du moratoire sur les engagements dans la fonction publique régionale bruxelloise",
+      "titre_nl": "Schriftelijke vraag betreffende de praktische toepassing van het moratorium op de aanwervingen voor het openbaar ambt in het Brussels Gewest",
+      "auteur": "Clémentine Barzin",
+      "destinataire": "Sven Gatz - Ministre du Gouvernement de la Région de Bruxelles-Capitale, chargé des Finances, du Budget, de la Fonction publique, de la Promotion du Multilinguisme et de l'Image de Bruxelles",
+      "date_reception": "2025-06-30",
+      "date_publication": "2025-09-08",
+      "date_reponse": "2025-09-08",
+      "question": "Dans le cadre des mesures de maîtrise des dépenses publiques, un moratoire sur les recrutements dans la fonction publique régionale bruxelloise a été annoncé. Si un tel dispositif contribue à une meilleure gestion budgétaire, son application concrète soulève toutefois plusieurs questions, tant sur le plan de la lisibilité des règles que sur celui des dérogations ou exceptions accordées.\nCombien de demandes de dérogation ont été introduites depuis le 1er décembre 2023 ? Parmi celles-ci, combien ont reçu un avis favorable ?\nPour chacune des dérogations accordées, pouvez-vous ventiler : le type de fonction concernée (contractuel, statutaire, mandat), le type de critère mobilisé pour justifier le caractère « critique » de la fonction et l’entité demandeuse ?\nLe tableau de bord prospectif et l’outil de monitoring automatisé évoqués dans la circulaire sont-ils opérationnels à ce stade ou toujours en phase de développement ?\nÀ la date actuelle, des constats de dépassement non autorisés du plan de personnel validé ont-ils été signalés ? En cas de non-respect constaté, quelles mesures correctrices sont prévues ?\nPouvez-vous préciser les premières conclusions tirées de l'intégration des spending reviews 2024-2029 dans la validation des plans de personnel pour Actiris ?\nQuel rôle joue actuellement talent.brussels dans le contrôle ex post de l’exécution correcte des plans de personnel approuvés ?\nAprès le résultat de 30 millions d’euros d’économies en 2024, dans le cadre de la poursuite ou de l’adaptation du moratoire sur les mouvements de personnel, quelle est la projection budgétaire attendue pour l’année 2025 ?\nLes organismes administratifs autonomes (OAA) comme hub.brussels sont-ils formellement soumis au moratoire ? Dans l’affirmative, comment le gouvernement s’assure-t-il de leur conformité, notamment en matière de nouveaux engagements ?",
+      "reponse": "En ce qui me concerne, depuis le 1er décembre 2023, j’ai reçu 251 demandes de dérogation, dont 189 ont reçu un avis favorable.\nRéponse du SPRB:\n1/ Conformément à la procédure décrite dans la décision gouvernementale relative au moratoire, l'administration doit transmettre une demande motivée d'approbation d'une fonction critique à son ministre compétent, qui la transmet ensuite au Ministre du Budget et de la Fonction publique. Ce n'est que lorsque cet avis est positif que le Service des Ressources Humaines du SPRB reçoit la mission de l'exécuter. Ils ne sont pas informés systématiquement de toutes les demandes introduites, ni des avis négative. Soulignons que certaines administrations du SPRB ont reçus des avis défavorables.\nDepuis le 1er décembre 2023, le Service des Ressources Humaines du SPRB a reçu 40 demandes approuvées pour lancer une fonction critique.\nCela ne signifie pas pour autant que toutes ces fonctions critiques ont été pourvues.\nA titre d'information, le nombre de sorties au sein du SPRB s'élève à 73 en 2024 et 39 pour le 1er semestre 2025.\n2/ 22 fonctions contractuelles et 18 fonctions statutaires ont été approuvées en tant que fonctions critiques au sein du SPRB.\nPour les fonctions critiques approuvées, le critère principal utilisé était que, sans cette fonction, la continuité du service public de l'organisme serait compromise.\n3/ Le SPRB n’a pas d’éléments de réponse.\n4/ Le SPRB n’a pas d’éléments de réponse.\n5/ Un planning pluriannuel des revues des dépenses et recettes a été établi par le centre de coordination administratif pour la période 2024-2029. Ce plan pluriannuel prévoit deux revues par an. À cette fin, toutes les institutions de la RBC et de la COCOM ont été interrogées, et les avis d'experts de BFB et de l'Inspection des Finances ont été pris en compte. Le comité de pilotage administratif a validé le planning pluriannuel le 25/04/2025. Le planning pluriannuel a été transmis au Cabinet des Finances le 15/05/2024. La proposition administrative du planning a été inscrite à l'ordre du jour, mais reportée par le Gouvernement le 30/05/2024. Depuis lors, le gouvernement est en affaires courantes.\nÀ ce jour, aucune revue générale des dépenses et des recettes n'a été effectuée en rapport avec les plans de personnel. Sans approbation politique, aucune revue ne sera effectuée dans la RBC au cours de cette législature.\nLe centre de coordination administratif n'a pas connaissance d'une revue concernant Actiris.\n6/ Le SPRB n’a pas d’éléments de réponse.\n7/ La préparation d'une estimation pour 2025 est actuellement en cours, sur la base d'une enquête menée auprès des institutions concernées.\n8/ Le SPRB n’a pas d’éléments de réponse.\nRéponse de talent.brussels :\n1/ Concernant talent.brussels, 6 demandes de dérogation ont été introduites. 4 ont reçu un avis favorable de l’Inspection des Finances. Une des demandes refusées par l’IF a été approuvée par le Ministre du Budget.\nSur ces 5 postes approuvés, 1 poste a été pourvu, 3 n’ont jamais été ouverts in fine et 1 est en cours de recrutement.\n2/ Concernant talent.brussels, les 6 postes pour lesquels une demande de dérogation a été introduite sont des postes statutaires.\nLes critères invoqués étaient :\n*l’encodage dans le système MyTalent Recruitment avant la date du début du moratoire ;\n*la poursuite des missions de l’organisme même en période de moratoire et d’affaires courantes et donc le besoin de renfort des équipes ;\n*les missions légales essentielles portées par l’organisme tant pour l’interne que transversales pour les partenaires régionaux et la Région en elle-même ;\n*les départs de personnel laissant les équipes en sous-effectif pour assurer des missions essentielles (cf.).\n3/ Ils sont en phase de développement.\n4/ Nous n'avons pas connaissance de dépassements non autorisés à ce jour et ils ne nous sont pas nécessairement communiqués\n5/ Talent.brussels ne peut répondre à cette question.\n6/ La mission actuelle de talent.brussels consiste à transmettre douze fois par an à la Région bruxelloise un état des lieux des plans de personnel.\nDans le contexte budgétaire actuel au sein de la Région, talent.brussels travaille toutefois sur une proposition visant à revoir cette méthode de travail. Cette proposition, qui devra encore être validée par le Gouvernement, vise à renforcer le suivi et à instaurer un monitoring plus approfondi des plans de personnel.\n7/ La préparation d'une estimation pour 2025 est actuellement en cours, sur la base d'une enquête menée auprès des institutions concernées.\n8/ Oui, le moratoire s'applique à l'ensemble des services du Gouvernement régional et aux organismes d'intérêt public qui sont consolidés au compte régional, hub.brussels inclus. Le moratoire ne s'applique pas au personnel opérationnel au sens strict de pompiers.brussels, proprete.brussels, environnement.brussels, safe.brussels, STIB et parking.brussels. Il ne s’applique pas non plus aux organismes non consolidés au compte régional que sont citydev.brussels, Hydria, brugel.brussels, Finance&Invest.brussels et msi.brussels.\nToute demande de mouvement de personnel qui a un impact budgétaire doit être motivée et introduite auprès du Ministre du Budget et de la Fonction publique qui apprécie les éléments de la demande et prend une décision sur le futur mouvement de personnel demandé.\nCette demande doit remplir 4 conditions : être critique, être préalablement inscrite au plan de personnel, être lancée et pourvue sans délai durant la période temporaire du moratoire et elle doit avoir un budget global et individuel détaillé. Il n’est pas prévu d’arbitrage en cas de refus du Ministre du Budget et de la Fonction publique.\nRéponse de Bruxelles Fiscalité :\nIl convient tout d'abord de souligner qu’au moment de l’entrée en vigueur du moratoire Bruxelles Fiscalité comptait 342 membres du personnel, alors que le plan de personnel 2024, validé par le Gouvernement bruxellois, en prévoit 390.\nAfin de faire face aux besoins urgents en personnel, notamment pour combler certains manques d’effectif ou assurer le recrutement de fonctions critiques, Bruxelles Fiscalité a introduit, depuis le 1er décembre 2023, 7 demandes de dérogation, conformément à la circulaire du 7 décembre 2023. Concrètement, cela concernait 1 poste statutaire et 6 engagements contractuels.\n5 de ces demandes ont reçu un avis favorable.\n3 des 7 demandes visaient des fonctions critiques en raison de la nature spécifique du poste. Deux d’entre elles ont reçu un avis favorable. Les 4 autres demandes avaient pour objectif d’assurer la continuité opérationnelle à la suite du départ de certains membres du personnel, et 3 d’entre elles ont également obtenu un avis favorable.\nEnfin, Bruxelles Fiscalité tient à souligner que ses effectifs actuels sont inférieurs de 16 ETP par rapport au moment de l’instauration du moratoire sur les engagements.",
+      "statut_extraction_reponse": "texte_present",
+      "actes": [
+        {
+          "date": "2025-07-23",
+          "acte": "Recevable",
+          "acteur": "Bureau élargi du Parlement"
+        }
+      ],
+      "documents": [],
+      "url_source": "https://www.parlement.brussels/weblex-quest-det/?moncode=166345&montitre=&base=1",
+      "source_locale": "sources/166345.html"
+    },
+    {
+      "id": "PRB-1-166342",
+      "moncode": "166342",
+      "base": 1,
+      "assemblee": "PRB",
+      "legislature": "2024-2029",
+      "session": "24/25",
+      "type": "question_ecrite",
+      "numero": 197,
+      "langue": "fr",
+      "titre": "Question écrite concernant l’exposition des établissements de soins bruxellois à la pollution atmosphérique",
+      "titre_nl": "Schriftelijke vraag betreffende de blootstelling van brusselse zorginstellingen aan luchtvervuiling",
+      "auteur": "Geoffroy Coomans de Brachène",
+      "destinataire": "Alain Maron - Ministre du Gouvernement de la Région de Bruxelles-Capitale chargé de la Transition climatique, de l'Environnement, de l'Énergie et de la Démocratie participative",
+      "date_reception": "2025-06-30",
+      "date_publication": "2025-09-09",
+      "date_reponse": "2025-09-09",
+      "question": "Une récente étude de l’ASBL Chercheurs d’air révèle que l’ensemble des hôpitaux et maisons de repos analysés à Bruxelles sont exposés à des concentrations de dioxyde d’azote supérieures aux recommandations de l’Organisation mondiale de la santé. Ces niveaux sont particulièrement préoccupants pour les personnes vulnérables qui y séjournent ou y travaillent.\nQuelle analyse le gouvernement fait-il des résultats de l’étude menée par Chercheurs d’air concernant l’exposition des établissements de santé bruxellois au NO? ?\nUn inventaire exhaustif des établissements les plus exposés à la pollution a-t-il été établi par Bruxelles Environnement ou une autre entité publique ?",
+      "reponse": "QUESTION 1\nQuelle analyse le gouvernement fait-il des résultats de l’étude menée par Chercheurs d’air concernant l’exposition des établissements de santé bruxellois au NO ?\nLa communication faite par les Chercheurs d’air concernant l’exposition des établissements de santé au NO2 est basée sur un résultat de modélisation fourni par l’UCL, dans le cadre d’un projet financé par la Fondation Bloomberg et mené en collaboration avec Bruxelles Environnement.\nLe résultat en question porte sur la concentration annuelle de NO2 simulée par le modèle SIRANE pour l’année 2022. Ce modèle calcule les concentrations à une résolution de 10 mètres et donc également dans les voiries ayant des cliniques, des hôpitaux, des crèches, des écoles ou des maisons de repos. Il est à noter que les résultats obtenus, comme c’est le cas pour tout modèle qualité de l’air, sont entachés d’incertitudes et donnent des valeurs indicatives des concentrations de polluants à un endroit donné.\nLa cartographie des concentrations de NO2 a montré que :\n- tous les établissements de santé sont exposés à des concentrations annuelles inférieures à la valeur limite européenne de 40 µg/m³ actuellement en vigueur ;\n- 20 % des établissements sont exposés à des concentrations annuelles supérieures à la future valeur limite européenne de 20 µg/m³ qui entrera en vigueur en 2030 ;\n- la valeur recommandée par l’OMS, fixée à 10 µg/m³ sur la moyenne annuelle, est dépassée dans tous les établissements.\nLe bilan est donc positif en regard des normes européennes, mais il reste encore des progrès à accomplir pour respecter le seuil de protection de la santé fixé par l’OMS. Pour atteindre cet objectif, il faudrait diviser les concentrations actuelles par un facteur 3.\nSi l’on examine l’évolution des concentrations de NO2 en moyenne sur la Région bruxelloise, on constate que celles-ci ont été divisées par 2 en l’espace de 10 ans (entre 2013 et 2023). La décroissance des concentrations est particulièrement marquée depuis 2018, avec une diminution de 40% entre 2018 et 2023. La LEZ, la diminution du nombre de véhicules diesel en circulation, les progrès technologiques, et les mesures d’encouragement à l’utilisation de modes de transport plus respectueux de l’environnement ont contribué à cette évolution positive.\nPour atteindre à terme la valeur recommandée par l’OMS, il est indispensable de poursuivre les mesures de réduction d’émissions du transport routier, et en particulier la LEZ dont les différents jalons contribuent significativement à la réduction des rejets de NO2 et de particules fines.\nQUESTION 2\nUn inventaire exhaustif des établissements les plus exposés à la pollution a-t-il été établi par Bruxelles Environnement ou une autre entité publique ?\nLa collaboration tripartite entre l’UCL, la Fondation Bloomberg qui a financé le projet de modélisation, et Bruxelles Environnement a permis à Bruxelles Environnement de se doter d’un modèle (en l’occurrence, le modèle SIRANE) permettant d’avoir une vision plus globale de la qualité de l’air en région bruxelloise, complémentant ainsi le réseau de mesure de référence comprenant actuellement 14 stations de mesure.\nLe modèle SIRANE pourra ainsi être utilisé pour affiner la cartographie de la qualité de l’air. Actuellement, des développements sont toujours en cours pour améliorer les cartes produites par SIRANE, notamment en corrigeant les concentrations simulées à l’aide des valeurs mesurées dans le réseau de qualité de l’air. Lorsque ces développements seront implémentés et validés, Bruxelles Environnement sera en mesure de publier une cartographie des concentrations annuelles de NO2 à l’échelle de la rue.",
+      "statut_extraction_reponse": "texte_present",
+      "actes": [
+        {
+          "date": "2025-07-23",
+          "acte": "Recevable",
+          "acteur": "Bureau élargi du Parlement"
+        }
+      ],
+      "documents": [],
+      "url_source": "https://www.parlement.brussels/weblex-quest-det/?moncode=166342&montitre=&base=1",
+      "source_locale": "sources/166342.html"
+    }
+  ]
+}

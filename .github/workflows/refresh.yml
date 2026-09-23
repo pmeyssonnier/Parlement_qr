@@ -1,0 +1,59 @@
+name: Refresh parliamentary corpus
+on:
+  workflow_dispatch:
+    inputs:
+      expand:
+        description: 'Nombre de questions récentes à ajouter (0 = actualiser le corpus local)'
+        default: '0'
+        required: true
+  # Activate a schedule only after configuring secrets, import scope and billing.
+  # schedule:
+  #   - cron: '20 4 * * 1'
+permissions:
+  contents: read
+concurrency:
+  group: parliamentary-corpus
+  cancel-in-progress: false
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: npm ci
+      - name: Export current corpus to preserve previously added documents
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+        run: npm run export:data
+      - name: Collect public documents
+        env:
+          EXPAND: ${{ inputs.expand || '0' }}
+        run: python scripts/refresh-corpus.py --file data/corpus-active.json --expand "$EXPAND"
+      - run: npm run import:data -- --file=data/corpus-refreshed.json --validate-only
+      - name: Import and atomically activate
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: npm run import:data -- --file=data/corpus-refreshed.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: public-corpus-snapshot
+          path: |
+            web/data/corpus-refreshed.json
+            web/data/source-snapshots/
+          retention-days: 30
