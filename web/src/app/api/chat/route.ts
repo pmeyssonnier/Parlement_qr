@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
+import { type NextRequest, NextResponse } from "next/server";
+import { permittedOrigins } from "@/lib/origins";
 import { chatInput } from "@/lib/schema";
 import { aiEnabled, answer, reserveQuota, sessionFromCookie } from "@/lib/server";
-import { permittedOrigins } from "@/lib/origins";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;

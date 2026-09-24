@@ -30,8 +30,9 @@ async function main() {
   if (process.argv.includes("--ai")) {
     for (const c of [cases[3], cases[8], cases[9]]) {
       const r = await answer(c.q, [], "audit", true);
-      const pass = c.id
-        ? r.mode === "ia" && r.status === "documente" && r.sources.some(s => s.id.includes(c.id!))
+      const expected = c.id;
+      const pass = expected
+        ? r.mode === "ia" && r.status === "documente" && r.sources.some(s => s.id.includes(expected))
         : r.status === "insuffisant" && !r.sources.length;
       if (!pass) failed++;
       const result = { question: c.q, mode: r.mode, pass, response: r };

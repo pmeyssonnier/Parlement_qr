@@ -1,6 +1,6 @@
 import { nature, toSource } from "./documents";
 import { dateLabel } from "./format";
-import { documentedParagraphsSchema, generatedSchema, type Hit, type ChatResponse } from "./schema";
+import { type ChatResponse, documentedParagraphsSchema, generatedSchema, type Hit } from "./schema";
 
 const relevanceInstructions = `
 Les extraits sont sélectionnés automatiquement dans le corpus de l'application, et non fournis par l'utilisateur. Une proximité de vocabulaire ne prouve pas leur pertinence.
@@ -35,15 +35,13 @@ export function extractiveAnswer(hits: Hit[], requestId: string): ChatResponse {
   return {
     mode: "extraits",
     status: "documente",
-    paragraphs: responseHits
-      .slice(0, 3)
-      .map(h => ({
-        text:
-          nature(h.question) === "incompetence"
-            ? `La réponse du ${dateLabel(h.question.date_reponse)} indique une absence de compétence du destinataire. Elle n’apporte pas de réponse sur le fond.`
-            : `Passage de la réponse du ${dateLabel(h.question.date_reponse)} :`,
-        sourceIds: [h.passage.id],
-      })),
+    paragraphs: responseHits.slice(0, 3).map(h => ({
+      text:
+        nature(h.question) === "incompetence"
+          ? `La réponse du ${dateLabel(h.question.date_reponse)} indique une absence de compétence du destinataire. Elle n’apporte pas de réponse sur le fond.`
+          : `Passage de la réponse du ${dateLabel(h.question.date_reponse)} :`,
+      sourceIds: [h.passage.id],
+    })),
     sources: responseHits.slice(0, 3).map(toSource),
     notice:
       "Voici des extraits exacts des réponses parlementaires. Ils décrivent les informations publiées à leur date, pas nécessairement la situation actuelle.",

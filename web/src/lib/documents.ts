@@ -1,4 +1,4 @@
-import { corpusSchema, type Question, type Nature, type Passage, type Hit, type Source } from "./schema";
+import { corpusSchema, type Hit, type Nature, type Passage, type Question, type Source } from "./schema";
 
 export function safeSourceUrl(value: string) {
   const url = new URL(value);

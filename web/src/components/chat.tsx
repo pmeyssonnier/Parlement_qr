@@ -1,5 +1,4 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
 import {
   ArrowUp,
   ArrowUpRight,
@@ -14,8 +13,9 @@ import {
   ShieldCheck,
   X,
 } from "lucide-react";
-import type { ChatResponse, Source } from "@/lib/schema";
+import { useEffect, useRef, useState } from "react";
 import { dateLabel, shortTitle } from "@/lib/format";
+import type { ChatResponse, Source } from "@/lib/schema";
 
 type Turn = { id: string; question: string; response?: ChatResponse; error?: string };
 const suggestions = [
@@ -68,6 +68,46 @@ function SourceCard({ source, index }: { source: Source; index: number }) {
     </details>
   );
 }
+function Answer({ response }: { response: ChatResponse }) {
+  const { mode, paragraphs, sources, notice } = response;
+  return (
+    <div className="answer">
+      <div className="answer-label">
+        <span className="mini-brand">
+          <Landmark size={15} />
+        </span>
+        {mode === "ia" ? "SYNTHÈSE DOCUMENTÉE" : "DANS LES DOCUMENTS"}
+      </div>
+      {paragraphs.map((p, i) => (
+        // biome-ignore lint/suspicious/noArrayIndexKey: paragraphs of a response are immutable and never reordered
+        <div key={i} className="answer-paragraph">
+          <p>
+            {p.text}
+            {mode === "ia" &&
+              p.sourceIds.map(id => (
+                <span className="citation" key={id}>
+                  [{sources.findIndex(s => s.id === id) + 1}]
+                </span>
+              ))}
+          </p>
+          {mode === "extraits" &&
+            p.sourceIds.map(id => <blockquote key={id}>{sources.find(s => s.id === id)?.excerpt}</blockquote>)}
+        </div>
+      ))}
+      {sources.length > 0 && (
+        <div className="sources">
+          <h3>
+            <BookOpen size={15} /> Sources utilisées
+          </h3>
+          {sources.map((s, i) => (
+            <SourceCard key={s.id} source={s} index={i} />
+          ))}
+        </div>
+      )}
+      <p className="answer-notice">{notice}</p>
+    </div>
+  );
+}
 export function Chat({
   count,
   answerCount,
@@ -89,6 +129,7 @@ export function Chat({
   const bottom = useRef<HTMLDivElement>(null);
   const textarea = useRef<HTMLTextAreaElement>(null);
   const controller = useRef<AbortController | null>(null);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: scroll again whenever a turn or the loading indicator appears
   useEffect(() => {
     if (turns.length) bottom.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [turns, busy]);
@@ -154,11 +195,12 @@ export function Chat({
           </span>
         </a>
         <div className="sidebar-caption">BRUXELLES · INFORMATION CITOYENNE</div>
-        <button className="new-chat" onClick={reset} disabled={busy}>
+        <button type="button" className="new-chat" onClick={reset} disabled={busy}>
           <Plus size={17} aria-hidden="true" /> Nouvelle conversation
         </button>
         <div className="nav-label">VOTRE ESPACE</div>
         <button
+          type="button"
           className="nav-item active"
           onClick={() => {
             setPanel(null);
@@ -167,7 +209,7 @@ export function Chat({
         >
           <Search size={17} aria-hidden="true" /> Poser une question <span className="nav-dot" />
         </button>
-        <button className="nav-item" onClick={() => setPanel("method")}>
+        <button type="button" className="nav-item" onClick={() => setPanel("method")}>
           <BookOpen size={17} aria-hidden="true" /> Sources et méthode
         </button>
         <a
@@ -195,7 +237,7 @@ export function Chat({
             <br />
             Ce service ne représente pas le Parlement.
           </p>
-          <button className="privacy-button" onClick={() => setPanel("privacy")}>
+          <button type="button" className="privacy-button" onClick={() => setPanel("privacy")}>
             Confidentialité
           </button>
         </div>
@@ -204,6 +246,7 @@ export function Chat({
         <header className="topbar">
           <div>
             <button
+              type="button"
               className="mobile-menu"
               onClick={() => setMobileNav(!mobileNav)}
               aria-label="Afficher le menu"
@@ -236,7 +279,7 @@ export function Chat({
               <div className="suggestions-label">POUR COMMENCER</div>
               <div className="suggestions">
                 {suggestions.map(s => (
-                  <button key={s.icon} onClick={() => send(s.text)} disabled={busy}>
+                  <button type="button" key={s.icon} onClick={() => send(s.text)} disabled={busy}>
                     <span className="suggestion-top">
                       <span>{s.label}</span>
                       <ArrowUpRight size={16} aria-hidden="true" />
@@ -266,44 +309,7 @@ export function Chat({
                     <span>VOUS</span>
                     <h2>{turn.question}</h2>
                   </div>
-                  {turn.response && (
-                    <div className="answer">
-                      <div className="answer-label">
-                        <span className="mini-brand">
-                          <Landmark size={15} />
-                        </span>
-                        {turn.response.mode === "ia" ? "SYNTHÈSE DOCUMENTÉE" : "DANS LES DOCUMENTS"}
-                      </div>
-                      {turn.response.paragraphs.map((p, i) => (
-                        <div key={i} className="answer-paragraph">
-                          <p>
-                            {p.text}
-                            {turn.response?.mode === "ia" &&
-                              p.sourceIds.map(id => (
-                                <span className="citation" key={id}>
-                                  [{turn.response!.sources.findIndex(s => s.id === id) + 1}]
-                                </span>
-                              ))}
-                          </p>
-                          {turn.response?.mode === "extraits" &&
-                            p.sourceIds.map(id => (
-                              <blockquote key={id}>{turn.response!.sources.find(s => s.id === id)?.excerpt}</blockquote>
-                            ))}
-                        </div>
-                      ))}
-                      {turn.response.sources.length > 0 && (
-                        <div className="sources">
-                          <h3>
-                            <BookOpen size={15} /> Sources utilisées
-                          </h3>
-                          {turn.response.sources.map((s, i) => (
-                            <SourceCard key={s.id} source={s} index={i} />
-                          ))}
-                        </div>
-                      )}
-                      <p className="answer-notice">{turn.response.notice}</p>
-                    </div>
-                  )}
+                  {turn.response && <Answer response={turn.response} />}
                   {turn.error && (
                     <p className="error" role="alert">
                       {turn.error}
@@ -365,7 +371,10 @@ export function Chat({
             </form>
             <p className="scope-note">
               {count} questions · {answerCount} réponses disponibles. Ce corpus ne couvre pas tous les travaux
-              parlementaires. <button onClick={() => setPanel("method")}>Voir le périmètre</button>
+              parlementaires.{" "}
+              <button type="button" onClick={() => setPanel("method")}>
+                Voir le périmètre
+              </button>
             </p>
           </div>
         </main>
@@ -407,6 +416,7 @@ function InfoDialog({
     ref.current?.showModal();
   }, []);
   return (
+    // biome-ignore lint/a11y/useKeyWithClickEvents: backdrop click only; the native dialog closes on Escape via onCancel
     <dialog
       ref={ref}
       className="info-dialog"
@@ -416,7 +426,7 @@ function InfoDialog({
       }}
       aria-labelledby="dialog-title"
     >
-      <button className="close-dialog" onClick={close} aria-label="Fermer">
+      <button type="button" className="close-dialog" onClick={close} aria-label="Fermer">
         <X size={20} />
       </button>
       {panel === "method" ? (

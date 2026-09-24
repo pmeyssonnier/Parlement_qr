@@ -1,10 +1,10 @@
-import test from "node:test";
 import assert from "node:assert/strict";
-import { corpus } from "../src/lib/corpus";
-import { localSearch, contextualQuery, lexicalQuery, filterLexicalHits } from "../src/lib/search";
-import { validateCorpus, safeSourceUrl, passages, nature } from "../src/lib/documents";
+import test from "node:test";
 import { extractiveAnswer, validateGenerated } from "../src/lib/answer";
+import { corpus } from "../src/lib/corpus";
+import { nature, passages, safeSourceUrl, validateCorpus } from "../src/lib/documents";
 import { chatInput, chatResponseSchema } from "../src/lib/schema";
+import { contextualQuery, filterLexicalHits, lexicalQuery, localSearch } from "../src/lib/search";
 import { localQuota } from "../src/lib/server";
 
 const [sample] = corpus.questions;
@@ -57,7 +57,9 @@ test("un mot commun ne suffit pas à documenter un sujet absent", () => {
     question: "Quels transports scolaires ?",
     reponse: "Des transports scolaires sont organisés.",
   };
-  const hit = { question: q, passage: passages(q).find(p => p.section === "reponse")!, score: 10 };
+  const passage = passages(q).find(p => p.section === "reponse");
+  assert.ok(passage);
+  const hit = { question: q, passage, score: 10 };
   assert.deepEqual(filterLexicalHits([hit], "Quelles mesures concernant les cantines scolaires ?"), []);
   assert.equal(filterLexicalHits([hit], "transports scolaires").length, 1);
 });
@@ -77,7 +79,8 @@ test("les synonymes s’appliquent aussi aux mots accentués", () => {
   assert.match(lexicalQuery("Le métro est-il climatisé ?"), /stib/);
 });
 test("les réponses d’incompétence sont signalées", () => {
-  const q = corpus.questions.find(q => q.moncode === "167067")!;
+  const q = corpus.questions.find(q => q.moncode === "167067");
+  assert.ok(q);
   assert.equal(nature(q), "incompetence");
   const result = extractiveAnswer(localSearch([q], "Villo panneaux publicitaires"), "test");
   assert.match(result.paragraphs[0]?.text ?? "", /absence de compétence/);

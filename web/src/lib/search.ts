@@ -1,5 +1,5 @@
-import type { Question, Hit } from "./schema";
 import { passages } from "./documents";
+import type { Hit, Question } from "./schema";
 
 const stop = new Set(
   "a au aux avec ce ces c cette dans de des du d en et est faire fait il ils elle elles je la le les l leur lui mais me mes mon ne nos nous on ou par pas pour pourquoi qu que quel quelle quels quelles qui quoi sa se ses son sont sur t ta te tes tout tous tu un une vos votre vous y plus comme comment peut peux peuvent etre avoir ai information informations dit dire sait savoir pouvez concernant question reponse merci moi donne donner".split(

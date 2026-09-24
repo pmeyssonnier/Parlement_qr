@@ -1,10 +1,10 @@
-import { readFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
+import { readFile } from "node:fs/promises";
 import { createClient } from "@supabase/supabase-js";
 import OpenAI from "openai";
-import { validateCorpus, passages } from "../src/lib/documents";
-import { ImportBudget, positiveLimit } from "./import-budget";
 import type { Database } from "../src/lib/database.types";
+import { passages, validateCorpus } from "../src/lib/documents";
+import { ImportBudget, positiveLimit } from "./import-budget";
 
 async function main() {
   const path = process.argv.find(a => a.startsWith("--file="))?.slice(7) || "data/corpus.json";
@@ -77,21 +77,19 @@ async function main() {
           .sort((a, b) => a.index - b.index)
           .map(d => JSON.stringify(d.embedding));
       }
-      const { error: pe } = await db
-        .from("passages")
-        .insert(
-          ps.map((p, i) => ({
-            version_id: version.id,
-            id: p.id,
-            question_id: q.id,
-            section: p.section,
-            position: p.order,
-            content: p.text,
-            search_text: searchText(p),
-            embedding: vectors[i] ?? null,
-            embedding_model: client ? model : null,
-          })),
-        );
+      const { error: pe } = await db.from("passages").insert(
+        ps.map((p, i) => ({
+          version_id: version.id,
+          id: p.id,
+          question_id: q.id,
+          section: p.section,
+          position: p.order,
+          content: p.text,
+          search_text: searchText(p),
+          embedding: vectors[i] ?? null,
+          embedding_model: client ? model : null,
+        })),
+      );
       if (pe) throw new Error("Échec de l’importation des passages.");
       console.log(`Importé : ${q.id} (${ps.length} passages)`);
     }

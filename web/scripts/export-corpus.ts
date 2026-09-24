@@ -1,7 +1,8 @@
-import { createClient } from "@supabase/supabase-js";
 import { writeFile } from "node:fs/promises";
-import { validateCorpus } from "../src/lib/documents";
+import { createClient } from "@supabase/supabase-js";
 import type { Database } from "../src/lib/database.types";
+import { validateCorpus } from "../src/lib/documents";
+
 async function main() {
   if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SECRET_KEY) throw new Error("Supabase non configuré.");
   const db = createClient<Database>(process.env.SUPABASE_URL, process.env.SUPABASE_SECRET_KEY, {

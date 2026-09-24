@@ -1,14 +1,14 @@
 import "server-only";
+import { createHmac, randomUUID, timingSafeEqual } from "node:crypto";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import OpenAI from "openai";
 import { zodTextFormat } from "openai/helpers/zod";
-import { createHmac, randomUUID, timingSafeEqual } from "node:crypto";
-import { corpus } from "./corpus";
-import { contextualQuery, filterLexicalHits, lexicalQuery, localSearch } from "./search";
 import { extractiveAnswer, instructions, validateGenerated } from "./answer";
-import { generatedSchema, quotaGrantSchema, searchRowSchema, type Hit, type QuotaGrant } from "./schema";
-import { nature } from "./documents";
+import { corpus } from "./corpus";
 import type { Database } from "./database.types";
+import { nature } from "./documents";
+import { generatedSchema, type Hit, type QuotaGrant, quotaGrantSchema, searchRowSchema } from "./schema";
+import { contextualQuery, filterLexicalHits, lexicalQuery, localSearch } from "./search";
 
 export type { QuotaGrant } from "./schema";
 export const aiEnabled = () => process.env.AI_ENABLED === "true" && !!process.env.OPENAI_API_KEY;
@@ -23,7 +23,8 @@ export function database() {
 }
 let ai: OpenAI | undefined;
 function openai() {
-  return (ai ??= new OpenAI({ apiKey: process.env.OPENAI_API_KEY, maxRetries: 0 }));
+  if (!ai) ai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY, maxRetries: 0 });
+  return ai;
 }
 const devSecret = randomUUID();
 export function signature(value: string) {
