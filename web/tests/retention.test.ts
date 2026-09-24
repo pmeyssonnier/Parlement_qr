@@ -9,18 +9,25 @@ const recent = { activated_at: null, activation_unknown: false };
 test("rétention : le message compte les versions réellement conservées", () => {
   assert.equal(
     retentionSummary(0, [rollback, unknown, unknown, unknown, unknown], 2),
-    "Rétention : 0 version supprimée ; conservé : 1 version pour retour arrière (2 au plus), " +
+    "Rétention : 0 version supprimée ; conservé : 1 version pour retour arrière (cible : 2, hors versions récentes protégées), " +
       "4 versions antérieures à la migration, jamais supprimée(s).",
   );
 });
 test("rétention : imports récents et accords au pluriel", () => {
   assert.equal(
     retentionSummary(3, [rollback, rollback, recent], 2),
-    "Rétention : 3 versions supprimées ; conservé : 2 versions pour retour arrière (2 au plus), " +
+    "Rétention : 3 versions supprimées ; conservé : 2 versions pour retour arrière (cible : 2, hors versions récentes protégées), " +
       "1 import récent non activé.",
   );
   assert.equal(
     retentionSummary(1, [], 2),
-    "Rétention : 1 version supprimée ; conservé : 0 version pour retour arrière (2 au plus).",
+    "Rétention : 1 version supprimée ; conservé : 0 version pour retour arrière (cible : 2, hors versions récentes protégées).",
+  );
+});
+test("rétention : des imports rapprochés peuvent dépasser la cible sans contradiction", () => {
+  assert.equal(
+    retentionSummary(0, [rollback, rollback, rollback], 2),
+    "Rétention : 0 version supprimée ; conservé : 3 versions pour retour arrière " +
+      "(cible : 2, hors versions récentes protégées).",
   );
 });
