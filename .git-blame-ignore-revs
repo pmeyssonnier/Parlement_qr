@@ -1,0 +1,3 @@
+# Commits de formatage pur, ignorés par git blame (git config blame.ignoreRevsFile .git-blame-ignore-revs).
+# Ajoute Biome et formate le code
+4703c3ef842405eb1ceccadf5bfdcb7faf619ea2
