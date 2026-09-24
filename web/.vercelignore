@@ -1,0 +1,10 @@
+.env*
+!.env.example
+data/source-snapshots/
+data/corpus-active.json
+data/corpus-refreshed.json
+data/search-audit.json
+test-results/
+playwright-report/
+*.log
+*.tsbuildinfo

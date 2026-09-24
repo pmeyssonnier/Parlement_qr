@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
 import { chatInput } from "@/lib/schema";
 import { aiEnabled, answer, reserveQuota, sessionFromCookie } from "@/lib/server";
+import { permittedOrigins } from "@/lib/origins";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -9,9 +10,7 @@ export async function POST(request: NextRequest) {
   const requestId = randomUUID();
   const fail = (message: string, status: number) => NextResponse.json({ error: message, requestId }, { status, headers: { "Cache-Control": "no-store" } });
   const origin = request.headers.get("origin");
-  const configured = process.env.APP_ORIGIN || "http://localhost:3000";
-  const permitted = new Set([configured]);
-  if (process.env.NODE_ENV !== "production") permitted.add("http://127.0.0.1:3000");
+  const permitted = permittedOrigins();
   if (!origin || !permitted.has(origin)) return fail("Origine de la requête non autorisée.", 403);
   if (!request.headers.get("content-type")?.startsWith("application/json")) return fail("Format de requête invalide.", 415);
   const session = sessionFromCookie(request.headers.get("cookie"));
