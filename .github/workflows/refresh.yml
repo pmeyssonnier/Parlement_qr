@@ -20,10 +20,10 @@ jobs:
     environment: production
     timeout-minutes: 60
     env:
-      # A full-legislature version weighs about 135 MB in the database: keep a
-      # single rollback version. Embedding caps fit about 400 new questions.
+      # Contents are stored once (migration 005): a rollback version only costs
+      # the questions that changed. Embedding caps fit about 400 new questions.
       IMPORT_MAX_RECORDS: '6000'
-      IMPORT_KEEP_VERSIONS: '1'
+      IMPORT_KEEP_VERSIONS: '2'
       IMPORT_MAX_EMBEDDING_CALLS: '100'
       IMPORT_MAX_EMBEDDING_BYTES: '3000000'
       EMBEDDING_MODEL: text-embedding-3-small

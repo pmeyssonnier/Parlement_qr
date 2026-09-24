@@ -16,14 +16,9 @@ async function main() {
   if (error || !version) throw new Error("Aucun corpus actif exportable.");
   const questions: unknown[] = [];
   for (let offset = 0; offset < version.count; offset += 500) {
-    const { data, error } = await db
-      .from("questions")
-      .select("document")
-      .eq("version_id", version.id)
-      .order("id")
-      .range(offset, offset + 499);
+    const { data, error } = await db.rpc("version_documents", { p_version: version.id }).range(offset, offset + 499);
     if (error) throw new Error("Export interrompu.");
-    questions.push(...(data || []).map(r => r.document));
+    questions.push(...(data || []));
   }
   const payload = {
     schema_version: "1.0",

@@ -20,7 +20,7 @@ Copiez leurs valeurs directement depuis votre configuration locale, sans les
 publier dans un fichier ou une conversation. Les variables Vercel ne sont pas
 transmises automatiquement à GitHub Actions.
 
-Avant la première exécution, appliquez dans l'ordre les migrations 003 et 004 de
+Avant la première exécution, appliquez dans l'ordre les migrations 003, 004 et 005 de
 `supabase/migrations/` dans l'éditeur SQL de Supabase.
 
 Dans Actions → Refresh parliamentary corpus → Run workflow, mettez expand à 0
@@ -71,11 +71,15 @@ absentes du corpus.
 
 ## Stockage
 
-Chaque version du corpus est une copie complète : environ 135 Mo pour la législature
-entière (passages, embeddings et index). Le workflow ne conserve qu'une version pour
-retour arrière (`IMPORT_KEEP_VERSIONS=1`). Pendant un import, une troisième copie
-existe brièvement : prévoyez environ 400 Mo au pic. Vérifiez la limite de taille de
-base de votre offre Supabase avant le rattrapage complet.
+Depuis la migration 005, chaque contenu (fiche, passages et embeddings) n'est stocké
+qu'une fois ; une version du corpus n'est qu'une liste de références. Une version de
+retour arrière ne coûte que les fiches qui ont changé depuis. Le nettoyage supprime
+les contenus que plus aucune version n'utilise.
+
+Ordre de grandeur mesuré : environ 180 Mo pour la législature complète (environ
+2 600 fiches), dont environ 90 Mo de vecteurs et 70 Mo d'index de recherche
+vectorielle. Environ 6 000 fiches en fin de législature représenteraient environ
+420 Mo : à surveiller avec l'offre Free de Supabase (500 Mo).
 
 Les plafonds OpenAI portent sur le volume et les appels, pas sur des euros.
 Ils s'appliquent à chaque lancement, y compris manuel. Plusieurs lancements
