@@ -68,6 +68,11 @@ def parse_record(row, raw):
 # question is rechecked only shortly after its answer, for late corrections.
 UNANSWERED_DAYS = 240
 RECENT_ANSWER_DAYS = 14
+# Answers can still arrive later: older unanswered questions are rechecked in
+# rotation, each one every OLD_UNANSWERED_PERIOD_WEEKS weeks. The rotation only
+# depends on the question number and the current week, so nothing is stored
+# (a check date in the document would change its hash and its embeddings).
+OLD_UNANSWERED_PERIOD_WEEKS = 4
 
 def code_of(row):
     return re.search(r'moncode=(\d+)', row[2])[1]
@@ -78,9 +83,13 @@ def index_rows(index_text):
     rows.sort(key=lambda r: (iso(r[5]), int(code_of(r))), reverse=True)
     return rows
 
+def in_rotation(moncode, today, period_weeks=OLD_UNANSWERED_PERIOD_WEEKS):
+    return int(moncode) % period_weeks == (today.toordinal() // 7) % period_weeks
+
 def needs_recheck(question, today, unanswered_days=UNANSWERED_DAYS, recent_answer_days=RECENT_ANSWER_DAYS):
     if not (question.get('reponse') or '').strip():
-        return dt.date.fromisoformat(question['date_reception']) >= today - dt.timedelta(days=unanswered_days)
+        recent = dt.date.fromisoformat(question['date_reception']) >= today - dt.timedelta(days=unanswered_days)
+        return recent or in_rotation(question['moncode'], today)
     answered = question.get('date_reponse')
     return answered is not None and dt.date.fromisoformat(answered) >= today - dt.timedelta(days=recent_answer_days)
 

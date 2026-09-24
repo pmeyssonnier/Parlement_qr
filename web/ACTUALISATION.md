@@ -36,6 +36,8 @@ Pour suspendre, passez cette variable à false. Un lancement manuel reste possib
 3. Nouveau téléchargement des seules fiches susceptibles d'avoir changé :
    - question sans réponse reçue depuis moins de 240 jours (la réponse arrive en
      général en quelques mois, 197 jours au plus dans le corpus) ;
+   - question plus ancienne toujours sans réponse : revérifiée par roulement, chacune
+     une fois toutes les 4 semaines, pour récupérer les réponses tardives ;
    - réponse publiée depuis moins de 14 jours (corrections tardives).
    Les autres fiches sont reprises telles quelles, sans téléchargement.
 4. Ajout de questions **absentes du corpus**, des plus récentes aux plus anciennes :
