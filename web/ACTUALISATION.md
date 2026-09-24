@@ -20,23 +20,62 @@ Copiez leurs valeurs directement depuis votre configuration locale, sans les
 publier dans un fichier ou une conversation. Les variables Vercel ne sont pas
 transmises automatiquement à GitHub Actions.
 
-Dans Actions → Refresh parliamentary corpus → Run workflow, laissez expand à 0
+Avant la première exécution, appliquez dans l'ordre les migrations 003 et 004 de
+`supabase/migrations/` dans l'éditeur SQL de Supabase.
+
+Dans Actions → Refresh parliamentary corpus → Run workflow, mettez expand à 0
 pour un premier essai manuel. Vérifiez le succès de toutes les étapes.
 Puis dans Settings → Secrets and variables → Actions → Variables,
 ajoutez CORPUS_REFRESH_ENABLED avec la valeur true.
 Pour suspendre, passez cette variable à false. Un lancement manuel reste possible.
 
-## Périmètre et plafonds par exécution
+## Ce que fait chaque exécution
 
-- Export du corpus actif depuis Supabase, puis actualisation des mêmes fiches.
-- Aucun ajout de nouvelles questions lors des passages hebdomadaires (expand = 0).
-- Maximum 150 fiches sélectionnées. Au-delà, arrêt sans suppression du corpus.
-- Une requête d'index et au plus 150 pages, avec au plus 3 tentatives par téléchargement.
-- Au plus 25 appels de création d'embeddings, sans relance automatique OpenAI.
-- Au plus 250 000 octets UTF-8 de texte envoyé pour ces embeddings.
+1. Export du corpus actif depuis Supabase.
+2. Téléchargement de l'index officiel des questions écrites PRB de la législature 2024-2029.
+3. Nouveau téléchargement des seules fiches susceptibles d'avoir changé :
+   - question sans réponse reçue depuis moins de 240 jours (la réponse arrive en
+     général en quelques mois, 197 jours au plus dans le corpus) ;
+   - réponse publiée depuis moins de 14 jours (corrections tardives).
+   Les autres fiches sont reprises telles quelles, sans téléchargement.
+4. Ajout de questions **absentes du corpus**, des plus récentes aux plus anciennes :
+   les nouvelles questions d'abord, puis l'historique de la législature. Une fiche
+   dont le texte de question n'est pas encore publié est écartée ; elle sera retentée
+   lors d'une exécution suivante.
+5. Import : les fiches inchangées sont recopiées dans Supabase avec leurs embeddings,
+   sans appel OpenAI ; seules les fiches nouvelles ou modifiées sont vectorisées.
+
+## Rattrapage de la législature
+
+Le nombre de questions ajoutées par exécution vaut 300 par défaut :
+
+- lancement manuel : champ **expand** (0 = actualiser seulement, 500 au plus) ;
+- exécution planifiée : variable de dépôt `CORPUS_WEEKLY_ADD`, 300 si elle est absente.
+
+Environ 2 600 questions écrites sont à rattraper : une dizaine d'exécutions suffisent.
+Pour aller plus vite que le rythme hebdomadaire, lancez manuellement le workflow
+plusieurs fois, une exécution après l'autre (elles sont sérialisées). Une fois le
+rattrapage terminé, le même réglage n'ajoute plus que les nouvelles questions.
+Le journal de collecte indique à chaque exécution le nombre de questions encore
+absentes du corpus.
+
+## Plafonds par exécution
+
+- Corpus : 6 000 fiches au plus. Au-delà, arrêt sans suppression du corpus.
+- Téléchargements : l'index et au plus 900 pages, avec au plus 3 tentatives chacune.
+  Les fiches à revérifier passent en premier ; les ajouts utilisent le reste.
+- Embeddings : au plus 100 appels et 3 000 000 d'octets UTF-8 de texte, soit environ
+  400 fiches nouvelles. Le dépassement est détecté **avant** toute écriture.
 - Modèle fixé pour le workflow : text-embedding-3-small.
-- Réutilisation des embeddings lorsque la fiche et le modèle sont inchangés.
-- Durée maximale de la tâche : 45 minutes ; exécutions sérialisées.
+- Durée maximale de la tâche : 60 minutes ; exécutions sérialisées.
+
+## Stockage
+
+Chaque version du corpus est une copie complète : environ 135 Mo pour la législature
+entière (passages, embeddings et index). Le workflow ne conserve qu'une version pour
+retour arrière (`IMPORT_KEEP_VERSIONS=1`). Pendant un import, une troisième copie
+existe brièvement : prévoyez environ 400 Mo au pic. Vérifiez la limite de taille de
+base de votre offre Supabase avant le rattrapage complet.
 
 Les plafonds OpenAI portent sur le volume et les appels, pas sur des euros.
 Ils s'appliquent à chaque lancement, y compris manuel. Plusieurs lancements
