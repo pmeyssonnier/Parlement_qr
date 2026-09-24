@@ -30,9 +30,9 @@ function toItem(q: Question): Item {
 }
 
 // Contents are stored once, keyed by their hash (migration 005). A content is
-// ready when all its passages are stored, with an embedding of the current
-// model when embeddings are used.
-async function readyHashes(db: Db, items: Item[], model: string | null) {
+// ready when all its passages are stored with an embedding of the current
+// model; any other content is (re)written.
+async function readyHashes(db: Db, items: Item[], model: string) {
   const ready = new Set<string>();
   for (let from = 0; from < items.length; from += REFERENCE_CHUNK) {
     const chunk = items.slice(from, from + REFERENCE_CHUNK);
@@ -73,7 +73,7 @@ async function main() {
 
   // Only contents not stored yet (or stored without a usable embedding) are
   // written and sent to OpenAI. The budget is checked before anything is written.
-  const ready = await readyHashes(db, items, client ? model : null);
+  const ready = await readyHashes(db, items, model);
   const missing = items.filter(item => !ready.has(item.hash));
   const batches = embeddingBatches(missing, BATCH_MAX_INPUTS, BATCH_MAX_BYTES);
   if (client) assertBudgetFits(budget, batches);

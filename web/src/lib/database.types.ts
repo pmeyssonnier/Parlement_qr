@@ -89,6 +89,13 @@ export type Database = {
             referencedRelation: "question_documents"
             referencedColumns: ["content_hash"]
           },
+          {
+            foreignKeyName: "document_passages_content_hash_fkey"
+            columns: ["content_hash"]
+            isOneToOne: false
+            referencedRelation: "questions"
+            referencedColumns: ["content_hash"]
+          },
         ]
       }
       question_documents: {
@@ -155,6 +162,13 @@ export type Database = {
             referencedColumns: ["content_hash"]
           },
           {
+            foreignKeyName: "version_questions_content_hash_fkey"
+            columns: ["content_hash"]
+            isOneToOne: false
+            referencedRelation: "questions"
+            referencedColumns: ["content_hash"]
+          },
+          {
             foreignKeyName: "version_questions_version_id_fkey"
             columns: ["version_id"]
             isOneToOne: false
@@ -165,7 +179,23 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      questions: {
+        Row: {
+          content_hash: string | null
+          document: Json | null
+          id: string | null
+          version_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "version_questions_version_id_fkey"
+            columns: ["version_id"]
+            isOneToOne: false
+            referencedRelation: "corpus_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       activate_corpus: {
@@ -184,7 +214,7 @@ export type Database = {
       }
       prune_corpus_versions: { Args: { p_keep: number }; Returns: number }
       ready_documents: {
-        Args: { p_hashes: string[]; p_model: string | null }
+        Args: { p_hashes: string[]; p_model: string }
         Returns: {
           content_hash: string
           ready_passages: number
