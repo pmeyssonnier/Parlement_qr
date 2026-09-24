@@ -47,81 +47,77 @@ export type Database = {
         }
         Relationships: []
       }
-      passages: {
+      document_passages: {
         Row: {
           content: string
+          content_hash: string
           embedding: string | null
           embedding_model: string | null
           fts: unknown
           id: string
           position: number
-          question_id: string
           search_text: string
           section: string
-          version_id: string
         }
         Insert: {
           content: string
+          content_hash: string
           embedding?: string | null
           embedding_model?: string | null
           fts?: unknown
           id: string
           position: number
-          question_id: string
           search_text: string
           section: string
-          version_id: string
         }
         Update: {
           content?: string
+          content_hash?: string
           embedding?: string | null
           embedding_model?: string | null
           fts?: unknown
           id?: string
           position?: number
-          question_id?: string
           search_text?: string
           section?: string
-          version_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "passages_version_id_question_id_fkey"
-            columns: ["version_id", "question_id"]
+            foreignKeyName: "document_passages_content_hash_fkey"
+            columns: ["content_hash"]
+            isOneToOne: false
+            referencedRelation: "question_documents"
+            referencedColumns: ["content_hash"]
+          },
+          {
+            foreignKeyName: "document_passages_content_hash_fkey"
+            columns: ["content_hash"]
             isOneToOne: false
             referencedRelation: "questions"
-            referencedColumns: ["version_id", "id"]
+            referencedColumns: ["content_hash"]
           },
         ]
       }
-      questions: {
+      question_documents: {
         Row: {
           content_hash: string
+          created_at: string
           document: Json
-          id: string
-          version_id: string
+          question_id: string
         }
         Insert: {
           content_hash: string
+          created_at?: string
           document: Json
-          id: string
-          version_id: string
+          question_id: string
         }
         Update: {
           content_hash?: string
+          created_at?: string
           document?: Json
-          id?: string
-          version_id?: string
+          question_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "questions_version_id_fkey"
-            columns: ["version_id"]
-            isOneToOne: false
-            referencedRelation: "corpus_versions"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       quotas: {
         Row: {
@@ -141,20 +137,89 @@ export type Database = {
         }
         Relationships: []
       }
+      version_questions: {
+        Row: {
+          content_hash: string
+          question_id: string
+          version_id: string
+        }
+        Insert: {
+          content_hash: string
+          question_id: string
+          version_id: string
+        }
+        Update: {
+          content_hash?: string
+          question_id?: string
+          version_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "version_questions_content_hash_fkey"
+            columns: ["content_hash"]
+            isOneToOne: false
+            referencedRelation: "question_documents"
+            referencedColumns: ["content_hash"]
+          },
+          {
+            foreignKeyName: "version_questions_content_hash_fkey"
+            columns: ["content_hash"]
+            isOneToOne: false
+            referencedRelation: "questions"
+            referencedColumns: ["content_hash"]
+          },
+          {
+            foreignKeyName: "version_questions_version_id_fkey"
+            columns: ["version_id"]
+            isOneToOne: false
+            referencedRelation: "corpus_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
-      [_ in never]: never
+      questions: {
+        Row: {
+          content_hash: string | null
+          document: Json | null
+          id: string | null
+          version_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "version_questions_version_id_fkey"
+            columns: ["version_id"]
+            isOneToOne: false
+            referencedRelation: "corpus_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       activate_corpus: {
         Args: { p_id: string; p_passage_count: number }
         Returns: undefined
       }
-      clone_unchanged_questions: {
-        Args: { p_from: string; p_model: string; p_questions: Json; p_to: string }
-        Returns: string[]
+      active_corpus_info: {
+        Args: never
+        Returns: {
+          answer_count: number
+          count: number
+          extracted_at: string
+          id: string
+          method: string
+        }[]
       }
       prune_corpus_versions: { Args: { p_keep: number }; Returns: number }
+      ready_documents: {
+        Args: { p_hashes: string[]; p_model: string }
+        Returns: {
+          content_hash: string
+          ready_passages: number
+        }[]
+      }
       reserve_chat_quota: {
         Args: {
           p_ai_ip_daily_limit: number
@@ -178,6 +243,7 @@ export type Database = {
           section: string
         }[]
       }
+      version_documents: { Args: { p_version: string }; Returns: Json[] }
     }
     Enums: {
       [_ in never]: never
