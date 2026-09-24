@@ -64,8 +64,15 @@ absentes du corpus.
 ## Plafonds par exécution
 
 - Corpus : 6 000 fiches au plus. Au-delà, arrêt sans suppression du corpus.
-- Téléchargements : l'index et au plus 900 pages, avec au plus 3 tentatives chacune.
-  Les fiches à revérifier passent en premier ; les ajouts utilisent le reste.
+- Téléchargements : l'index et au plus 900 pages. Les fiches à revérifier passent en
+  premier ; les ajouts utilisent le reste.
+- Site injoignable : 5 tentatives pour l'index (pauses de 5, 10, 20 puis 40 s), 3 pour
+  une page (pauses de 2 puis 4 s). Une page qui ne répond toujours pas est
+  **reportée** à l'exécution suivante au lieu de faire échouer le lot : une fiche à
+  revérifier garde sa version précédente, une fiche à ajouter reste absente. Au-delà
+  de 10 pages reportées, ou dès 3 pages reportées de suite (site en panne),
+  l'exécution s'arrête sans remplacer le corpus. Le bilan de collecte indique le
+  nombre de fiches reportées.
 - Embeddings : au plus 100 appels et 3 000 000 d'octets UTF-8 de texte, soit environ
   400 fiches nouvelles. Le dépassement est détecté **avant** toute écriture.
 - Modèle fixé pour le workflow : text-embedding-3-small.
