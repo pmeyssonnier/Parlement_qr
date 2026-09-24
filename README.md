@@ -95,3 +95,14 @@ unitaires, la validation du corpus, le build et les tests Playwright.
   `git blame` le commit de formatage.
 - Toute modification du schéma passe par une nouvelle migration numérotée dans
   `web/supabase/migrations/`, suivie de la mise à jour de `web/src/lib/database.types.ts`.
+
+## Licence
+
+Le code est distribué sous licence [MIT](LICENSE).
+
+Cette licence ne couvre pas les documents parlementaires conservés dans le dépôt :
+questions, réponses, index et copies de pages officielles (`sources/`,
+`liste_source.html`, `question_source.html`, `source_test.html`,
+`index_officiel_24-29.json`, `echantillon_questions_reponses.json`, `web/data/`).
+Ils proviennent du site du Parlement de la Région de Bruxelles-Capitale et restent
+soumis à ses conditions de réutilisation.
