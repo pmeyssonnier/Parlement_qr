@@ -10,7 +10,9 @@ export function retentionSummary(removed: number, remaining: InactiveVersion[], 
   // Never activated and not removed: created less than an hour ago.
   const recent = remaining.length - unknown - rollback;
   const kept = [
-    `${count(rollback, "version", "versions")} pour retour arrière (${keep} au plus)`,
+    // Not a hard cap: versions created less than an hour ago are always
+    // protected, so several close imports can exceed the target.
+    `${count(rollback, "version", "versions")} pour retour arrière (cible : ${keep}, hors versions récentes protégées)`,
     ...(unknown
       ? [`${count(unknown, "version antérieure", "versions antérieures")} à la migration, jamais supprimée(s)`]
       : []),
