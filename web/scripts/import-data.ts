@@ -5,6 +5,7 @@ import OpenAI from "openai";
 import type { Database } from "../src/lib/database.types";
 import { passages, validateCorpus } from "../src/lib/documents";
 import { ImportBudget, positiveLimit } from "./import-budget";
+import { retentionSummary } from "./retention";
 
 async function main() {
   const path = process.argv.find(a => a.startsWith("--file="))?.slice(7) || "data/corpus.json";
@@ -106,10 +107,17 @@ async function main() {
     // Retention failure never fails an import that is already live.
     const { data: removed, error: pruneError } = await db.rpc("prune_corpus_versions", { p_keep: keepVersions });
     if (pruneError) console.warn("Anciennes versions non nettoyées : appliquez la migration 003_corpus_retention.sql.");
-    else
+    else {
+      const { data: remaining, error: listError } = await db
+        .from("corpus_versions")
+        .select("activated_at,activation_unknown")
+        .eq("active", false);
       console.log(
-        `Rétention : ${removed} ancienne(s) version(s) supprimée(s), ${keepVersions} conservée(s) pour retour arrière.`,
+        listError || !remaining
+          ? `Rétention : ${removed} version(s) supprimée(s) ; détail des versions conservées indisponible.`
+          : retentionSummary(removed, remaining, keepVersions),
       );
+    }
   } catch (error) {
     console.error(`Import interrompu. La version précédente reste active. Version de préparation : ${version.id}`);
     throw error;
