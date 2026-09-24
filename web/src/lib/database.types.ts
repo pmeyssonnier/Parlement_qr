@@ -10,15 +10,15 @@ export type Database = {
       corpus_versions: {
         Row: {
           id: string; active: boolean; count: number; extracted_at: string; method: string;
-          created_at: string; activated_at: string | null;
+          created_at: string; activated_at: string | null; activation_unknown: boolean;
         };
         Insert: {
           id?: string; active?: boolean; count: number; extracted_at: string; method: string;
-          created_at?: string; activated_at?: string | null;
+          created_at?: string; activated_at?: string | null; activation_unknown?: boolean;
         };
         Update: {
           id?: string; active?: boolean; count?: number; extracted_at?: string; method?: string;
-          created_at?: string; activated_at?: string | null;
+          created_at?: string; activated_at?: string | null; activation_unknown?: boolean;
         };
         Relationships: [];
       };

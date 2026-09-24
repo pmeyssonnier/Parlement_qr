@@ -54,7 +54,19 @@ SQL de Supabase) :
 - la version active et les 2 dernières versions ayant été actives sont conservées
   pour un retour arrière (variable IMPORT_KEEP_VERSIONS) ;
 - les imports interrompus, jamais activés, sont supprimés ;
-- rien de ce qui a été créé depuis moins d'une heure n'est supprimé.
+- rien de ce qui a été créé depuis moins d'une heure n'est supprimé ;
+- les versions inactives antérieures à la migration ne sont jamais supprimées
+  automatiquement : rien ne permet de savoir si elles ont été en ligne (un import
+  peut échouer après sa dernière question, avant ses passages). La migration les
+  marque `activation_unknown`.
+
+Pour les supprimer à la main après vérification, dans l'éditeur SQL de Supabase :
+
+```sql
+select id, created_at, count from corpus_versions where activation_unknown order by created_at desc;
+-- puis, pour chaque version dont vous êtes certain de ne plus avoir besoin :
+delete from corpus_versions where id = '<id>' and activation_unknown and not active;
+```
 
 Si la migration n'est pas appliquée, l'import réussit quand même et affiche un
 avertissement ; les versions s'accumulent alors comme auparavant.

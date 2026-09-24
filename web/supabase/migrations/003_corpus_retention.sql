@@ -3,14 +3,30 @@
 -- 1536-dimension embeddings). Without pruning, inactive versions and failed
 -- staging imports accumulate indefinitely.
 
--- Distinguishes former production versions (worth keeping for a rollback)
--- from staging imports that never went live.
+-- activated_at distinguishes former production versions (worth keeping for a
+-- rollback) from staging imports that never went live. It is only known from
+-- now on: activate_corpus records it below.
 alter table public.corpus_versions add column if not exists activated_at timestamptz;
--- Backfill: the active version, and any complete version, was activated
--- (activate_corpus refuses incomplete ones).
-update public.corpus_versions v set activated_at = v.created_at
-where v.activated_at is null
-  and (v.active or v.count = (select count(*) from public.questions q where q.version_id = v.id));
+-- Whether an inactive version that predates this migration was ever live
+-- cannot be told from the data: a question count equal to the version count
+-- does not prove it, since an import can fail after inserting its last
+-- question but before that question's passages. Such versions are marked
+-- activation_unknown and are never removed automatically.
+-- The marking only runs when the column is created, so re-running this file
+-- never flags versions created since.
+do $$
+begin
+  if not exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'corpus_versions' and column_name = 'activation_unknown'
+  ) then
+    alter table public.corpus_versions add column activation_unknown boolean not null default false;
+    update public.corpus_versions set activation_unknown = true where not active;
+    -- The live version was activated at some point; its creation time is the
+    -- best available approximation, used only to order rollback versions.
+    update public.corpus_versions set activated_at = coalesce(activated_at, created_at) where active;
+  end if;
+end $$;
 
 -- Same checks as 001_initial.sql; also records the activation time.
 create or replace function public.activate_corpus(p_id uuid, p_passage_count integer)
@@ -29,8 +45,9 @@ end $$;
 
 -- Keeps the active version and the p_keep most recently activated former
 -- versions (for a manual rollback). Staging imports that never went live are
--- removed. Nothing created less than an hour ago is removed: it may be an
--- import still in progress. Questions and passages go with their version
+-- removed. Never removed: versions whose activation is unknown (created before
+-- this migration), and anything created less than an hour ago (it may be an
+-- import still in progress). Questions and passages go with their version
 -- (on delete cascade).
 create or replace function public.prune_corpus_versions(p_keep integer)
 returns integer language plpgsql security invoker set search_path=public as $$
@@ -40,11 +57,11 @@ begin
   -- Same lock as activate_corpus: never prune while a version is being activated.
   perform pg_advisory_xact_lock(781301);
   with kept as (
-    select id from corpus_versions where not active and activated_at is not null
+    select id from corpus_versions where not active and not activation_unknown and activated_at is not null
     order by activated_at desc limit p_keep
   )
   delete from corpus_versions v
-  where not v.active and v.created_at < now() - interval '1 hour'
+  where not v.active and not v.activation_unknown and v.created_at < now() - interval '1 hour'
     and v.id not in (select id from kept);
   get diagnostics removed = row_count;
   return removed;
