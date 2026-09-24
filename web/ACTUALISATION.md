@@ -47,11 +47,21 @@ Une opération échouée peut avoir consommé une partie du budget avant l'arrê
 
 La nouvelle version devient active seulement après import complet et vérification
 des décomptes. En cas de plafond atteint ou d'erreur, la précédente reste active.
-Les versions précédentes et les imports interrompus sont conservés dans Supabase ;
-leur nettoyage n'est pas automatisé et devra être prévu si le stockage augmente.
+Après activation, l'import supprime les anciennes versions (migration
+`supabase/migrations/003_corpus_retention.sql`, à appliquer une fois dans l'éditeur
+SQL de Supabase) :
+
+- la version active et les 2 dernières versions ayant été actives sont conservées
+  pour un retour arrière (variable IMPORT_KEEP_VERSIONS) ;
+- les imports interrompus, jamais activés, sont supprimés ;
+- rien de ce qui a été créé depuis moins d'une heure n'est supprimé.
+
+Si la migration n'est pas appliquée, l'import réussit quand même et affiche un
+avertissement ; les versions s'accumulent alors comme auparavant.
 
 Les copies publiques collectées sont conservées comme artefacts GitHub pendant
 30 jours. Consultez Actions pour les résultats et configurez vos notifications
 GitHub Actions selon vos préférences. Aucun message Slack ou email n'est envoyé
-par le script. Les nouvelles réponses deviennent visibles après actualisation
-de la page du site ; un nouveau déploiement Vercel n'est pas nécessaire.
+par le script. Les nouvelles réponses sont interrogeables dès l'activation ; les compteurs
+affichés sur la page d'accueil sont mis en cache et se mettent à jour en
+10 minutes au plus. Un nouveau déploiement Vercel n'est pas nécessaire.

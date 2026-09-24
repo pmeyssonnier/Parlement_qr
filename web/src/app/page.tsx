@@ -1,9 +1,9 @@
 import { Chat } from "@/components/chat";
-import { aiEnabled, corpusInfo } from "@/lib/server";
+import { aiEnabled, cachedCorpusInfo } from "@/lib/server";
 export const dynamic = "force-dynamic";
 export default async function Page() {
   try {
-    const info = await corpusInfo();
+    const info = await cachedCorpusInfo();
     return (
       <Chat
         count={info.count}

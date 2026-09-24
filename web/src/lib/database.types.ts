@@ -1,5 +1,5 @@
 // Written in the `supabase gen types typescript` format from
-// supabase/migrations/001_initial.sql and 002_quota_fallback.sql.
+// supabase/migrations/001_initial.sql to 003_corpus_retention.sql.
 // Regenerate with the Supabase CLI after any schema change:
 //   npx supabase gen types typescript --project-id <id> > src/lib/database.types.ts
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
@@ -8,9 +8,18 @@ export type Database = {
   public: {
     Tables: {
       corpus_versions: {
-        Row: { id: string; active: boolean; count: number; extracted_at: string; method: string; created_at: string };
-        Insert: { id?: string; active?: boolean; count: number; extracted_at: string; method: string; created_at?: string };
-        Update: { id?: string; active?: boolean; count?: number; extracted_at?: string; method?: string; created_at?: string };
+        Row: {
+          id: string; active: boolean; count: number; extracted_at: string; method: string;
+          created_at: string; activated_at: string | null;
+        };
+        Insert: {
+          id?: string; active?: boolean; count: number; extracted_at: string; method: string;
+          created_at?: string; activated_at?: string | null;
+        };
+        Update: {
+          id?: string; active?: boolean; count?: number; extracted_at?: string; method?: string;
+          created_at?: string; activated_at?: string | null;
+        };
         Relationships: [];
       };
       questions: {
@@ -50,6 +59,7 @@ export type Database = {
     Views: { [_ in never]: never };
     Functions: {
       activate_corpus: { Args: { p_id: string; p_passage_count: number }; Returns: undefined };
+      prune_corpus_versions: { Args: { p_keep: number }; Returns: number };
       search_passages: {
         Args: { p_query: string; p_vector?: string | null; p_limit?: number };
         Returns: { id: string; question_id: string; section: string; content: string; position: number; score: number; document: Json }[];

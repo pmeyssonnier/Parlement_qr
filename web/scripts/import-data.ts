@@ -11,6 +11,7 @@ async function main() {
   const corpus = validateCorpus(JSON.parse(await readFile(path, "utf8")));
   const allPassages = corpus.questions.flatMap(passages);
   const maxRecords = positiveLimit(process.env.IMPORT_MAX_RECORDS, 500);
+  const keepVersions = positiveLimit(process.env.IMPORT_KEEP_VERSIONS, 2);
   if (corpus.questions.length > maxRecords) throw new Error("Plafond de fiches dépassé avant import.");
   const budget = new ImportBudget(
     positiveLimit(process.env.IMPORT_MAX_EMBEDDING_CALLS, 25),
@@ -102,6 +103,13 @@ async function main() {
       `Corpus activé : ${corpus.questions.length} fiches, ${allPassages.length} passages. Version : ${version.id}`,
     );
     console.log(`OpenAI : ${budget.calls} appels, ${budget.bytes} octets de texte envoyés au maximum.`);
+    // Retention failure never fails an import that is already live.
+    const { data: removed, error: pruneError } = await db.rpc("prune_corpus_versions", { p_keep: keepVersions });
+    if (pruneError) console.warn("Anciennes versions non nettoyées : appliquez la migration 003_corpus_retention.sql.");
+    else
+      console.log(
+        `Rétention : ${removed} ancienne(s) version(s) supprimée(s), ${keepVersions} conservée(s) pour retour arrière.`,
+      );
   } catch (error) {
     console.error(`Import interrompu. La version précédente reste active. Version de préparation : ${version.id}`);
     throw error;

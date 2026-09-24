@@ -9,6 +9,7 @@ import type { Database } from "./database.types";
 import { nature } from "./documents";
 import { generatedSchema, type Hit, type QuotaGrant, quotaGrantSchema, searchRowSchema } from "./schema";
 import { contextualQuery, filterLexicalHits, lexicalQuery, localSearch } from "./search";
+import { ttlCache } from "./ttl-cache";
 
 export type { QuotaGrant } from "./schema";
 export const aiEnabled = () => process.env.AI_ENABLED === "true" && !!process.env.OPENAI_API_KEY;
@@ -126,6 +127,9 @@ export async function corpusInfo() {
     origin: "local" as const,
   };
 }
+// The corpus changes once a week: the home page does not need two queries,
+// one of them an exact count, on every view. /api/health stays uncached.
+export const cachedCorpusInfo = ttlCache(corpusInfo, 10 * 60 * 1000);
 // A failed embedding call degrades to lexical search instead of failing the request.
 async function embed(query: string): Promise<number[] | null> {
   try {
