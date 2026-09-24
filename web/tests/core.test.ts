@@ -4,8 +4,11 @@ import { corpus } from "../src/lib/corpus";
 import { localSearch, contextualQuery, lexicalQuery, filterLexicalHits } from "../src/lib/search";
 import { validateCorpus, safeSourceUrl, passages, nature } from "../src/lib/documents";
 import { extractiveAnswer, validateGenerated } from "../src/lib/answer";
-import { chatInput } from "../src/lib/schema";
+import { chatInput, chatResponseSchema } from "../src/lib/schema";
 import { localQuota } from "../src/lib/server";
+
+const [sample] = corpus.questions;
+assert.ok(sample);
 
 test("corpus: dix fiches uniques et passages fidèles aux textes", () => {
   assert.equal(corpus.questions.length,10);
@@ -30,8 +33,8 @@ test("STIB et chaleur retrouvent les réponses pertinentes", () => {
   assert.ok(hits.every(h=>h.passage.section==="reponse"));
 });
 test("les formulations citoyennes retrouvent vote et emballages", () => {
-  assert.equal(localSearch(corpus.questions,"Comment les expatriés sont-ils informés de leur droit de vote ?")[0].question.moncode,"167744");
-  assert.equal(localSearch(corpus.questions,"Que prévoit clean.brussels pour réduire les emballages ?")[0].question.moncode,"166346");
+  assert.equal(localSearch(corpus.questions,"Comment les expatriés sont-ils informés de leur droit de vote ?")[0]?.question.moncode,"167744");
+  assert.equal(localSearch(corpus.questions,"Que prévoit clean.brussels pour réduire les emballages ?")[0]?.question.moncode,"166346");
 });
 test("sujet absent: pas de réponse inventée", () => {
   const hits=localSearch(corpus.questions,"Astronautes martiens et fusées interstellaires");
@@ -40,14 +43,14 @@ test("sujet absent: pas de réponse inventée", () => {
 });
 
 test("un mot commun ne suffit pas à documenter un sujet absent", () => {
-  const q={...corpus.questions[0],titre:"Transports scolaires",question:"Quels transports scolaires ?",reponse:"Des transports scolaires sont organisés."};
+  const q={...sample,titre:"Transports scolaires",question:"Quels transports scolaires ?",reponse:"Des transports scolaires sont organisés."};
   const hit={question:q,passage:passages(q).find(p=>p.section==="reponse")!,score:10};
   assert.deepEqual(filterLexicalHits([hit],"Quelles mesures concernant les cantines scolaires ?"),[]);
   assert.equal(filterLexicalHits([hit],"transports scolaires").length,1);
 });
 
 test("une question sans réponse ne devient pas un extrait de réponse", () => {
-  const q={...corpus.questions[0],reponse:null};
+  const q={...sample,reponse:null};
   assert.deepEqual(localSearch([q],"expatriés droit de vote"),[]);
 });
 
@@ -56,11 +59,15 @@ test("recherche lexicale : mots-clés alternatifs sans syntaxe utilisateur ni te
   assert.equal(lexicalQuery("Quelles sont les mesures concernant les cantines scolaires ?"),"cantine OR scolaire");
   assert.doesNotMatch(lexicalQuery('vote -"expatriés"'),/["-]/);
 });
+test("les synonymes s’appliquent aussi aux mots accentués", () => {
+  assert.match(lexicalQuery("Quand ont lieu les élections ?"),/electoral/);
+  assert.match(lexicalQuery("Le métro est-il climatisé ?"),/stib/);
+});
 test("les réponses d’incompétence sont signalées", () => {
   const q=corpus.questions.find(q=>q.moncode==="167067")!;
   assert.equal(nature(q),"incompetence");
   const result=extractiveAnswer(localSearch([q],"Villo panneaux publicitaires"),"test");
-  assert.match(result.paragraphs[0].text,/absence de compétence/);
+  assert.match(result.paragraphs[0]?.text ?? "",/absence de compétence/);
 });
 
 test("sujet absent avec voisins sémantiques : aucune citation ni demande de pièces", () => {
@@ -72,8 +79,8 @@ test("sujet absent avec voisins sémantiques : aucune citation ni demande de pi�
   }],limits:"Je ne peux utiliser que les pièces que vous me donnez."},hits,"absent");
   assert.equal(result.status,"insuffisant");
   assert.deepEqual(result.sources,[]);
-  assert.deepEqual(result.paragraphs[0].sourceIds,[]);
-  assert.match(result.paragraphs[0].text,/corpus de l’application/);
+  assert.deepEqual(result.paragraphs[0]?.sourceIds,[]);
+  assert.match(result.paragraphs[0]?.text ?? "",/corpus de l’application/);
   assert.doesNotMatch(JSON.stringify(result),/Fournissez|pièces|emballages/);
   assert.equal(validateGenerated({status:"insuffisant",paragraphs:[],limits:""},hits,"empty").status,"insuffisant");
 });
@@ -84,10 +91,13 @@ test("relances contextualisées et changement de sujet indépendant", () => {
 });
 test("une citation inventée ou absente est rejetée", () => {
   const hits=localSearch(corpus.questions,"STIB canicule");
+  const [first]=hits;
+  assert.ok(first);
   assert.throws(()=>validateGenerated({status:"documente",paragraphs:[{text:"Faux",sourceIds:["invente"]}],limits:""},hits,"test"));
   assert.throws(()=>validateGenerated({status:"documente",paragraphs:[{text:"Faux",sourceIds:[]}],limits:""},hits,"test"));
-  const ok=validateGenerated({status:"documente",paragraphs:[{text:"Une réponse est disponible.",sourceIds:[hits[0].passage.id]}],limits:""},hits,"test");
-  assert.equal(ok.sources[0].url,hits[0].question.url_source);
+  const ok=validateGenerated({status:"documente",paragraphs:[{text:"Une réponse est disponible.",sourceIds:[first.passage.id]}],limits:""},hits,"test");
+  assert.equal(ok.sources[0]?.url,first.question.url_source);
+  assert.ok(chatResponseSchema.safeParse(ok).success);
 });
 
 test("relance longue sur la réponse ministérielle conserve le sujet et ses sources", () => {

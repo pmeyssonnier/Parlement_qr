@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowUp, ArrowUpRight, BookOpen, Check, ChevronDown, FileText, Landmark, Menu, Plus, Search, ShieldCheck, X } from "lucide-react";
 import type { ChatResponse, Source } from "@/lib/schema";
-import { dateLabel, shortTitle } from "@/lib/documents";
+import { dateLabel, shortTitle } from "@/lib/format";
 
 type Turn = { id: string; question: string; response?: ChatResponse; error?: string };
 const suggestions = [
@@ -11,6 +11,17 @@ const suggestions = [
   { label: "Environnement", text: "Que prévoit clean.brussels pour réduire les emballages ?", icon: "03" },
 ];
 
+class ServiceError extends Error {}
+function errorMessage(data: unknown) {
+  return data && typeof data === "object" && "error" in data && typeof data.error === "string" ? data.error : "Le service est indisponible.";
+}
+// Lightweight shape check: zod (chatResponseSchema) stays server-side.
+function isChatResponse(data: unknown): data is ChatResponse {
+  if (!data || typeof data !== "object") return false;
+  const r = data as Record<string, unknown>;
+  return (r.mode === "ia" || r.mode === "extraits") && (r.status === "documente" || r.status === "insuffisant")
+    && Array.isArray(r.paragraphs) && Array.isArray(r.sources) && typeof r.notice === "string";
+}
 function SourceCard({ source, index }: { source: Source; index: number }) {
   return <details className="source-card"><summary><span className="source-number">{index + 1}</span><span><strong>{shortTitle(source.title)}</strong><small>{source.author} · {dateLabel(source.date)}</small></span><ChevronDown size={16} aria-hidden="true" /></summary>
     <div className="source-expanded"><p className="recipient">{source.recipient}</p>{source.nature === "incompetence" && <p className="warning">Cette réponse indique une absence de compétence du destinataire.</p>}<blockquote>{source.excerpt}</blockquote><a href={source.url} target="_blank" rel="noreferrer">Lire la fiche officielle <ArrowUpRight size={14} aria-hidden="true" /></a></div></details>;
@@ -36,11 +47,14 @@ export function Chat({ count, answerCount, extractedAt, method, ai }: { count: n
     const timer = setTimeout(() => controller.current?.abort(), 55000);
     try {
       const result = await fetch("/api/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message, history }), signal: controller.current.signal });
-      const data = await result.json();
-      if (!result.ok) throw new Error(data.error || "Le service est indisponible.");
+      // A platform error page (502, 504…) is HTML: never show a JSON parse error.
+      const data: unknown = await result.json().catch(() => null);
+      if (!result.ok || !isChatResponse(data)) throw new ServiceError(errorMessage(data));
       setTurns(prev => prev.map(t => t.id === id ? { ...t, response: data } : t));
     } catch (error) {
-      const message = error instanceof Error && error.name !== "AbortError" ? error.message : "La recherche a pris trop de temps. Réessayez dans un instant.";
+      const message = error instanceof ServiceError ? error.message
+        : error instanceof Error && error.name === "AbortError" ? "La recherche a pris trop de temps. Réessayez dans un instant."
+        : "Le service est indisponible. Vérifiez votre connexion et réessayez.";
       setTurns(prev => prev.map(t => t.id === id ? { ...t, error: message } : t));
     } finally { clearTimeout(timer); setBusy(false); textarea.current?.focus(); }
   }

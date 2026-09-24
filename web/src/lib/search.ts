@@ -6,10 +6,13 @@ export function normalize(s: string) { return s.normalize("NFD").replace(/\p{Dia
 export function tokens(s: string): string[] {
   return [...new Set((normalize(s).match(/[a-z0-9]{2,}/g) || []).filter(w => !stop.has(w)).map(w => w.length > 4 ? w.replace(/s$/, "") : w))];
 }
+// Match on the normalized text: without the u flag, \b treats accented
+// letters as word boundaries, so /\bélection/ never matched.
 function expanded(s: string) {
-  return s + (/\b(chaud|chaleur|chaleurs|canicule)\b/i.test(s) ? " chaleur canicule climatisation conditionné" : "")
-    + (/\b(bus|tram|trams|métro|metro|métros|metros)\b/i.test(s) ? " STIB transports" : "")
-    + (/\b(voter|vote|élection|election)\b/i.test(s) ? " élections électoral inscription" : "");
+  const n = normalize(s);
+  return s + (/\b(chaud|chaleurs?|canicule)\b/.test(n) ? " chaleur canicule climatisation conditionné" : "")
+    + (/\b(bus|trams?|metros?)\b/.test(n) ? " STIB transports" : "")
+    + (/\b(voter?|elections?)\b/.test(n) ? " élections électoral inscription" : "");
 }
 export function lexicalQuery(query: string) {
   // websearch_to_tsquery otherwise requires every word of a natural-language
@@ -40,9 +43,9 @@ export function contextualQuery(message: string, history: { content: string }[])
   };
   if (!isFollowup(message) || !history.length) return message;
   const context: string[] = [];
-  for (let i = history.length - 1; i >= Math.max(0, history.length - 4); i--) {
-    context.unshift(history[i].content);
-    if (!isFollowup(history[i].content)) break;
+  for (const { content } of history.slice(-4).reverse()) {
+    context.unshift(content);
+    if (!isFollowup(content)) break;
   }
   return [...context, message].join(" ");
 }
@@ -59,9 +62,10 @@ export function localSearch(questions: Question[], query: string, limit = 6): Hi
     const score = terms.reduce((n, t) => n + (all.has(t) ? idf(t) * (title.has(t) ? 3 : 1) : 0), 0) / Math.sqrt(terms.length);
     return { q, ps, score };
   }).filter(d => d.score >= 0.5).sort((a, b) => b.score - a.score);
-  if (!ranked.length) return [];
+  const top = ranked[0];
+  if (!top) return [];
   const results: Hit[] = [];
-  for (const doc of ranked.filter(d => d.score >= ranked[0].score * 0.42).slice(0, 3)) {
+  for (const doc of ranked.filter(d => d.score >= top.score * 0.42).slice(0, 3)) {
     const answers = doc.ps.filter(p => p.section === "reponse");
     const pool = answers.length ? answers : doc.ps;
     const best = pool.map(p => ({ passage: p, question: doc.q, score: doc.score + terms.filter(t => new Set(tokens(p.text)).has(t)).reduce((n, t) => n + idf(t), 0) })).sort((a, b) => b.score - a.score).slice(0, 2);

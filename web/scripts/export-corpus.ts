@@ -1,9 +1,10 @@
 import { createClient } from "@supabase/supabase-js";
 import { writeFile } from "node:fs/promises";
 import { validateCorpus } from "../src/lib/documents";
+import type { Database } from "../src/lib/database.types";
 async function main() {
   if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SECRET_KEY) throw new Error("Supabase non configuré.");
-  const db=createClient(process.env.SUPABASE_URL,process.env.SUPABASE_SECRET_KEY,{auth:{persistSession:false}});
+  const db=createClient<Database>(process.env.SUPABASE_URL,process.env.SUPABASE_SECRET_KEY,{auth:{persistSession:false}});
   const {data:version,error}=await db.from("corpus_versions").select("id,count,extracted_at,method").eq("active",true).single();
   if(error || !version) throw new Error("Aucun corpus actif exportable.");
   const questions:unknown[]=[];

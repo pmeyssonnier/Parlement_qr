@@ -4,6 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 import OpenAI from "openai";
 import { validateCorpus, passages } from "../src/lib/documents";
 import { ImportBudget, positiveLimit } from "./import-budget";
+import type { Database } from "../src/lib/database.types";
 
 async function main() {
   const path = process.argv.find(a => a.startsWith("--file="))?.slice(7) || "data/corpus.json";
@@ -17,7 +18,7 @@ async function main() {
   if (!url || !key) throw new Error("Configurez SUPABASE_URL et SUPABASE_SECRET_KEY dans .env.local.");
   const withoutEmbeddings = process.argv.includes("--without-embeddings");
   if (!apiKey && !withoutEmbeddings) throw new Error("Configurez OPENAI_API_KEY ou utilisez --without-embeddings.");
-  const db = createClient(url, key, { auth: { persistSession: false } });
+  const db = createClient<Database>(url, key, { auth: { persistSession: false } });
   const client = !withoutEmbeddings ? new OpenAI({ apiKey, timeout: 30000, maxRetries: 0 }) : null;
   const model = process.env.EMBEDDING_MODEL || "text-embedding-3-small";
   const { data: previous, error: previousError } = await db.from("corpus_versions").select("id").eq("active",true).maybeSingle();
@@ -30,21 +31,23 @@ async function main() {
       const { error } = await db.from("questions").insert({ version_id: version.id, id: q.id, document: q, content_hash: hash });
       if (error) throw new Error("Échec de l’importation d’une fiche.");
       const ps = passages(q);
-      const searchTexts = ps.map(p => `${q.titre}\n${q.auteur}\n${q.destinataire}\n${p.section.toUpperCase()}\n${p.text}`);
-      let vectors: (number[] | string)[] = [];
+      const searchText = (p: (typeof ps)[number]) => `${q.titre}\n${q.auteur}\n${q.destinataire}\n${p.section.toUpperCase()}\n${p.text}`;
+      const searchTexts = ps.map(searchText);
+      // pgvector accepts the "[x,y,…]" text form, which is also how cached vectors come back.
+      let vectors: (string | null)[] = [];
       if (client && previous) {
         const { data: oldQuestion } = await db.from("questions").select("content_hash").eq("version_id",previous.id).eq("id",q.id).maybeSingle();
         if (oldQuestion?.content_hash === hash) {
           const { data: cached } = await db.from("passages").select("id,embedding,embedding_model").eq("version_id",previous.id).eq("question_id",q.id);
           const cache = new Map((cached || []).map(p=>[p.id,p]));
-          if (ps.every(p=>cache.get(p.id)?.embedding && cache.get(p.id)?.embedding_model===model)) vectors=ps.map(p=>cache.get(p.id)!.embedding);
+          if (ps.every(p=>cache.get(p.id)?.embedding && cache.get(p.id)?.embedding_model===model)) vectors=ps.map(p=>cache.get(p.id)?.embedding ?? null);
         }
       }
       if (client && !vectors.length) {
         budget.reserve(searchTexts);
-        vectors=(await client.embeddings.create({ model, dimensions:1536, input:searchTexts })).data.sort((a,b)=>a.index-b.index).map(d=>d.embedding);
+        vectors=(await client.embeddings.create({ model, dimensions:1536, input:searchTexts })).data.sort((a,b)=>a.index-b.index).map(d=>JSON.stringify(d.embedding));
       }
-      const { error: pe } = await db.from("passages").insert(ps.map((p,i) => ({ version_id: version.id, id:p.id, question_id:q.id, section:p.section, position:p.order, content:p.text, search_text:searchTexts[i], embedding:vectors[i] || null, embedding_model:client ? model : null })));
+      const { error: pe } = await db.from("passages").insert(ps.map((p,i) => ({ version_id: version.id, id:p.id, question_id:q.id, section:p.section, position:p.order, content:p.text, search_text:searchText(p), embedding:vectors[i] ?? null, embedding_model:client ? model : null })));
       if (pe) throw new Error("Échec de l’importation des passages.");
       console.log(`Importé : ${q.id} (${ps.length} passages)`);
     }

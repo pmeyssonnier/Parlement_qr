@@ -14,7 +14,7 @@ const cases = [
   { q: "Quelles sont les exemptions LEZ pour les bénéficiaires BIM ?", id: "169916" },
   { q: "Quelles sont les mesures concernant les cantines scolaires ?", id: null },
   { q: "Astronautes martiens et fusées interstellaires", id: null },
-];
+] as const;
 async function main() {
   const corpus=validateCorpus(JSON.parse(await readFile("data/corpus-refreshed.json","utf8")));
   const results: unknown[]=[];

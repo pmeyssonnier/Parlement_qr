@@ -41,7 +41,3 @@ export function passages(q: Question): Passage[] {
 export function toSource(hit: Hit): Source {
   return { id: hit.passage.id, title: hit.question.titre, author: hit.question.auteur, recipient: hit.question.destinataire, date: hit.question.date_reponse, url: safeSourceUrl(hit.question.url_source), excerpt: hit.passage.text, nature: nature(hit.question) };
 }
-export function shortTitle(title: string) { return title.replace(/^Question écrite concernant /i, ""); }
-export function dateLabel(date: string | null) {
-  return date ? new Intl.DateTimeFormat("fr-BE", { dateStyle: "long", timeZone: "UTC" }).format(new Date(date)) : "date non renseignée";
-}

@@ -16,7 +16,7 @@ test("absence de résultat et explication du périmètre", async ({page}) => {
   await page.goto("/");
   await page.getByLabel("Votre question sur les documents parlementaires").fill("Astronautes martiens et fusées interstellaires");
   await page.getByRole("button",{name:"Envoyer la question"}).click();
-  await expect(page.getByText(/Je n’ai pas trouvé de réponse/)).toBeVisible();
+  await expect(page.getByText(/Je n’ai pas trouvé d’information suffisamment pertinente/)).toBeVisible();
   await page.getByRole("button",{name:"Voir le périmètre"}).click();
   await expect(page.getByRole("dialog")).toBeVisible();
   await page.keyboard.press("Escape");
