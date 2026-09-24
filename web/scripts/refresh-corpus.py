@@ -68,19 +68,26 @@ def main():
     parser.add_argument('--file', default='data/corpus.json')
     parser.add_argument('--output', default='data/corpus-refreshed.json')
     parser.add_argument('--expand', type=int, default=0, help='Add this many most recent questions, maximum 500 per run')
+    parser.add_argument('--max-records', type=int, default=150, help='Maximum number of selected pages before any page collection')
     args = parser.parse_args()
     if not 0 <= args.expand <= 500:
         parser.error('--expand must be between 0 and 500')
+    if args.max_records < 1:
+        parser.error('--max-records must be positive')
     current = json.loads(Path(args.file).read_text(encoding='utf-8'))
     index_text = download(INDEX)
     rows = [r for r in json.loads(index_text)['data'] if r[0] == 'PRB' and r[15] == '1' and iso(r[5])]
     ids = {q['moncode'] for q in current['questions']}
     previous_ids = ids.copy()
+    if len(ids) > args.max_records:
+        raise ValueError('Plafond de collecte dépassé par le corpus existant ; aucune fiche supprimée.')
     rows.sort(key=lambda r: (iso(r[5]), int(re.search(r'moncode=(\d+)', r[2])[1])), reverse=True)
     ids.update(re.search(r'moncode=(\d+)', r[2])[1] for r in rows[:args.expand])
     selected = [r for r in rows if re.search(r'moncode=(\d+)', r[2])[1] in ids]
     if len(selected) != len(ids):
         raise ValueError('Certaines fiches précédemment collectées sont absentes de l’index : vérification manuelle requise.')
+    if len(selected) > args.max_records:
+        raise ValueError('Plafond de collecte dépassé ; aucune fiche téléchargée ou supprimée.')
     output = Path(args.output)
     output.parent.mkdir(parents=True, exist_ok=True)
     snapshot = output.parent / 'source-snapshots' / dt.datetime.now(dt.timezone.utc).strftime('%Y%m%dT%H%M%SZ')

@@ -6,9 +6,8 @@ on:
         description: 'Nombre de questions récentes à ajouter (0 = actualiser le corpus local)'
         default: '0'
         required: true
-  # Activate a schedule only after configuring secrets, import scope and billing.
-  # schedule:
-  #   - cron: '20 4 * * 1'
+  schedule:
+    - cron: '20 4 * * 1'
 permissions:
   contents: read
 concurrency:
@@ -16,9 +15,15 @@ concurrency:
   cancel-in-progress: false
 jobs:
   refresh:
+    if: github.event_name == 'workflow_dispatch' || vars.CORPUS_REFRESH_ENABLED == 'true'
     runs-on: ubuntu-latest
     environment: production
     timeout-minutes: 45
+    env:
+      IMPORT_MAX_RECORDS: '150'
+      IMPORT_MAX_EMBEDDING_CALLS: '25'
+      IMPORT_MAX_EMBEDDING_BYTES: '250000'
+      EMBEDDING_MODEL: text-embedding-3-small
     defaults:
       run:
         working-directory: web
@@ -41,7 +46,7 @@ jobs:
       - name: Collect public documents
         env:
           EXPAND: ${{ inputs.expand || '0' }}
-        run: python scripts/refresh-corpus.py --file data/corpus-active.json --expand "$EXPAND"
+        run: python scripts/refresh-corpus.py --file data/corpus-active.json --expand "$EXPAND" --max-records 150
       - run: npm run import:data -- --file=data/corpus-refreshed.json --validate-only
       - name: Import and atomically activate
         env:

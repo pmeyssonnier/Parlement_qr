@@ -2,6 +2,8 @@ import importlib.util
 import json
 import re
 import unittest
+from unittest.mock import patch
+import tempfile
 from pathlib import Path
 
 HERE=Path(__file__).resolve().parent
@@ -10,6 +12,17 @@ collector=importlib.util.module_from_spec(spec)
 spec.loader.exec_module(collector)
 
 class CollectorTests(unittest.TestCase):
+    def test_collection_cap_prevents_page_downloads(self):
+        root=HERE.parent.parent
+        source=json.loads((root/'echantillon_questions_reponses.json').read_text(encoding='utf-8'))
+        index=(root/'index_officiel_24-29.json').read_text(encoding='utf-8')
+        with tempfile.TemporaryDirectory() as directory:
+            path=Path(directory)/'input.json'
+            path.write_text(json.dumps(source),encoding='utf-8')
+            with patch('sys.argv',['refresh','--file',str(path),'--max-records','1']), patch.object(collector,'download',return_value=index) as download:
+                with self.assertRaisesRegex(ValueError,'Plafond de collecte'):
+                    collector.main()
+                self.assertEqual(download.call_count,1)  # index only, no document pages
     def test_original_ten_sources(self):
         root=HERE.parent.parent
         index=json.loads((root/'index_officiel_24-29.json').read_text(encoding='utf-8'))['data']
