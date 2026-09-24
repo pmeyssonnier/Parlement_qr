@@ -1,78 +1,308 @@
-// Written in the `supabase gen types typescript` format from
-// supabase/migrations/001_initial.sql to 003_corpus_retention.sql.
-// Regenerate with the Supabase CLI after any schema change:
-//   npx supabase gen types typescript --project-id <id> > src/lib/database.types.ts
-export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
 
 export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "14.5"
+  }
   public: {
     Tables: {
       corpus_versions: {
         Row: {
-          id: string; active: boolean; count: number; extracted_at: string; method: string;
-          created_at: string; activated_at: string | null; activation_unknown: boolean;
-        };
+          activated_at: string | null
+          activation_unknown: boolean
+          active: boolean
+          count: number
+          created_at: string
+          extracted_at: string
+          id: string
+          method: string
+        }
         Insert: {
-          id?: string; active?: boolean; count: number; extracted_at: string; method: string;
-          created_at?: string; activated_at?: string | null; activation_unknown?: boolean;
-        };
+          activated_at?: string | null
+          activation_unknown?: boolean
+          active?: boolean
+          count: number
+          created_at?: string
+          extracted_at: string
+          id?: string
+          method: string
+        }
         Update: {
-          id?: string; active?: boolean; count?: number; extracted_at?: string; method?: string;
-          created_at?: string; activated_at?: string | null; activation_unknown?: boolean;
-        };
-        Relationships: [];
-      };
-      questions: {
-        Row: { version_id: string; id: string; document: Json; content_hash: string };
-        Insert: { version_id: string; id: string; document: Json; content_hash: string };
-        Update: { version_id?: string; id?: string; document?: Json; content_hash?: string };
-        Relationships: [{
-          foreignKeyName: "questions_version_id_fkey"; columns: ["version_id"]; isOneToOne: false;
-          referencedRelation: "corpus_versions"; referencedColumns: ["id"];
-        }];
-      };
+          activated_at?: string | null
+          activation_unknown?: boolean
+          active?: boolean
+          count?: number
+          created_at?: string
+          extracted_at?: string
+          id?: string
+          method?: string
+        }
+        Relationships: []
+      }
       passages: {
         Row: {
-          version_id: string; id: string; question_id: string; section: string; position: number;
-          content: string; search_text: string; embedding: string | null; embedding_model: string | null; fts: unknown;
-        };
+          content: string
+          embedding: string | null
+          embedding_model: string | null
+          fts: unknown
+          id: string
+          position: number
+          question_id: string
+          search_text: string
+          section: string
+          version_id: string
+        }
         Insert: {
-          version_id: string; id: string; question_id: string; section: string; position: number;
-          content: string; search_text: string; embedding?: string | null; embedding_model?: string | null;
-        };
+          content: string
+          embedding?: string | null
+          embedding_model?: string | null
+          fts?: unknown
+          id: string
+          position: number
+          question_id: string
+          search_text: string
+          section: string
+          version_id: string
+        }
         Update: {
-          version_id?: string; id?: string; question_id?: string; section?: string; position?: number;
-          content?: string; search_text?: string; embedding?: string | null; embedding_model?: string | null;
-        };
-        Relationships: [{
-          foreignKeyName: "passages_version_id_question_id_fkey"; columns: ["version_id", "question_id"]; isOneToOne: false;
-          referencedRelation: "questions"; referencedColumns: ["version_id", "id"];
-        }];
-      };
+          content?: string
+          embedding?: string | null
+          embedding_model?: string | null
+          fts?: unknown
+          id?: string
+          position?: number
+          question_id?: string
+          search_text?: string
+          section?: string
+          version_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "passages_version_id_question_id_fkey"
+            columns: ["version_id", "question_id"]
+            isOneToOne: false
+            referencedRelation: "questions"
+            referencedColumns: ["version_id", "id"]
+          },
+        ]
+      }
+      questions: {
+        Row: {
+          content_hash: string
+          document: Json
+          id: string
+          version_id: string
+        }
+        Insert: {
+          content_hash: string
+          document: Json
+          id: string
+          version_id: string
+        }
+        Update: {
+          content_hash?: string
+          document?: Json
+          id?: string
+          version_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "questions_version_id_fkey"
+            columns: ["version_id"]
+            isOneToOne: false
+            referencedRelation: "corpus_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quotas: {
-        Row: { bucket: string; used: number; expires_at: string };
-        Insert: { bucket: string; used?: number; expires_at: string };
-        Update: { bucket?: string; used?: number; expires_at?: string };
-        Relationships: [];
-      };
-    };
-    Views: { [_ in never]: never };
+        Row: {
+          bucket: string
+          expires_at: string
+          used: number
+        }
+        Insert: {
+          bucket: string
+          expires_at: string
+          used?: number
+        }
+        Update: {
+          bucket?: string
+          expires_at?: string
+          used?: number
+        }
+        Relationships: []
+      }
+    }
+    Views: {
+      [_ in never]: never
+    }
     Functions: {
-      activate_corpus: { Args: { p_id: string; p_passage_count: number }; Returns: undefined };
-      prune_corpus_versions: { Args: { p_keep: number }; Returns: number };
-      search_passages: {
-        Args: { p_query: string; p_vector?: string | null; p_limit?: number };
-        Returns: { id: string; question_id: string; section: string; content: string; position: number; score: number; document: Json }[];
-      };
+      activate_corpus: {
+        Args: { p_id: string; p_passage_count: number }
+        Returns: undefined
+      }
+      prune_corpus_versions: { Args: { p_keep: number }; Returns: number }
       reserve_chat_quota: {
         Args: {
-          p_session: string; p_ip: string; p_paid: boolean; p_daily_limit: number;
-          p_hourly_limit: number; p_ai_ip_daily_limit: number;
-        };
-        Returns: string;
-      };
-    };
-    Enums: { [_ in never]: never };
-    CompositeTypes: { [_ in never]: never };
-  };
-};
+          p_ai_ip_daily_limit: number
+          p_daily_limit: number
+          p_hourly_limit: number
+          p_ip: string
+          p_paid: boolean
+          p_session: string
+        }
+        Returns: string
+      }
+      search_passages: {
+        Args: { p_limit?: number; p_query: string; p_vector?: string }
+        Returns: {
+          content: string
+          document: Json
+          id: string
+          position: number
+          question_id: string
+          score: number
+          section: string
+        }[]
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
+}
+
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never) = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
+
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never) = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
+
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never) = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never) = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never) = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
+
+export const Constants = {
+  public: {
+    Enums: {},
+  },
+} as const
