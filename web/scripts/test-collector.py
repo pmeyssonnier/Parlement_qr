@@ -25,5 +25,19 @@ class CollectorTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             collector.parse_record(row,'<html>unexpected</html>')
 
+    def test_empty_official_question_cell(self):
+        row=['']*16
+        row[2]='<a href="/?moncode=170644">fiche</a>'
+        raw='<section id="weblex-quest-det-fr"><table><tr><td><b>Question &nbsp;&nbsp;</b><td valign="top"></td></tr></table></section>'
+        with self.assertRaises(collector.MissingQuestionText):
+            collector.parse_record(row,raw)
+
+    def test_missing_cell_is_not_treated_as_empty(self):
+        row=['']*16
+        row[2]='<a href="/?moncode=123">fiche</a>'
+        with self.assertRaises(ValueError) as error:
+            collector.parse_record(row,'<section id="weblex-quest-det-fr">Structure modifiée</section>')
+        self.assertNotIsInstance(error.exception,collector.MissingQuestionText)
+
 if __name__=='__main__':
     unittest.main()

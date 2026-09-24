@@ -13,6 +13,9 @@ from pathlib import Path
 BASE = 'https://www.parlement.brussels'
 INDEX = BASE + '/prb_includes/weblex/data/dos_qu_legis_24-29.json'
 
+class MissingQuestionText(ValueError):
+    """The official question cell exists but contains no published text."""
+
 def clean(value):
     value = re.sub(r'<!--.*?-->|<script\b.*?</script>|<style\b.*?</style>', '', value, flags=re.S)
     value = re.sub(r'<(?:br\b[^>]*|/p|/li|/tr|/div)>', '\n', value, flags=re.I)
@@ -44,8 +47,10 @@ def parse_record(row, raw):
         raise ValueError('Structure de fiche inconnue : ' + code)
     section = re.sub(r'<!--.*?-->', '', match[0], flags=re.S)
     blocks = {html.unescape(label): clean(body) for label, body in re.findall(r'<td[^>]*>\s*<b>(Question|R(?:é|&eacute;)ponse)\s*(?:&nbsp;|\s)*</b>\s*(?:</td>)?\s*<td[^>]*>(.*?)</td>', section, re.S)}
-    if not blocks.get('Question'):
+    if 'Question' not in blocks:
         raise ValueError('Question manquante : ' + code)
+    if not blocks['Question']:
+        raise MissingQuestionText('Texte de question vide : ' + code)
     def field(label):
         found = re.search(re.escape(label) + r':</b>\s*([^<]+)', html.unescape(section))
         return found[1].strip() if found else None
@@ -70,6 +75,7 @@ def main():
     index_text = download(INDEX)
     rows = [r for r in json.loads(index_text)['data'] if r[0] == 'PRB' and r[15] == '1' and iso(r[5])]
     ids = {q['moncode'] for q in current['questions']}
+    previous_ids = ids.copy()
     rows.sort(key=lambda r: (iso(r[5]), int(re.search(r'moncode=(\d+)', r[2])[1])), reverse=True)
     ids.update(re.search(r'moncode=(\d+)', r[2])[1] for r in rows[:args.expand])
     selected = [r for r in rows if re.search(r'moncode=(\d+)', r[2])[1] in ids]
@@ -81,19 +87,33 @@ def main():
     snapshot.mkdir(parents=True)
     (snapshot / 'index.json').write_text(index_text, encoding='utf-8')
     questions = []
+    skipped = []
     for row in selected:
         code = re.search(r'moncode=(\d+)', row[2])[1]
         raw = download(BASE+'/weblex-quest-det/?moncode='+code+'&base=1')
         (snapshot / (code+'.html')).write_text(raw, encoding='utf-8')
-        questions.append(parse_record(row, raw))
+        try:
+            questions.append(parse_record(row, raw))
+        except MissingQuestionText:
+            if code in previous_ids:
+                raise ValueError('Texte vide pour une fiche existante : ' + code + '. Corpus non remplacé.')
+            skipped.append(dict(moncode=code, reason='question_text_empty',
+                                url_source=BASE+'/weblex-quest-det/?moncode='+code+'&base=1'))
+            print('Écartée (texte de question vide sur le site) :', code)
+            continue
         print('Collected', code)
+    (snapshot / 'excluded.json').write_text(json.dumps(skipped, ensure_ascii=False, indent=2), encoding='utf-8')
+    if not questions:
+        raise ValueError('Aucune fiche exploitable : corpus non remplacé.')
     result = dict(schema_version='1.0', extrait_le=dt.datetime.now(dt.timezone.utc).isoformat(), source_index=INDEX,
                   nombre_elements=len(questions), questions=questions,
-                  methode_echantillonnage=current['methode_echantillonnage'] if not args.expand else f"Corpus exploratoire étendu : fiches précédentes et {args.expand} questions écrites PRB les plus récentes de l’index, sans garantie d’exhaustivité. Français uniquement.")
+                  fiches_ecartees=skipped,
+                  methode_echantillonnage=current['methode_echantillonnage'] if not args.expand else f"Corpus exploratoire : fiches précédentes et sélection parmi les {args.expand} questions écrites PRB les plus récentes de l’index ; {len(skipped)} fiches écartées car leur texte de question est vide. Sans garantie d’exhaustivité. Français uniquement.")
     temp = output.with_suffix('.tmp')
     temp.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding='utf-8')
     temp.replace(output)
     print(f'Validated collection: {len(questions)} records → {output}')
+    print(f'{len(skipped)} fiches écartées ; rapport : {snapshot / "excluded.json"}')
 
 if __name__ == '__main__':
     main()

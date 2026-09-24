@@ -3,7 +3,7 @@ import OpenAI from "openai";
 import { zodTextFormat } from "openai/helpers/zod";
 import { createHmac, randomUUID, timingSafeEqual } from "node:crypto";
 import { corpus } from "./corpus";
-import { contextualQuery, localSearch } from "./search";
+import { contextualQuery, filterLexicalHits, lexicalQuery, localSearch } from "./search";
 import { extractiveAnswer, instructions, validateGenerated } from "./answer";
 import { generatedSchema, questionSchema, type Hit } from "./schema";
 import { nature } from "./documents";
@@ -57,11 +57,15 @@ export async function reserveQuota(sessionId: string, ip: string, paid: boolean)
 export async function corpusInfo() {
   const db = database();
   if (db) {
-    const { data, error } = await db.from("corpus_versions").select("count,extracted_at,method").eq("active", true).single();
+    const { data, error } = await db.from("corpus_versions").select("id,count,extracted_at,method").eq("active", true).single();
     if (error || !data) throw new Error("CORPUS_UNAVAILABLE");
-    return { count: data.count as number, extractedAt: data.extracted_at as string, method: data.method as string, origin: "supabase" as const };
+    const { count: answerCount, error: countError } = await db.from("questions")
+      .select("id", { count: "exact", head: true }).eq("version_id", data.id)
+      .not("document->>reponse", "is", null).neq("document->>reponse", "");
+    if (countError || answerCount === null) throw new Error("CORPUS_UNAVAILABLE");
+    return { count: data.count as number, answerCount, extractedAt: data.extracted_at as string, method: data.method as string, origin: "supabase" as const };
   }
-  return { count: corpus.questions.length, extractedAt: corpus.extrait_le, method: corpus.methode_echantillonnage, origin: "local" as const };
+  return { count: corpus.questions.length, answerCount: corpus.questions.filter(q => q.reponse?.trim()).length, extractedAt: corpus.extrait_le, method: corpus.methode_echantillonnage, origin: "local" as const };
 }
 export async function findHits(query: string, useEmbeddings: boolean): Promise<Hit[]> {
   const db = database();
@@ -72,30 +76,37 @@ export async function findHits(query: string, useEmbeddings: boolean): Promise<H
     const result = await client.embeddings.create({ model: process.env.EMBEDDING_MODEL || "text-embedding-3-small", input: query, dimensions: 1536 });
     vector = result.data[0].embedding;
   }
-  const { data, error } = await db.rpc("search_passages", { p_query: query, p_vector: vector ? JSON.stringify(vector) : null, p_limit: 6 });
+  const { data, error } = await db.rpc("search_passages", { p_query: lexicalQuery(query), p_vector: vector ? JSON.stringify(vector) : null, p_limit: 6 });
   if (error) throw new Error("SEARCH_UNAVAILABLE");
-  return (data || []).map((row: { id: string; question_id: string; section: "question" | "reponse"; content: string; position: number; score: number; document: unknown }) => ({ passage: { id: row.id, questionId: row.question_id, section: row.section, text: row.content, order: row.position }, question: questionSchema.parse(row.document), score: row.score }));
+  const hits = (data || []).map((row: { id: string; question_id: string; section: "question" | "reponse"; content: string; position: number; score: number; document: unknown }) => ({ passage: { id: row.id, questionId: row.question_id, section: row.section, text: row.content, order: row.position }, question: questionSchema.parse(row.document), score: row.score }));
+  return useEmbeddings ? hits : filterLexicalHits(hits, query);
 }
 export async function answer(message: string, history: { content: string }[], requestId: string, useAi = aiEnabled()) {
   const query = contextualQuery(message, history);
   const hits = await findHits(query, useAi);
   if (!useAi || !hits.length) {
     const result = extractiveAnswer(hits, requestId);
-    if (aiEnabled() && !useAi && hits.length) result.notice = "La limite quotidienne de synthèses par IA est atteinte. Voici les extraits officiels disponibles, sans synthèse.";
+    if (aiEnabled() && !useAi) result.notice = "La limite quotidienne de synthèses par IA est atteinte. La recherche continue sans IA, à partir des mots-clés de votre question.";
     return result;
   }
   const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY, timeout: 30000, maxRetries: 0 });
   try {
     const response = await client.responses.parse({
       model: process.env.CHAT_MODEL || "gpt-5-mini", store: false,
+      ...((process.env.CHAT_MODEL || "gpt-5-mini") === "gpt-5-mini" ? { reasoning: { effort: "low" as const } } : {}),
       instructions, max_output_tokens: 3000,
       input: JSON.stringify({ question: message, contexteUtilisateur: history, sources: hits.map(h => ({ sourceId: h.passage.id, titre: h.question.titre, auteur: h.question.auteur, destinataire: h.question.destinataire, dateReponse: h.question.date_reponse, nature: nature(h.question), section: h.passage.section, texte: h.passage.text })) }),
       text: { format: zodTextFormat(generatedSchema, "reponse_parlementaire") },
     });
     return validateGenerated(response.output_parsed, hits, requestId);
-  } catch {
+  } catch (error) {
     // Never expose upstream error payloads, prompt contents or credentials.
-    const fallback = extractiveAnswer(hits, requestId);
+    const code = error instanceof OpenAI.APIConnectionTimeoutError ? "AI_TIMEOUT"
+      : error instanceof OpenAI.APIError ? "AI_API_ERROR"
+      : error instanceof Error && error.message === "Affirmation sans source" ? "AI_MISSING_CITATION"
+      : error instanceof Error && error.message === "Référence inconnue" ? "AI_UNKNOWN_CITATION" : "AI_OUTPUT_INVALID";
+    console.error(JSON.stringify({ requestId, code }));
+    const fallback = extractiveAnswer(filterLexicalHits(hits, query), requestId);
     fallback.notice = "La synthèse par IA est indisponible ou n’a pas passé la vérification des références. Voici les extraits officiels disponibles.";
     return fallback;
   }

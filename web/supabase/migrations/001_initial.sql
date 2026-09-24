@@ -22,7 +22,7 @@ create table public.passages (
   id text not null,
   question_id text not null,
   section text not null check (section in ('question','reponse')),
-  position integer not null,
+  "position" integer not null,
   content text not null,
   search_text text not null,
   embedding extensions.vector(1536),
@@ -62,7 +62,7 @@ begin
 end $$;
 
 create or replace function public.search_passages(p_query text, p_vector extensions.vector(1536) default null, p_limit integer default 6)
-returns table(id text, question_id text, section text, content text, position integer, score double precision, document jsonb)
+returns table(id text, question_id text, section text, content text, "position" integer, score double precision, document jsonb)
 language sql stable security invoker set search_path=public,extensions as $$
  with candidates as (
   select p.*,q.document,
@@ -75,7 +75,7 @@ language sql stable security invoker set search_path=public,extensions as $$
   select *, (lexical*3 + semantic)::double precision as relevance,
     row_number() over(partition by question_id order by (lexical*3 + semantic) desc) as document_rank
   from candidates where lexical>0 or semantic>=0.35
- ) select id, question_id,section,content,position,relevance,document
+ ) select id, question_id,section,content,"position",relevance,document
  from ranked where document_rank<=2 order by relevance desc limit greatest(1,least(p_limit,8));
 $$;
 

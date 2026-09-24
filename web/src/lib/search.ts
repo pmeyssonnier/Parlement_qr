@@ -11,9 +11,40 @@ function expanded(s: string) {
     + (/\b(bus|tram|trams|métro|metro|métros|metros)\b/i.test(s) ? " STIB transports" : "")
     + (/\b(voter|vote|élection|election)\b/i.test(s) ? " élections électoral inscription" : "");
 }
+export function lexicalQuery(query: string) {
+  // websearch_to_tsquery otherwise requires every word of a natural-language
+  // question to occur together, including wording absent from the source.
+  const generic = new Set(["mesure", "action", "prevu", "prevoit", "realisee", "effectivement", "informe"]);
+  return tokens(expanded(query)).filter(term => !generic.has(term)).slice(0, 40).join(" OR ");
+}
+export function filterLexicalHits(hits: Hit[], query: string): Hit[] {
+  const generic = new Set("mesure action prevu prevoit realisee effectivement informe selon ministerielle ministre deputee proposition reprendre sans ete ont cas forte fort".split(" "));
+  const terms = tokens(query).filter(t => !generic.has(t));
+  if (!terms.length) return [];
+  return hits.filter(hit => {
+    // A shared generic word (e.g. 'scolaire') alone must not make a document
+    // about another topic look like an answer about school canteens.
+    const document = new Set(tokens(`${hit.question.titre} ${hit.question.question} ${hit.question.reponse || ""}`));
+    const matched = terms.filter(t => document.has(t)).length;
+    return hit.passage.section === "reponse" && matched / terms.length >= 0.6;
+  });
+}
 export function contextualQuery(message: string, history: { content: string }[]) {
-  const followup = /^(et\b|pourquoi\b|combien\b|quand\b|cela\b|ça\b|ceux\b|celles\b)/i.test(message.trim()) && tokens(message).length < 5;
-  return followup && history.length ? `${history.at(-1)!.content} ${message}` : message;
+  const isFollowup = (text: string) => {
+    const normalized = normalize(text.trim());
+    // An explicitly named new topic takes precedence over a reference to a minister.
+    if (/\b(concernant|au sujet de|a propos de|sur le sujet de)\b/.test(normalized)) return false;
+    const shortFollowup = /^(et\b|pourquoi\b|combien\b|quand\b|cela\b|ca\b|ceux\b|celles\b)/.test(normalized) && tokens(text).length < 5;
+    const sourceFollowup = /\b(selon|dans|d'apres) la reponse (ministerielle|du ministre|de la ministre|de la secretaire)\b|\b(sans reprendre|sans inclure) les propositions\b|\b(ces|lesdites) (actions|mesures|propositions)\b/.test(normalized);
+    return shortFollowup || sourceFollowup;
+  };
+  if (!isFollowup(message) || !history.length) return message;
+  const context: string[] = [];
+  for (let i = history.length - 1; i >= Math.max(0, history.length - 4); i--) {
+    context.unshift(history[i].content);
+    if (!isFollowup(history[i].content)) break;
+  }
+  return [...context, message].join(" ");
 }
 export function localSearch(questions: Question[], query: string, limit = 6): Hit[] {
   const terms = tokens(expanded(query));
@@ -36,5 +67,5 @@ export function localSearch(questions: Question[], query: string, limit = 6): Hi
     const best = pool.map(p => ({ passage: p, question: doc.q, score: doc.score + terms.filter(t => new Set(tokens(p.text)).has(t)).reduce((n, t) => n + idf(t), 0) })).sort((a, b) => b.score - a.score).slice(0, 2);
     results.push(...best);
   }
-  return results.sort((a, b) => b.score - a.score).slice(0, limit);
+  return filterLexicalHits(results.sort((a, b) => b.score - a.score), query).slice(0, limit);
 }

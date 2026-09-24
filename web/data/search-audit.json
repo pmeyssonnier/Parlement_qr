@@ -1,0 +1,214 @@
+{
+  "date": "2026-09-24T12:38:02.782Z",
+  "corpus": 106,
+  "failed": 0,
+  "results": [
+    {
+      "question": "Comment les expatriés sont-ils informés de leur droit de vote ?",
+      "mode": "lexical",
+      "pass": true,
+      "ids": [
+        "167744"
+      ]
+    },
+    {
+      "question": "Que fait la STIB en cas de forte chaleur ?",
+      "mode": "lexical",
+      "pass": true,
+      "ids": [
+        "167348",
+        "167374"
+      ]
+    },
+    {
+      "question": "Que prévoit clean.brussels pour réduire les emballages ?",
+      "mode": "lexical",
+      "pass": true,
+      "ids": [
+        "166346"
+      ]
+    },
+    {
+      "question": "Quelle est la fréquentation du tram 55 ?",
+      "mode": "lexical",
+      "pass": true,
+      "ids": [
+        "170245",
+        "170235"
+      ]
+    },
+    {
+      "question": "Combien de ménages bénéficient de l’allocation loyer ?",
+      "mode": "lexical",
+      "pass": true,
+      "ids": [
+        "170157",
+        "169916"
+      ]
+    },
+    {
+      "question": "Quelle est la puissance des bornes de recharge publiques ?",
+      "mode": "lexical",
+      "pass": true,
+      "ids": [
+        "170152"
+      ]
+    },
+    {
+      "question": "Quel est le délai du premier rendez-vous chez Actiris ?",
+      "mode": "lexical",
+      "pass": true,
+      "ids": [
+        "170155"
+      ]
+    },
+    {
+      "question": "Quelles sont les exemptions LEZ pour les bénéficiaires BIM ?",
+      "mode": "lexical",
+      "pass": true,
+      "ids": [
+        "169916",
+        "170263",
+        "169915"
+      ]
+    },
+    {
+      "question": "Quelles sont les mesures concernant les cantines scolaires ?",
+      "mode": "lexical",
+      "pass": true,
+      "ids": []
+    },
+    {
+      "question": "Astronautes martiens et fusées interstellaires",
+      "mode": "lexical",
+      "pass": true,
+      "ids": []
+    },
+    {
+      "question": "Quelle est la fréquentation du tram 55 ?",
+      "mode": "ia",
+      "pass": true,
+      "response": {
+        "mode": "ia",
+        "status": "documente",
+        "paragraphs": [
+          {
+            "text": "La question écrite de Sadik Köksal portait sur les chiffres de fréquentation de la ligne de tram 55.",
+            "sourceIds": [
+              "PRB-1-170245:reponse:0"
+            ]
+          },
+          {
+            "text": "Réponse de la ministre Elke Van den Brandt (20/09/2026) : il n’est pas possible de fournir des tableaux aussi détaillés concernant la fréquentation, le taux de charge et la ponctualité de la ligne 55; la réponse renvoie par ailleurs à des éléments déjà fournis (question orale de juin 2026, note stratégique et question écrite n°1807 de décembre 2023). La réponse indique aussi que le projet de métro 3 Gare du Nord–Bordet est suspendu et que des discussions sur le renforcement de l’offre en surface sont en cours de préparation.",
+            "sourceIds": [
+              "PRB-1-170245:reponse:0"
+            ]
+          },
+          {
+            "text": "Limite des sources : le document fourni contient explicitement une impossibilité de communiquer les tableaux détaillés demandés; aucun chiffre de fréquentation de la ligne 55 n’est présent dans les extraits mis à disposition. Par conséquent, je ne peux pas fournir de valeur ou de série chronologique de fréquentation à partir des documents fournis.",
+            "sourceIds": [
+              "PRB-1-170245:reponse:0"
+            ]
+          }
+        ],
+        "sources": [
+          {
+            "id": "PRB-1-170245:reponse:0",
+            "title": "Question écrite concernant les chiffres de fréquentation de la ligne de tram 55",
+            "author": "Sadik Köksal",
+            "recipient": "Elke Van den Brandt - Ministre du Gouvernement de la Région de Bruxelles-Capitale chargée de la Mobilité, des Travaux publics et de la Sécurité routière",
+            "date": "2026-09-20",
+            "url": "https://www.parlement.brussels/weblex-quest-det/?moncode=170245&base=1",
+            "excerpt": "Il n’est pas possible de fournir des tableaux si détaillés quant à la fréquentation, au taux de charge et à la ponctualité de la ligne 55.\nNous vous renvoyons également aux nombreux éléments de réponse d’ores et déjà été fournis en réponse à votre question orale de juin 2026 au sujet de la saturation de la ligne de tram 55.\nLes différents scénarios alternatifs sont détaillés dans la note dédiée et en réponse à la question écrite n° 1807 de Madame De Smedt concernant la proposition de décision relative au métro 3 Nord-Bordet - note stratégique, de décembre 2023.\nLe 12 février 2026, le gouvernement de la Région de Bruxelles-Capitale s’est prononcé dans sa déclaration de politique générale concernant le prolongement du métro 3 Gare du Nord – Bordet y compris l’arrière-gare à la Gare du Nord : le projet sera totalement suspendu. Il fera l’objet d’une réévaluation approfondie, portant tant sur son opportunité que sur sa faisabilité technique et financière.\nLes discussions concernant le renforcement de l'offre de transport en surface, comme le prévoit la récente déclaration gouvernementale, sont actuellement en cours de préparation.\nLa STIB a commandé en 2018 90 trams « nouvelle génération » ou « TNG » (79 « courts » de 32 mètres de long et 11 « longs » de 43 mètres de long), qui sont livrés progressivement depuis avril 2023. En août 2026, 50 TNG avaient été livrés. Le Plan pluriannuel d’investissement de la STIB mis à jour en 2026 prévoit une nouvelle commande d’environ 30 trams (TNG), dont la livraison est prévue entre 2028 et 2030. Cette commande n'est pas directement liée à la ligne 55, mais vise à permettre le retrait de service des tramways les plus anciens – qui sont arrivés en fin de vie – ; les modèles les plus anciens circulent en effet depuis 1971.",
+            "nature": "fond"
+          }
+        ],
+        "notice": "La source indique que les tableaux détaillés ne peuvent être fournis ; les extraits fournis ne contiennent aucun chiffre de fréquentation pour la ligne 55, donc aucun nombre précis ne peut être présenté.",
+        "requestId": "audit"
+      }
+    },
+    {
+      "question": "Quelles sont les mesures concernant les cantines scolaires ?",
+      "mode": "ia",
+      "pass": true,
+      "response": {
+        "mode": "ia",
+        "status": "insuffisant",
+        "paragraphs": [
+          {
+            "text": "Je n’ai pas trouvé d’information suffisamment pertinente sur ce sujet dans le corpus de l’application. Cela ne signifie pas que le Parlement n’a pas traité ce sujet.",
+            "sourceIds": []
+          }
+        ],
+        "sources": [],
+        "notice": "Le corpus disponible est limité ; cette recherche ne couvre pas toutes les publications du Parlement.",
+        "requestId": "audit"
+      }
+    },
+    {
+      "question": "Astronautes martiens et fusées interstellaires",
+      "mode": "extraits",
+      "pass": true,
+      "response": {
+        "mode": "extraits",
+        "status": "insuffisant",
+        "paragraphs": [
+          {
+            "text": "Je n’ai pas trouvé d’information suffisamment pertinente sur ce sujet dans le corpus de l’application. Cela ne signifie pas que le Parlement n’a pas traité ce sujet.",
+            "sourceIds": []
+          }
+        ],
+        "sources": [],
+        "notice": "Le corpus disponible est limité ; cette recherche ne couvre pas toutes les publications du Parlement.",
+        "requestId": "audit"
+      }
+    },
+    {
+      "question": "Quelles actions ont effectivement été réalisées, selon la réponse ministérielle, sans reprendre les propositions de la députée ?",
+      "query": "Comment les expatriés sont-ils informés de leur droit de vote ? Quelles actions ont effectivement été réalisées, selon la réponse ministérielle, sans reprendre les propositions de la députée ?",
+      "pass": true,
+      "response": {
+        "mode": "ia",
+        "status": "documente",
+        "paragraphs": [
+          {
+            "text": "Réponse de la Secrétaire d’État Ans Persoons (08/01/2026) : participation, à titre d’experts, à des événements d’autres acteurs (séances d’information à la Commission européenne et au Comité européen des régions) ; offre d’un soutien personnalisé via l’Expat Welcome Desk pour les Bruxellois internationaux ; rôle d’intermédiaire avec des représentants de la société civile sélectionnés par l’appel à projets (notamment Restless Brussels) comprenant l’organisation d’ateliers de coordination, le transfert de questions techniques au ministère fédéral de l’Intérieur, l’encouragement des communes à promouvoir la participation et une aide logistique lors d’une journée d’action de la société civile. (sources : PRB-1-167744:reponse:1).",
+            "sourceIds": [
+              "PRB-1-167744:reponse:1"
+            ]
+          },
+          {
+            "text": "Actions concrètes menées par l’Expat Welcome Desk (mentionnées dans la même réponse, 08/01/2026) : publication d’informations neutres et fiables en anglais (site, FAQ) ; envoi de newsletters via la liste d’expats de visit.brussels, Brussels Voice et intranets des institutions européennes ; mise à disposition d’outils de sensibilisation en anglais (graphiques, carte postale, affiche, QR codes) ; collaboration avec la presse et les médias locaux ; organisation d’événements dont un webinaire le 28 mai. (source : PRB-1-167744:reponse:0).",
+            "sourceIds": [
+              "PRB-1-167744:reponse:0"
+            ]
+          }
+        ],
+        "sources": [
+          {
+            "id": "PRB-1-167744:reponse:1",
+            "title": "Question écrite concernant les actions mises en place pour informer les expatriés de leur droit de vote aux élections communales de 2024",
+            "author": "Françoise Schepmans",
+            "recipient": "Ans Persoons - Secrétaire d'État à la Région de Bruxelles-Capitale, chargée de l'Urbanisme et du Patrimoine, des Relations européennes et internationales, du Commerce extérieur et de la Lutte contre l'Incendie et l'Aide médicale urgente",
+            "date": "2026-01-08",
+            "url": "https://www.parlement.brussels/weblex-quest-det/?moncode=167744&base=1",
+            "excerpt": "• participé, à titre d'experts, aux événements d'autres acteurs pour parler de l'inscription, du vote par procuration, des listes électorales, etc. entre autre organisé des séances d'information à la Commission européenne et au Comité européen des régions.\n• offert un soutien personnalisé par le biais de l'Expat Welcome Desk pour tout Bruxellois international souhaitant poser des questions spécifiques.\n• servi d'intermédiaires entre les pouvoirs publics et des représentants de la société civile sélectionnés lors de l'appel à projets lancé par le ministre des Pouvoirs locaux, et plus particulièrement avec Restless Brussels. Et ce, en organisant des ateliers de coordination; en transférant les questions techniques au ministère belge de l'Intérieur; en encourageant les communes à promouvoir activement la participation aux élections; et enfin, en fournissant une aide logistique lors d'une journée d'action de la société civile.\nCette campagne a abouti à des résultats mitigés. Pour la première fois, les non-Belges inscrits dans la Région de Bruxelles-Capitale étaient plus de 50 000 au total, tandis que les ressortissants de l'UE ont été plus nombreux à s'inscrire: 16,75 % en 2018 contre 17,09 % en 2024. En revanche, le taux d'inscription des ressortissants non-européens est passé de 19,27 % en 2018 à 13,25 % en 2024, et le taux cumulé a légèrement diminué, de 17 % à 16,2 %.\nSi nous voulons inciter un maximum de non-Belges à s’inscrire aux prochaines élections communales, il conviendra de mener une campagne par l’ensemble des acteurs et à tous les niveaux, dans laquelle surtout les communes devraient jouer un rôle crucial.\nElles ne sont pas seulement l’instance pour laquelle les citoyens sont appelés à voter, mais elles ont également un lien de confiance et de proximité avec les habitants. Elles sont donc fondamentales dans la période d’inscription, et c’est leur engagement et proactivité qui pourra faire la différence.\nMais les disparités entre communes restent grandes. La commune de Saint-Gilles, par exemple, envoie des courriers dans plusieurs langues aux habitants pour les inviter à s’inscrire sur les listes électorales. D’autres communes vont beaucoup moins loin.",
+            "nature": "fond"
+          },
+          {
+            "id": "PRB-1-167744:reponse:0",
+            "title": "Question écrite concernant les actions mises en place pour informer les expatriés de leur droit de vote aux élections communales de 2024",
+            "author": "Françoise Schepmans",
+            "recipient": "Ans Persoons - Secrétaire d'État à la Région de Bruxelles-Capitale, chargée de l'Urbanisme et du Patrimoine, des Relations européennes et internationales, du Commerce extérieur et de la Lutte contre l'Incendie et l'Aide médicale urgente",
+            "date": "2026-01-08",
+            "url": "https://www.parlement.brussels/weblex-quest-det/?moncode=167744&base=1",
+            "excerpt": "Comme lors de précédentes échéances électorales, L'Expat Welcome Desk du Commissariat à l’Europe et aux Organisations Internationales a organisé une série d'activités de sensibilisation afin d'informer nos publics cibles de ce deadline crucial et de les encourager à user de leurs droits électoraux.\nLa campagne se concentrait en premier lieu sur la date du 31 juillet 2024, date limite de l’inscription sur les listes électorales puisque contrairement aux citoyens belges, les non-Belges éligibles devaient s'inscrire sur la liste électorale de leur propre initiative.\nBruxelles Pouvoirs Locaux, l’administration responsable pour l'organisation des élections, avait lancé un appel à projets visant à susciter l'intérêt de certains groupes cibles (dont la communauté internationale) pour les élections communales via des actions sur le terrain.\nMalgré le fait que le CEOI ait été exclu de cet appel à projets, il a réussi à mettre en place une campagne d’information et de sensibilisation avec des moyens très limités afin d'informer et d’accompagner au mieux la communauté internationale résidant à Bruxelles.\nPlus particulièrement il a :\n• publié des informations neutres et fiables en anglais, agrémentées d'articles et d'une FAQ hyper-détaillé sur son site Internet, le site web officiel ne donnant que des informations en français et en néerlandais il était important de mettre à disposition tout un dispositif en anglais.\n• envoyé des newsletters autour de ce thème via la liste d'expats de visit.brussels ainsi que sa propre plateforme Brussels Voice et les pages intranet des institutions européennes.\n• élaboré et mis à disposition tout un ensemble d'outils de sensibilisation comportant de la documentation en anglais: des graphiques, une carte postale, une affiche et des codes QR.\n• collaboré avec la presse et les médias locaux pour apporter des renseignements clairs et de bonnes raisons de voter.\n• organisé plusieurs événements, dont un webinaire le 28 mai, qui ont attiré un public très actif.",
+            "nature": "fond"
+          }
+        ],
+        "notice": "Synthèse assistée par IA. Consultez les sources et leurs dates.",
+        "requestId": "audit-followup"
+      }
+    }
+  ]
+}
