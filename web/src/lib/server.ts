@@ -98,22 +98,11 @@ export async function reserveQuota(sessionId: string, ip: string, paid: boolean)
 export async function corpusInfo() {
   const db = database();
   if (db) {
-    const { data, error } = await db
-      .from("corpus_versions")
-      .select("id,count,extracted_at,method")
-      .eq("active", true)
-      .single();
+    const { data, error } = await db.rpc("active_corpus_info").single();
     if (error || !data) throw new Error("CORPUS_UNAVAILABLE");
-    const { count: answerCount, error: countError } = await db
-      .from("questions")
-      .select("id", { count: "exact", head: true })
-      .eq("version_id", data.id)
-      .not("document->>reponse", "is", null)
-      .neq("document->>reponse", "");
-    if (countError || answerCount === null) throw new Error("CORPUS_UNAVAILABLE");
     return {
       count: data.count,
-      answerCount,
+      answerCount: data.answer_count,
       extractedAt: data.extracted_at,
       method: data.method,
       origin: "supabase" as const,
