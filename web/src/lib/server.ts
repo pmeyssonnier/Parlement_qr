@@ -149,7 +149,9 @@ export async function findHits(query: string, useEmbeddings: boolean): Promise<H
   const vector = useEmbeddings ? await embed(query) : null;
   const { data, error } = await db.rpc("search_passages", {
     p_query: lexicalQuery(query),
-    p_vector: vector ? JSON.stringify(vector) : null,
+    // Omitted rather than null: the SQL default (null) applies, and the generated
+    // types declare this optional argument as string | undefined.
+    p_vector: vector ? JSON.stringify(vector) : undefined,
     p_limit: 6,
   });
   if (error) throw new Error("SEARCH_UNAVAILABLE");
