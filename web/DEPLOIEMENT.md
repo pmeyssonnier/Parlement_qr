@@ -8,7 +8,7 @@ Le site utilise le corpus déjà actif dans Supabase. Ne relancez pas l'importat
 Ouvrez une deuxième fenêtre PowerShell :
 
 ```powershell
-cd "C:\Users\pmeys\OneDrive\Documents\ChatGPT\R Parlement bruxellois\web"
+cd "<dossier du dépôt>\web"
 npx.cmd vercel login
 npx.cmd vercel link
 ```
