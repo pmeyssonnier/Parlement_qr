@@ -106,10 +106,13 @@ class CollectorTests(unittest.TestCase):
 
     def run_collector(self,current,rows,pages,*args):
         index=json.dumps(dict(data=rows))
-        def download(url):
+        def download(url,**_):
             if url==collector.INDEX:
                 return index
-            return pages[re.search(r'moncode=(\d+)',url)[1]]
+            page=pages[re.search(r'moncode=(\d+)',url)[1]]
+            if isinstance(page,Exception):
+                raise page
+            return page
         with tempfile.TemporaryDirectory() as directory:
             source=Path(directory)/'active.json'
             output=Path(directory)/'refreshed.json'
@@ -137,6 +140,56 @@ class CollectorTests(unittest.TestCase):
         self.assertEqual((len(result['questions']),len(downloaded)),(3,3))
         result,downloaded=self.run_collector([],rows,pages,'--expand','8','--max-records','2')
         self.assertEqual((len(result['questions']),len(downloaded)),(2,2))
+
+    def test_unreachable_pages_are_postponed_not_fatal(self):
+        today=collector.dt.date.today()
+        recent=(today-collector.dt.timedelta(days=10)).strftime('%d/%m/%Y')
+        rows=[fake_row(c,recent) for c in ('9','8','7','6','5')]
+        timeout=collector.urllib.error.URLError(TimeoutError('timed out'))
+        pages={'9':fake_page(),'8':timeout,'7':fake_page(),'6':TimeoutError('read'),'5':fake_page()}
+        previous=current_question('9',today.isoformat())  # unanswered and recent: rechecked
+        previous['reponse']=None
+        pages['9']=collector.http.client.RemoteDisconnected('closed')
+        result,downloaded=self.run_collector([previous],rows,pages,'--expand','3')
+        # 9 keeps its previous version; 8 and 6 are postponed; 7 and 5 are added.
+        self.assertEqual([q['moncode'] for q in result['questions']],['9','7','5'])
+        self.assertIs(result['questions'][0]['reponse'],None)
+        self.assertEqual(result['fiches_ecartees'],[])
+        self.assertEqual(len(downloaded),5)
+
+    def test_run_stops_when_the_site_is_down(self):
+        rows=[fake_row(str(c),'0%d/09/2026' % c) for c in range(9,0,-1)]
+        down=TimeoutError('timed out')
+        pages={str(c):down for c in range(1,10)}
+        with self.assertRaisesRegex(ValueError,'3 de suite'):
+            self.run_collector([],rows,pages,'--expand','8')
+        # Scattered failures: stop once more than --max-network-failures pages failed.
+        pages={str(c):(down if c%2 else fake_page()) for c in range(1,10)}
+        with self.assertRaisesRegex(ValueError,'3 fiche'):
+            self.run_collector([],rows,pages,'--expand','8','--max-network-failures','2')
+        result,_=self.run_collector([],rows,pages,'--expand','8','--max-network-failures','5')
+        self.assertEqual([q['moncode'] for q in result['questions']],['8','6','4','2'])
+
+    def test_download_retries_with_growing_waits(self):
+        error=collector.urllib.error.URLError(TimeoutError('timed out'))
+        with patch.object(collector.urllib.request,'urlopen',side_effect=error) as urlopen, \
+             patch.object(collector.time,'sleep') as sleep:
+            with self.assertRaises(collector.urllib.error.URLError):
+                collector.download(collector.INDEX,attempts=5,first_wait=5)
+            self.assertEqual(urlopen.call_count,5)
+            self.assertEqual([c.args[0] for c in sleep.call_args_list],[5,10,20,40])
+            sleep.reset_mock(); urlopen.reset_mock()
+            urlopen.side_effect=[TimeoutError('read'),error,self.response('ok')]
+            self.assertEqual(collector.download('https://example.test/page'),'ok')
+            self.assertEqual([c.args[0] for c in sleep.call_args_list],[2,4,0.6])
+
+    @staticmethod
+    def response(text):
+        class Response:
+            def __enter__(self): return self
+            def __exit__(self,*_): return False
+            def read(self): return text.encode()
+        return Response()
 
 if __name__=='__main__':
     unittest.main()

@@ -3,6 +3,7 @@ import argparse
 import datetime as dt
 import hashlib
 import html
+import http.client
 import json
 import re
 import time
@@ -27,18 +28,23 @@ def iso(value):
     except (ValueError, AttributeError):
         return None
 
-def download(url):
-    for attempt in range(3):
+# Unreachable site, timeout, reset connection or HTTP error (URLError and
+# TimeoutError are OSError subclasses).
+NETWORK_ERRORS = (OSError, http.client.HTTPException)
+
+def download(url, attempts=3, first_wait=2):
+    """Waits first_wait seconds before the second attempt, then twice as long each time."""
+    for attempt in range(attempts):
         try:
             request = urllib.request.Request(url, headers={'User-Agent': 'ParlementCitoyen/0.1 (documentary research)'})
             with urllib.request.urlopen(request, timeout=40) as response:
                 data = response.read().decode('utf-8-sig')
             time.sleep(0.6)
             return data
-        except (urllib.error.URLError, TimeoutError):
-            if attempt == 2:
+        except NETWORK_ERRORS:
+            if attempt == attempts - 1:
                 raise
-            time.sleep(2 ** attempt)
+            time.sleep(first_wait * 2 ** attempt)
 
 def parse_record(row, raw):
     code = re.search(r'moncode=(\d+)', row[2])[1]
@@ -73,6 +79,9 @@ RECENT_ANSWER_DAYS = 14
 # depends on the question number and the current week, so nothing is stored
 # (a check date in the document would change its hash and its embeddings).
 OLD_UNANSWERED_PERIOD_WEEKS = 4
+# A page that stays unreachable is postponed to a later run instead of failing
+# the whole run. This many postponements in a row mean the site is down: stop.
+CONSECUTIVE_NETWORK_FAILURES = 3
 
 def code_of(row):
     return re.search(r'moncode=(\d+)', row[2])[1]
@@ -114,13 +123,16 @@ def main():
     parser.add_argument('--full', action='store_true', help='Download every current question again')
     parser.add_argument('--max-records', type=int, default=6000, help='Maximum corpus size, checked before any page download')
     parser.add_argument('--max-downloads', type=int, default=900, help='Maximum question pages downloaded in this run')
+    parser.add_argument('--max-network-failures', type=int, default=10,
+                        help='Maximum question pages postponed after network errors before the run stops')
     args = parser.parse_args()
     if not 0 <= args.expand <= 500:
         parser.error('--expand must be between 0 and 500')
-    if args.max_records < 1 or args.max_downloads < 1:
-        parser.error('--max-records and --max-downloads must be positive')
+    if args.max_records < 1 or args.max_downloads < 1 or args.max_network_failures < 0:
+        parser.error('--max-records and --max-downloads must be positive, --max-network-failures at least 0')
     current = json.loads(Path(args.file).read_text(encoding='utf-8'))
-    index_text = download(INDEX)
+    # Nothing can be done without the index: more patience than for a page.
+    index_text = download(INDEX, attempts=5, first_wait=5)
     rows = index_rows(index_text)
     if len(current['questions']) > args.max_records:
         raise ValueError('Plafond de collecte dépassé ; aucune fiche téléchargée ou supprimée.')
@@ -146,12 +158,31 @@ def main():
         (snapshot / (code+'.html')).write_text(raw, encoding='utf-8')
         return parse_record(row, raw)
 
+    postponed = []
+    in_a_row = 0
+
+    def postpone(row, error):
+        nonlocal in_a_row
+        postponed.append(code_of(row))
+        in_a_row += 1
+        print(f'Reportée (site injoignable, {type(error).__name__}) :', code_of(row))
+        if len(postponed) > args.max_network_failures or in_a_row >= CONSECUTIVE_NETWORK_FAILURES:
+            raise ValueError(f'{len(postponed)} fiche(s) injoignable(s), dont {in_a_row} de suite : site du Parlement '
+                             'indisponible ? Corpus non remplacé ; relancez plus tard.') from error
+
+    previous = {q['moncode']: q for q in current['questions']}
     questions = list(kept)
     for row in recheck:
         try:
             questions.append(fetch(row))
         except MissingQuestionText:
             raise ValueError('Texte vide pour une fiche existante : ' + code_of(row) + '. Corpus non remplacé.')
+        except NETWORK_ERRORS as error:
+            # The previous version stays; the question is rechecked next run.
+            questions.append(previous[code_of(row)])
+            postpone(row, error)
+            continue
+        in_a_row = 0
         print('Revérifiée', code_of(row))
     added = 0
     skipped = []
@@ -165,10 +196,16 @@ def main():
             skipped.append(dict(moncode=code, reason='question_text_empty',
                                 url_source=BASE+'/weblex-quest-det/?moncode='+code+'&base=1'))
             print('Écartée (texte de question vide sur le site) :', code)
+            in_a_row = 0
             continue
+        except NETWORK_ERRORS as error:
+            postpone(row, error)
+            continue
+        in_a_row = 0
         added += 1
         print('Ajoutée', code_of(row))
     (snapshot / 'excluded.json').write_text(json.dumps(skipped, ensure_ascii=False, indent=2), encoding='utf-8')
+    (snapshot / 'postponed.json').write_text(json.dumps(postponed), encoding='utf-8')
     if not questions:
         raise ValueError('Aucune fiche exploitable : corpus non remplacé.')
     order = {code_of(r): i for i, r in enumerate(rows)}
@@ -184,7 +221,8 @@ def main():
     missing = len(candidates) - added
     print(f'Validated collection: {len(questions)} records → {output}')
     print(f'Revérifiées : {len(recheck)} ; conservées sans téléchargement : {len(kept)} ; ajoutées : {added} ; '
-          f'écartées : {len(skipped)} ; encore absentes du corpus : {missing} ; pages téléchargées : {downloads}')
+          f'écartées : {len(skipped)} ; reportées (site injoignable) : {len(postponed)} ; '
+          f'encore absentes du corpus : {missing} ; pages téléchargées : {downloads}')
 
 if __name__ == '__main__':
     main()
