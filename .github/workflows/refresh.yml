@@ -3,8 +3,8 @@ on:
   workflow_dispatch:
     inputs:
       expand:
-        description: 'Nombre de questions récentes à ajouter (0 = actualiser le corpus local)'
-        default: '0'
+        description: 'Questions absentes du corpus à ajouter, des plus récentes aux plus anciennes (0 = actualiser seulement, 500 au plus)'
+        default: '300'
         required: true
   schedule:
     - cron: '20 4 * * 1'
@@ -18,11 +18,14 @@ jobs:
     if: github.event_name == 'workflow_dispatch' || vars.CORPUS_REFRESH_ENABLED == 'true'
     runs-on: ubuntu-24.04
     environment: production
-    timeout-minutes: 45
+    timeout-minutes: 60
     env:
-      IMPORT_MAX_RECORDS: '150'
-      IMPORT_MAX_EMBEDDING_CALLS: '25'
-      IMPORT_MAX_EMBEDDING_BYTES: '250000'
+      # A full-legislature version weighs about 135 MB in the database: keep a
+      # single rollback version. Embedding caps fit about 400 new questions.
+      IMPORT_MAX_RECORDS: '6000'
+      IMPORT_KEEP_VERSIONS: '1'
+      IMPORT_MAX_EMBEDDING_CALLS: '100'
+      IMPORT_MAX_EMBEDDING_BYTES: '3000000'
       EMBEDDING_MODEL: text-embedding-3-small
     defaults:
       run:
@@ -45,8 +48,9 @@ jobs:
         run: npm run export:data
       - name: Collect public documents
         env:
-          EXPAND: ${{ inputs.expand || '0' }}
-        run: python scripts/refresh-corpus.py --file data/corpus-active.json --expand "$EXPAND" --max-records 150
+          # Scheduled runs have no inputs: they add CORPUS_WEEKLY_ADD questions (300 by default).
+          EXPAND: ${{ inputs.expand || vars.CORPUS_WEEKLY_ADD || '300' }}
+        run: python scripts/refresh-corpus.py --file data/corpus-active.json --expand "$EXPAND" --max-records 6000 --max-downloads 900
       - run: npm run import:data -- --file=data/corpus-refreshed.json --validate-only
       - name: Import and atomically activate
         env:

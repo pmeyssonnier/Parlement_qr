@@ -150,6 +150,10 @@ export type Database = {
         Args: { p_id: string; p_passage_count: number }
         Returns: undefined
       }
+      clone_unchanged_questions: {
+        Args: { p_from: string; p_model: string; p_questions: Json; p_to: string }
+        Returns: string[]
+      }
       prune_corpus_versions: { Args: { p_keep: number }; Returns: number }
       reserve_chat_quota: {
         Args: {
