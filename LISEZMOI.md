@@ -1,5 +1,7 @@
 # Questions et réponses du Parlement bruxellois
 
+> Ce document décrit l’échantillon de données et sa méthode. Pour l’application web, voir le [README](README.md).
+
 Recherche et extraction réalisées le 23 septembre 2026.
 
 ## Sources disponibles

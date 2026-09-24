@@ -6,21 +6,11 @@ Créer une application web permettant à tout citoyen de poser une question et d
 
 Le projet commence avec un échantillon de dix questions écrites. Ce corpus est exploratoire et ne permet pas de répondre à toutes les questions sur Bruxelles.
 
+> Ce document a été rédigé avant l’audit TypeScript (PR nº 1). Les sections « Vérifications effectuées » et « Diagnostic des connexions » décrivent l’état à ce moment-là. Pour l’organisation actuelle et les commandes, voir le [README](README.md).
+
 ## Emplacement des fichiers
 
-Dossier principal :
-
-```text
-C:\Users\pmeys\OneDrive\Documents\ChatGPT\R Parlement bruxellois
-```
-
-Application :
-
-```text
-C:\Users\pmeys\OneDrive\Documents\ChatGPT\R Parlement bruxellois\web
-```
-
-Fichiers importants, relativement au dossier principal :
+L’application se trouve dans le dossier `web` du dépôt. Fichiers importants, relativement à la racine du dépôt :
 
 | Fichier | Fonction |
 |---|---|
@@ -31,11 +21,16 @@ Fichiers importants, relativement au dossier principal :
 | `LISEZMOI.md` | Sources et méthode d’échantillonnage |
 | `web/.env.local` | Configuration locale et clés secrètes ; ne pas partager |
 | `web/.env.example` | Exemple de configuration sans secrets |
-| `web/src/components/chat.tsx` | Interface du chat |
+| `web/src/components/chat.tsx` | Interface du chat : état de la conversation et assemblage |
+| `web/src/components/` | Composants de l’interface (menu, réponse et sources, saisie, panneaux) |
+| `web/src/lib/api-client.ts` | Appel de l’API depuis le navigateur et messages d’erreur |
 | `web/src/lib/search.ts` | Recherche locale dans les documents |
 | `web/src/lib/server.ts` | Connexions, recherche distante, quotas et génération IA |
+| `web/src/lib/schema.ts` | Schémas de validation et types partagés |
 | `web/src/app/api/chat/route.ts` | Point d’entrée serveur du chat |
 | `web/supabase/migrations/001_initial.sql` | Création des tables et fonctions Supabase |
+| `web/supabase/migrations/002_quota_fallback.sql` | Repli sur les extraits quand le budget IA est épuisé |
+| `web/supabase/migrations/003_corpus_retention.sql` | Conservation et nettoyage des versions de corpus |
 | `web/scripts/import-data.ts` | Importation du corpus et de ses vecteurs |
 | `web/scripts/export-corpus.ts` | Exportation du corpus actif |
 | `web/scripts/refresh-corpus.py` | Actualisation et extension de la collecte |
@@ -161,7 +156,7 @@ La synthèse IA reste désactivée. Le mode documentaire local a été testé av
 4. Remplacer `SUPABASE_SECRET_KEY` par la clé secrète de ce même projet. Ne pas utiliser une clé publique destinée au navigateur.
 5. Enregistrer le fichier, sans transmettre les valeurs dans la conversation.
 6. Refaire les vérifications de connexion.
-7. Appliquer `web/supabase/migrations/001_initial.sql` dans le projet Supabase prévu, après vérification de son état existant.
+7. Appliquer dans l’ordre les migrations de `web/supabase/migrations/` (001, 002, puis 003) dans le projet Supabase prévu, après vérification de son état existant.
 8. Importer les dix fiches et leurs embeddings.
 9. Vérifier le corpus actif, les droits d’accès, la recherche et les quotas.
 10. Activer la synthèse IA et tester de vraies réponses sourcées.
