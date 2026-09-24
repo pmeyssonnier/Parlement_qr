@@ -1,0 +1,6 @@
+# LF in the repository and in every checkout, including on Windows with
+# core.autocrlf=true: Biome's formatter (web/biome.json) expects LF.
+* text=auto eol=lf
+
+# Raw copies of official pages: keep their original bytes (CRLF and lone CR).
+web/data/source-snapshots/** -text
