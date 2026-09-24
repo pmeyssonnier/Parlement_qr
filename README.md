@@ -30,7 +30,7 @@ Avec Supabase, elle interroge le corpus actif (recherche plein texte et vectorie
 | `web/src/app/` | Page d'accueil et routes serveur (`/api/chat`, `/api/health`) |
 | `web/src/components/` | Interface du chat |
 | `web/src/lib/` | Recherche, génération, quotas, schémas et client de l'API |
-| `web/supabase/migrations/` | Schéma PostgreSQL, à appliquer dans l'ordre (001 → 003) |
+| `web/supabase/migrations/` | Schéma PostgreSQL, à appliquer dans l'ordre (001 → 005) |
 | `web/scripts/` | Import, export et actualisation du corpus, audit de la recherche |
 | `web/tests/` | Tests unitaires (`node:test`) et de navigateur (Playwright) |
 | `web/data/` | Corpus d'échantillon et copies des pages collectées |

@@ -73,17 +73,32 @@ class CollectorTests(unittest.TestCase):
 
     def test_plan_rechecks_only_questions_that_may_still_change(self):
         today=collector.dt.date(2026,9,24)
-        rows=[fake_row(c,d) for c,d in [('6','20/09/2026'),('5','01/07/2026'),('4','01/06/2026'),('3','01/01/2025'),('2','01/12/2024'),('1','01/10/2024')]]
-        current=[current_question('5','2026-07-01'),                         # unanswered, recent: recheck
-                 current_question('4','2026-06-01','Réponse','2026-09-20'),  # answered 4 days ago: recheck
-                 current_question('3','2025-01-01','Réponse','2025-03-01'),  # answered long ago: kept
-                 current_question('2','2024-12-01')]                         # unanswered for 21 months: kept
+        old=next(c for c in ('2','3','4','5','6','7','8','9') if not collector.in_rotation(c,today))
+        rows=[fake_row(c,d) for c,d in [('16','20/09/2026'),('15','01/07/2026'),('14','01/06/2026'),('13','01/01/2025'),(old,'01/12/2024'),('11','01/10/2024')]]
+        current=[current_question('15','2026-07-01'),                         # unanswered, recent: recheck
+                 current_question('14','2026-06-01','Réponse','2026-09-20'),  # answered 4 days ago: recheck
+                 current_question('13','2025-01-01','Réponse','2025-03-01'),  # answered long ago: kept
+                 current_question(old,'2024-12-01')]                          # unanswered for 21 months, not this week: kept
         recheck,kept,candidates=collector.plan(rows,current,today)
-        self.assertEqual([collector.code_of(r) for r in recheck],['5','4'])
-        self.assertEqual([q['moncode'] for q in kept],['3','2'])
-        self.assertEqual([collector.code_of(r) for r in candidates],['6','1'])  # absent ones, most recent first
+        self.assertEqual([collector.code_of(r) for r in recheck],['15','14'])
+        self.assertEqual([q['moncode'] for q in kept],['13',old])
+        self.assertEqual([collector.code_of(r) for r in candidates],['16','11'])  # absent ones, most recent first
         recheck,kept,_=collector.plan(rows,current,today,full=True)
         self.assertEqual((len(recheck),kept),(4,[]))
+
+    def test_old_unanswered_questions_are_rechecked_in_rotation(self):
+        start=collector.dt.date(2026,9,21)
+        weeks=[start+collector.dt.timedelta(weeks=w) for w in range(8)]
+        old=[current_question(str(code),'2024-12-01') for code in range(170000,170040)]
+        for question in old:
+            # Every old unanswered question is rechecked exactly once every 4 weeks...
+            checked=[w for w,day in enumerate(weeks) if collector.needs_recheck(question,day)]
+            self.assertEqual(len(checked),2,question['moncode'])
+            self.assertEqual(checked[1]-checked[0],4)
+        # ...and the load is spread: a quarter of them each week.
+        self.assertEqual({sum(collector.needs_recheck(q,day) for q in old) for day in weeks},{10})
+        answered=current_question('170000','2024-12-01','Réponse','2025-01-15')
+        self.assertFalse(any(collector.needs_recheck(answered,day) for day in weeks))
 
     def test_plan_refuses_questions_missing_from_index(self):
         with self.assertRaisesRegex(ValueError,'absentes de l’index'):
