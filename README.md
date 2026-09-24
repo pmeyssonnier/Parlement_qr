@@ -22,6 +22,32 @@ vers la fiche officielle.
 Sans Supabase, l'application utilise l'échantillon local `web/data/corpus.json`.
 Avec Supabase, elle interroge le corpus actif (recherche plein texte et vectorielle).
 
+## Corpus et actualisation
+
+Le corpus couvre les questions écrites de la législature 2024-2029. Au 24 septembre
+2026, 2 406 fiches sont en ligne ; il reste environ 200 questions à rattraper, plus
+une vingtaine dont le texte n'est pas encore publié par le Parlement (elles seront
+reprises automatiquement).
+
+Le workflow `.github/workflows/refresh.yml` actualise le corpus :
+
+- **chaque lundi** à 04:20 UTC, une fois la variable de dépôt
+  `CORPUS_REFRESH_ENABLED` passée à `true` ;
+- **à la demande** : Actions → Refresh parliamentary corpus → *Run workflow*
+  (et non *Re-run*, qui rejoue l'ancien code), champ `expand` = nombre de questions
+  à ajouter (300 par défaut, 500 au plus, 0 pour actualiser seulement).
+
+Chaque exécution revérifie les fiches susceptibles d'avoir changé, ajoute les
+questions absentes, puis n'envoie à OpenAI que les fiches nouvelles ou modifiées
+(plafond : 100 appels et 3 Mo de texte). Une page du Parlement injoignable est
+reportée à l'exécution suivante ; si le site est en panne, l'exécution s'arrête
+sans toucher au corpus en ligne. La nouvelle version n'est activée qu'après un
+import complet, et les deux précédentes sont conservées pour un retour arrière.
+
+Depuis la migration 005, chaque fiche n'est stockée qu'une fois quelle que soit la
+version qui l'utilise : environ 180 Mo pour la législature complète, compatible avec
+l'offre Free de Supabase (500 Mo). Détails dans [web/ACTUALISATION.md](web/ACTUALISATION.md).
+
 ## Organisation du dépôt
 
 | Emplacement | Contenu |
@@ -34,7 +60,7 @@ Avec Supabase, elle interroge le corpus actif (recherche plein texte et vectorie
 | `web/scripts/` | Import, export et actualisation du corpus, audit de la recherche |
 | `web/tests/` | Tests unitaires (`node:test`) et de navigateur (Playwright) |
 | `web/data/` | Corpus d'échantillon et copies des pages collectées |
-| `.github/workflows/` | Vérifications automatiques et actualisation hebdomadaire |
+| `.github/workflows/` | Vérifications automatiques (`check.yml`) et actualisation du corpus (`refresh.yml`) |
 | Racine | Échantillon initial de dix questions et son extraction (voir [LISEZMOI.md](LISEZMOI.md)) |
 
 ## Démarrage rapide
@@ -84,7 +110,7 @@ unitaires, la validation du corpus, le build et les tests Playwright.
 |---|---|
 | [LISEZMOI.md](LISEZMOI.md) | Sources officielles, décomptes de l'index et méthode d'échantillonnage |
 | [web/DEPLOIEMENT.md](web/DEPLOIEMENT.md) | Publication d'une version de test sur Vercel |
-| [web/ACTUALISATION.md](web/ACTUALISATION.md) | Actualisation hebdomadaire, plafonds et conservation des versions |
+| [web/ACTUALISATION.md](web/ACTUALISATION.md) | Actualisation hebdomadaire, rattrapage, plafonds, stockage et conservation des versions |
 | [ANALYSE_ET_STATUT_DU_PROJET.md](ANALYSE_ET_STATUT_DU_PROJET.md) | Architecture, historique et limites avant ouverture au public |
 
 ## Contribuer
