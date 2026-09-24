@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { MAX_HISTORY, MAX_QUESTION_LENGTH, MIN_QUESTION_LENGTH } from "./limits";
 
 export const questionSchema = z.object({
   id: z.string().min(1),
@@ -62,10 +63,10 @@ export const chatResponseSchema = z.object({
 export type ChatResponse = z.infer<typeof chatResponseSchema>;
 
 export const chatInput = z.strictObject({
-  message: z.string().trim().min(3).max(1500),
+  message: z.string().trim().min(MIN_QUESTION_LENGTH).max(MAX_QUESTION_LENGTH),
   history: z
-    .array(z.object({ role: z.literal("user"), content: z.string().trim().min(1).max(1500) }))
-    .max(4)
+    .array(z.object({ role: z.literal("user"), content: z.string().trim().min(1).max(MAX_QUESTION_LENGTH) }))
+    .max(MAX_HISTORY)
     .default([]),
 });
 // Sent to OpenAI as the structured output format: keep it free of constraints
