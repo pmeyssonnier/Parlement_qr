@@ -8,6 +8,32 @@ Pour chaque étape, il indique le fichier concerné et ce qu'il faut changer pou
 brancher une autre source : un autre parlement, une FAQ, une base documentaire, des
 fiches produit…
 
+## Technologies utilisées
+
+| Rôle | Technologie | Version / formule | Utilisée pour |
+|---|---|---|---|
+| Collecte | **Python** (bibliothèque standard seulement : `urllib`, `re`, `html`, `json`, `hashlib`) | 3.13 | Télécharger l'index et les fiches, extraire les champs |
+| Langage de l'application | **TypeScript** | 7 | Serveur, interface, scripts d'import |
+| Environnement d'exécution | **Node.js** | 22 minimum (24 en CI) | Next.js, scripts `tsx` |
+| Application web | **Next.js** (App Router) et **React** | 16 / 19 | Page de chat et routes API `/api/chat`, `/api/health` |
+| Validation des données | **zod** | 4 | Format des fiches, des requêtes et de la sortie de l'IA |
+| Icônes | **lucide-react** | 1 | Interface |
+| Base de données | **Supabase** : PostgreSQL et client `@supabase/supabase-js` | Formule Free, région West EU (Irlande) | Fiches, passages, versions, quotas |
+| Recherche par le sens | Extension **pgvector** (index HNSW, distance cosinus `<=>`) | 0.8 | Vecteurs de 1 536 dimensions |
+| Recherche par mots | **Recherche plein texte de PostgreSQL** (`tsvector`, configuration `french`, index GIN) | — | Mots-clés, pondération du titre |
+| Vecteurs | **OpenAI** `text-embedding-3-small` (SDK `openai`) | SDK 7 | Vectoriser les passages et les questions |
+| Rédaction des réponses | **OpenAI** `gpt-5-mini` (API Responses, sortie structurée) | Réflexion `low` | Synthèse avec références |
+| Hébergement | **Vercel** (fonctions à Dublin, `dub1`) | Formule Hobby | Site et API |
+| Automatisation | **GitHub Actions** (`refresh.yml`, `check.yml`) | — | Actualisation hebdomadaire, vérifications |
+| Qualité | **Biome** (formatage et lint), **Playwright** (tests navigateur), tests Node | 2.5 / 1.63 | Vérifications avant fusion |
+
+Chaque brique peut être remplacée :
+- **Supabase** par tout PostgreSQL qui dispose de `pgvector` (Neon, un serveur personnel…) ;
+- **OpenAI** par un autre fournisseur de vecteurs ou de modèle de langage. Dans ce
+  cas, la dimension `vector(1536)` des migrations doit correspondre au nouveau
+  modèle de vecteurs, et tout le corpus doit être revectorisé ;
+- **Vercel** par un autre hébergeur Node.js.
+
 ## Vue d'ensemble
 
 ```text
