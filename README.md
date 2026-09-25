@@ -174,6 +174,7 @@ unitaires, la validation du corpus, le build et les tests Playwright.
 | [LISEZMOI.md](LISEZMOI.md) | Sources officielles, décomptes de l'index et méthode d'échantillonnage |
 | [web/DEPLOIEMENT.md](web/DEPLOIEMENT.md) | Publication d'une version de test sur Vercel |
 | [web/ACTUALISATION.md](web/ACTUALISATION.md) | Actualisation hebdomadaire, rattrapage, plafonds, stockage et conservation des versions |
+| [GUIDE_ASSISTANT_QUESTIONS_REPONSES.md](GUIDE_ASSISTANT_QUESTIONS_REPONSES.md) | Étapes d'import et d'association question → réponses, pour construire un assistant similaire sur une autre source |
 | [ANALYSE_ET_STATUT_DU_PROJET.md](ANALYSE_ET_STATUT_DU_PROJET.md) | Architecture, historique et limites avant ouverture au public |
 
 ## Contribuer
