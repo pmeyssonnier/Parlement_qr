@@ -231,6 +231,23 @@ class CollectorTests(unittest.TestCase):
         self.assertIn('Législature 2019-2024 : sélection thématique',result['methode_echantillonnage'])
         self.assertLess(result['methode_echantillonnage'].index('2024-2029'),result['methode_echantillonnage'].index('2019-2024 :'))
 
+    def test_named_selection_sets_legislature_filter_and_label(self):
+        today=collector.dt.date.today()
+        current=current_question('9',today.isoformat()); current['legislature']='2024-2029'
+        titles=['Question écrite concernant la place Meiser','Question écrite concernant le Palais de justice',
+                'Question écrite concernant la chaussée de Louvain','Question écrite concernant le boulevard Léopold III']
+        rows=[fake_row(str(c),'0%d/03/2023' % c) for c in range(4,0,-1)]
+        for row,title in zip(rows,titles):
+            row[8]=title
+        pages={str(c):fake_page() for c in range(1,5)}
+        result,downloaded=self.run_collector([current],rows,pages,'--selection','schaerbeek','--expand','10')
+        added=[q for q in result['questions'] if q['legislature']=='2019-2024']
+        self.assertEqual(sorted(q['moncode'] for q in added),['1','2','4'])  # not the Palais de justice
+        self.assertIn('dos_qu_legis_19-24',result['source_index'])
+        self.assertIn('Schaerbeek ou une de ses voiries régionales',result['methode_echantillonnage'])
+        with self.assertRaises(SystemExit):
+            self.run_collector([current],rows,pages,'--selection','inconnue')
+
     def test_legislature_names(self):
         self.assertEqual(collector.full_legislature('19-24'),'2019-2024')
         self.assertEqual(collector.full_legislature('89-95'),'1989-1995')
