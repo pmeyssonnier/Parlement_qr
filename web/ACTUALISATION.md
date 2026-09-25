@@ -134,8 +134,8 @@ les contenus que plus aucune version n'utilise.
 Mesure du 25 septembre 2026 : base complète de 176 Mo pour 2 406 fiches, dont
 155 Mo pour `document_passages` (environ 75 Mo de données, environ 80 Mo d'index
 vectoriel et plein texte), soit environ 69 ko par fiche, index compris. Projection :
-environ 188 Mo après le rattrapage (2 578 fiches) et environ 425 Mo
-pour 6 000 fiches en fin de législature : à surveiller avec l'offre Free de Supabase
+environ 196 Mo avec le corpus du 25 septembre 2026 (2 689 fiches, dont 111 de la
+sélection 2019-2024) et environ 430 Mo pour 6 100 fiches en fin de législature : à surveiller avec l'offre Free de Supabase
 (500 Mo). Les requêtes de mesure figurent dans le README.
 
 Les plafonds OpenAI portent sur le volume et les appels, pas sur des euros.

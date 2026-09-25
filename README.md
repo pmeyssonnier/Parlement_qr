@@ -24,14 +24,21 @@ Avec Supabase, elle interroge le corpus actif (recherche plein texte et vectorie
 
 ## Corpus et actualisation
 
-Le corpus couvre les questions écrites de la législature 2024-2029. Le rattrapage
-est terminé depuis le 25 septembre 2026 : **2 578 fiches** (8 010 passages) sont en
-ligne. Seules 25 questions récentes n'y figurent pas encore, car leur texte n'est pas
-encore publié par le Parlement ; elles seront ajoutées automatiquement.
+Au 25 septembre 2026, **2 689 fiches** (8 332 passages) sont en ligne :
 
-Des législatures précédentes peuvent être ajoutées par **sélection thématique** (par
-exemple les questions 2019-2024 dont le titre cite Schaerbeek), sans charger la
-législature entière : voir [web/ACTUALISATION.md](web/ACTUALISATION.md).
+| Législature | Couverture | Fiches |
+|---|---|---|
+| 2024-2029 | complète (rattrapage terminé) | 2 578 |
+| 2019-2024 | sélection thématique : titre citant Schaerbeek ou une de ses voiries régionales | 111 |
+
+Pour 2024-2029, seules 25 questions récentes n'y figurent pas encore, car leur texte
+n'est pas encore publié par le Parlement ; elles seront ajoutées automatiquement.
+Pour 2019-2024, une seule question retenue par le filtre est écartée pour la même
+raison.
+
+D'autres législatures ou sélections peuvent être ajoutées par **sélection
+thématique**, sans charger la législature entière : voir
+[web/ACTUALISATION.md](web/ACTUALISATION.md).
 
 Le workflow `.github/workflows/refresh.yml` actualise le corpus :
 
@@ -67,8 +74,8 @@ conservées :
 - Une fiche coûte environ **69 ko**, index compris.
 - Les versions de retour arrière ne coûtent presque rien : aucune fiche ne leur est
   propre, toutes sont partagées avec la version active.
-- Projection : environ **188 Mo** après le rattrapage (2 578 fiches) et
-  **425 Mo** en fin de législature (environ 6 000 fiches), pour une limite de 500 Mo
+- Projection : environ **196 Mo** avec le corpus actuel (2 689 fiches) et
+  **430 Mo** en fin de législature (environ 6 100 fiches), pour une limite de 500 Mo
   avec l'offre Free de Supabase. À surveiller à partir de 2028.
 
 Pour mesurer la place occupée, dans l'éditeur SQL de Supabase :
