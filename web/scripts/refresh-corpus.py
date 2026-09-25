@@ -86,6 +86,14 @@ CONSECUTIVE_NETWORK_FAILURES = 3
 def code_of(row):
     return re.search(r'moncode=(\d+)', row[2])[1]
 
+def missing_from_index(index_text, rows, current_questions):
+    """Current questions absent from the usable index rows, with the reason."""
+    usable = {code_of(r) for r in rows}
+    listed = {m[1] for r in json.loads(index_text)['data'] if r[0] == 'PRB'
+              for m in [re.search(r'moncode=(\d+)', r[2])] if m}
+    return [dict(moncode=q['moncode'], reason='incomplete_row' if q['moncode'] in listed else 'not_listed')
+            for q in current_questions if q['moncode'] not in usable]
+
 def index_rows(index_text):
     """PRB written questions of the index, most recent first."""
     rows = [r for r in json.loads(index_text)['data'] if r[0] == 'PRB' and r[15] == '1' and iso(r[5])]
@@ -107,9 +115,9 @@ def plan(rows, current_questions, today, full=False):
     kept as they are, and index rows absent from the corpus (candidates to add,
     most recent first)."""
     by_code = {code_of(r): r for r in rows}
-    if any(q['moncode'] not in by_code for q in current_questions):
-        raise ValueError('Certaines fiches précédemment collectées sont absentes de l’index : vérification manuelle requise.')
-    recheck = {q['moncode'] for q in current_questions if full or needs_recheck(q, today)}
+    # A question missing from the index cannot be downloaded again: it is kept as is.
+    recheck = {q['moncode'] for q in current_questions
+               if q['moncode'] in by_code and (full or needs_recheck(q, today))}
     kept = [q for q in current_questions if q['moncode'] not in recheck]
     present = {q['moncode'] for q in current_questions}
     return ([r for r in rows if code_of(r) in recheck], kept, [r for r in rows if code_of(r) not in present])
@@ -127,11 +135,14 @@ def main():
                         help='Maximum question pages postponed after network errors before the run stops')
     parser.add_argument('--max-empty-texts', type=int, default=10,
                         help='Maximum current questions whose text is now empty on the site (previous version kept) before the run stops')
+    parser.add_argument('--max-missing-from-index', type=int, default=10,
+                        help='Maximum current questions missing from the index (previous version kept) before the run stops')
     args = parser.parse_args()
     if not 0 <= args.expand <= 500:
         parser.error('--expand must be between 0 and 500')
-    if args.max_records < 1 or args.max_downloads < 1 or args.max_network_failures < 0 or args.max_empty_texts < 0:
-        parser.error('--max-records and --max-downloads must be positive, --max-network-failures and --max-empty-texts at least 0')
+    if args.max_records < 1 or args.max_downloads < 1 or args.max_network_failures < 0 or args.max_empty_texts < 0 \
+            or args.max_missing_from_index < 0:
+        parser.error('--max-records and --max-downloads must be positive, the other --max-* options at least 0')
     current = json.loads(Path(args.file).read_text(encoding='utf-8'))
     # Nothing can be done without the index: more patience than for a page.
     index_text = download(INDEX, attempts=5, first_wait=5)
@@ -142,14 +153,22 @@ def main():
     if args.expand > room:
         print(f'Plafond de {args.max_records} fiches : ajout limité à {room} fiche(s).')
     to_add = min(args.expand, room)
-    recheck, kept, candidates = plan(rows, current['questions'], dt.date.today(), args.full)
-    if len(recheck) > args.max_downloads:
-        raise ValueError(f'{len(recheck)} fiches à revérifier pour un plafond de {args.max_downloads} téléchargements ; corpus non remplacé.')
     output = Path(args.output)
     output.parent.mkdir(parents=True, exist_ok=True)
     snapshot = output.parent / 'source-snapshots' / dt.datetime.now(dt.timezone.utc).strftime('%Y%m%dT%H%M%SZ')
     snapshot.mkdir(parents=True)
     (snapshot / 'index.json').write_text(index_text, encoding='utf-8')
+    missing = missing_from_index(index_text, rows, current['questions'])
+    (snapshot / 'missing-from-index.json').write_text(json.dumps(missing, ensure_ascii=False, indent=2), encoding='utf-8')
+    for item in missing:
+        reason = 'ligne incomplète dans l’index' if item['reason'] == 'incomplete_row' else 'absente de l’index'
+        print(f'Conservée ({reason}) :', item['moncode'])
+    if len(missing) > args.max_missing_from_index:
+        raise ValueError(f'{len(missing)} fiches du corpus absentes de l’index ({len(rows)} lignes utilisables) : '
+                         'index tronqué ou modifié ? Corpus non remplacé ; vérification manuelle requise.')
+    recheck, kept, candidates = plan(rows, current['questions'], dt.date.today(), args.full)
+    if len(recheck) > args.max_downloads:
+        raise ValueError(f'{len(recheck)} fiches à revérifier pour un plafond de {args.max_downloads} téléchargements ; corpus non remplacé.')
     downloads = 0
 
     def fetch(row):
@@ -221,8 +240,8 @@ def main():
     (snapshot / 'emptied.json').write_text(json.dumps(emptied), encoding='utf-8')
     if not questions:
         raise ValueError('Aucune fiche exploitable : corpus non remplacé.')
-    order = {code_of(r): i for i, r in enumerate(rows)}
-    questions.sort(key=lambda q: order[q['moncode']])
+    # Index order (most recent first), which also places questions missing from the index.
+    questions.sort(key=lambda q: (q['date_reception'], int(q['moncode'])), reverse=True)
     result = dict(schema_version='1.0', extrait_le=dt.datetime.now(dt.timezone.utc).isoformat(), source_index=INDEX,
                   nombre_elements=len(questions), questions=questions, fiches_ecartees=skipped,
                   methode_echantillonnage=f"Questions écrites PRB de la législature 2024-2029 : {len(questions)} fiches sur "
@@ -231,12 +250,12 @@ def main():
     temp = output.with_suffix('.tmp')
     temp.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding='utf-8')
     temp.replace(output)
-    missing = len(candidates) - added
+    absent = len(candidates) - added
     print(f'Validated collection: {len(questions)} records → {output}')
     print(f'Revérifiées : {len(recheck)} ; conservées sans téléchargement : {len(kept)} ; ajoutées : {added} ; '
           f'écartées : {len(skipped)} ; conservées (texte vide sur le site) : {len(emptied)} ; '
-          f'reportées (site injoignable) : {len(postponed)} ; '
-          f'encore absentes du corpus : {missing} ; pages téléchargées : {downloads}')
+          f'reportées (site injoignable) : {len(postponed)} ; absentes de l’index : {len(missing)} ; '
+          f'encore absentes du corpus : {absent} ; pages téléchargées : {downloads}')
 
 if __name__ == '__main__':
     main()

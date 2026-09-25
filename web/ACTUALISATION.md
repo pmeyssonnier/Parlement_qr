@@ -78,6 +78,12 @@ absentes du corpus.
   revérifiée à l'exécution suivante. Au-delà de 10 fiches dans ce cas lors d'une même
   exécution (structure des pages probablement modifiée), l'exécution s'arrête sans
   remplacer le corpus. Le bilan de collecte indique le nombre de fiches conservées.
+- Fiche absente de l'index : une fiche du corpus que l'index ne liste plus (retirée,
+  ou ligne incomplète, sans date de réception) **garde sa version précédente** et
+  n'est pas téléchargée. Le journal affiche son code et le motif ; la liste est
+  enregistrée dans `missing-from-index.json` de l'artefact, à côté de l'index reçu.
+  Au-delà de 10 fiches absentes (index probablement tronqué), l'exécution s'arrête
+  sans remplacer le corpus.
 - Embeddings : au plus 100 appels et 3 000 000 d'octets UTF-8 de texte, soit environ
   400 fiches nouvelles. Le dépassement est détecté **avant** toute écriture.
 - Modèle fixé pour le workflow : text-embedding-3-small.
