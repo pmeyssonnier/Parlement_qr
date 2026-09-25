@@ -20,7 +20,7 @@ Copiez leurs valeurs directement depuis votre configuration locale, sans les
 publier dans un fichier ou une conversation. Les variables Vercel ne sont pas
 transmises automatiquement à GitHub Actions.
 
-Avant la première exécution, appliquez dans l'ordre les migrations 003, 004, 005 et 006 de
+Avant la première exécution, appliquez dans l'ordre les migrations 003 à 007 de
 `supabase/migrations/` dans l'éditeur SQL de Supabase.
 
 Dans Actions → Refresh parliamentary corpus → Run workflow, mettez expand à 0

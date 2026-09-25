@@ -34,6 +34,7 @@ L’application se trouve dans le dossier `web` du dépôt. Fichiers importants,
 | `web/supabase/migrations/004_clone_unchanged.sql` | Reprise des fiches inchangées lors d’un import (remplacée par 005) |
 | `web/supabase/migrations/005_deduplicate_documents.sql` | Stockage unique des contenus, partagés entre versions |
 | `web/supabase/migrations/006_search_ranking.sql` | Recherche sans accents, classement par rareté des mots et fusion par rang (retour arrière : `web/supabase/rollback/006_search_ranking.sql`) |
+| `web/supabase/migrations/007_first_question_passages.sql` | Deux passages pour la fiche classée première (retour arrière : réexécuter la fonction de 006) |
 | `web/scripts/import-data.ts` | Importation du corpus et de ses vecteurs |
 | `web/scripts/export-corpus.ts` | Exportation du corpus actif |
 | `web/scripts/refresh-corpus.py` | Actualisation et extension de la collecte |
@@ -159,7 +160,7 @@ La synthèse IA reste désactivée. Le mode documentaire local a été testé av
 4. Remplacer `SUPABASE_SECRET_KEY` par la clé secrète de ce même projet. Ne pas utiliser une clé publique destinée au navigateur.
 5. Enregistrer le fichier, sans transmettre les valeurs dans la conversation.
 6. Refaire les vérifications de connexion.
-7. Appliquer dans l’ordre les migrations de `web/supabase/migrations/` (001 à 006, dans l’ordre) dans le projet Supabase prévu, après vérification de son état existant.
+7. Appliquer dans l’ordre les migrations de `web/supabase/migrations/` (001 à 007, dans l’ordre) dans le projet Supabase prévu, après vérification de son état existant.
 8. Importer les dix fiches et leurs embeddings.
 9. Vérifier le corpus actif, les droits d’accès, la recherche et les quotas.
 10. Activer la synthèse IA et tester de vraies réponses sourcées.
