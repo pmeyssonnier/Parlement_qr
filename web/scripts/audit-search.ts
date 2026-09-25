@@ -38,24 +38,29 @@ async function main() {
     console.log(JSON.stringify(results.at(-1)));
   }
   if (process.argv.includes("--ai")) {
+    // Passages sent to the model (one more embedding call per case): tells a search
+    // failure from a model judgment.
+    const sent = async (q: string) => (await findHits(q, true)).map(h => h.passage.id);
     for (const c of [cases[3], cases[8], cases[9]]) {
+      const hits = await sent(c.q);
       const r = await answer(c.q, [], "audit", true);
       const expected = c.id;
       const pass = expected
         ? r.mode === "ia" && r.status === "documente" && r.sources.some(s => s.id.includes(expected))
         : r.status === "insuffisant" && !r.sources.length;
       if (!pass) failed++;
-      const result = { question: c.q, mode: r.mode, pass, response: r };
+      const result = { question: c.q, mode: r.mode, pass, hits, response: r };
       results.push(result);
       console.log(JSON.stringify(result));
     }
     const history = [{ content: cases[0].q }];
     const q =
       "Quelles actions ont effectivement été réalisées, selon la réponse ministérielle, sans reprendre les propositions de la députée ?";
+    const hits = await sent(contextualQuery(q, history));
     const r = await answer(q, history, "audit-followup", true);
     const pass = r.mode === "ia" && r.status === "documente" && r.sources.some(s => s.id.includes("167744"));
     if (!pass) failed++;
-    results.push({ question: q, query: contextualQuery(q, history), pass, response: r });
+    results.push({ question: q, query: contextualQuery(q, history), pass, hits, response: r });
     console.log(JSON.stringify(results.at(-1)));
   }
   await writeFile(
