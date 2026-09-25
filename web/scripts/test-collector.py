@@ -120,7 +120,7 @@ class CollectorTests(unittest.TestCase):
     def run_collector(self,current,rows,pages,*args):
         index=json.dumps(dict(data=rows))
         def download(url,**_):
-            if url==collector.INDEX:
+            if url.startswith(collector.BASE+'/prb_includes/'):
                 return index
             page=pages[re.search(r'moncode=(\d+)',url)[1]]
             if isinstance(page,Exception):
@@ -187,6 +187,51 @@ class CollectorTests(unittest.TestCase):
         # Too many emptied at once: the page layout probably changed.
         with self.assertRaisesRegex(ValueError,'2 fiches existantes'):
             self.run_collector(current,rows,{c:fake_page(question='') for c in pages},'--max-empty-texts','1')
+
+    def test_past_legislature_title_selection_keeps_current_questions(self):
+        today=collector.dt.date.today()
+        current=current_question('9',today.isoformat()); current['legislature']='2024-2029'  # would be rechecked in 24-29
+        rows=[fake_row(c,d) for c,d in [('5','01/03/2023'),('4','01/02/2023'),('3','01/01/2023')]]
+        rows[0][8]='Question écrite concernant la place Meiser'
+        rows[2][9]='Schriftelijke vraag over Schaarbeek'
+        pages={'5':fake_page(),'3':fake_page()}
+        result,downloaded=self.run_collector([current],rows,pages,'--legislature','19-24',
+                                             '--title-filter','Schaerbeek|Schaarbeek|Meiser|Josaphat','--expand','10')
+        codes={q['moncode']:q for q in result['questions']}
+        self.assertEqual(sorted(codes),['3','5','9'])  # 4 does not match; 9 is kept, not looked up in this index
+        self.assertEqual((codes['5']['legislature'],codes['9']['legislature']),('2019-2024','2024-2029'))
+        self.assertEqual(len(downloaded),2)
+        self.assertIn('Législature 2019-2024 : sélection thématique',result['methode_echantillonnage'])
+        self.assertIn('Schaerbeek, Schaarbeek, Meiser ou Josaphat',result['methode_echantillonnage'])
+        self.assertIn('Législature 2024-2029 : 1 fiches.',result['methode_echantillonnage'])
+
+    def test_current_refresh_keeps_past_legislature_questions(self):
+        today=collector.dt.date.today()
+        recent=(today-collector.dt.timedelta(days=10)).strftime('%d/%m/%Y')
+        past=current_question('143586','2019-10-15'); past['legislature']='2019-2024'
+        rows=[fake_row('9',recent)]
+        method=('Questions écrites PRB. Législature 2019-2024 : sélection thématique, et non la législature complète : '
+                '1 questions dont le titre cite Josaphat. Français uniquement.')
+        index=json.dumps(dict(data=rows))
+        with tempfile.TemporaryDirectory() as directory:
+            source=Path(directory)/'active.json'; output=Path(directory)/'refreshed.json'
+            source.write_text(json.dumps(dict(methode_echantillonnage=method,questions=[past])),encoding='utf-8')
+            def download(url,**_):
+                self.assertNotIn('143586',url)  # never downloaded again
+                return index if url==collector.INDEX else fake_page()
+            with patch('sys.argv',['refresh','--file',str(source),'--output',str(output),'--expand','1',
+                                   '--max-missing-from-index','0']), patch.object(collector,'download',side_effect=download):
+                collector.main()
+            result=json.loads(output.read_text(encoding='utf-8'))
+        self.assertEqual([q['moncode'] for q in result['questions']],['9','143586'])
+        self.assertIn('Législature 2024-2029 : 1 fiches sur 1',result['methode_echantillonnage'])
+        self.assertIn('Législature 2019-2024 : sélection thématique',result['methode_echantillonnage'])
+        self.assertLess(result['methode_echantillonnage'].index('2024-2029'),result['methode_echantillonnage'].index('2019-2024 :'))
+
+    def test_legislature_names(self):
+        self.assertEqual(collector.full_legislature('19-24'),'2019-2024')
+        self.assertEqual(collector.full_legislature('89-95'),'1989-1995')
+        self.assertTrue(collector.index_url('19-24').endswith('dos_qu_legis_19-24.json'))
 
     def test_run_stops_when_the_site_is_down(self):
         rows=[fake_row(str(c),'0%d/09/2026' % c) for c in range(9,0,-1)]

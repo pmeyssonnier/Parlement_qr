@@ -29,6 +29,10 @@ est terminé depuis le 25 septembre 2026 : **2 578 fiches** (8 010 passages) son
 ligne. Seules 25 questions récentes n'y figurent pas encore, car leur texte n'est pas
 encore publié par le Parlement ; elles seront ajoutées automatiquement.
 
+Des législatures précédentes peuvent être ajoutées par **sélection thématique** (par
+exemple les questions 2019-2024 dont le titre cite Schaerbeek), sans charger la
+législature entière : voir [web/ACTUALISATION.md](web/ACTUALISATION.md).
+
 Le workflow `.github/workflows/refresh.yml` actualise le corpus :
 
 - **chaque lundi** à 04:20 UTC, une fois la variable de dépôt

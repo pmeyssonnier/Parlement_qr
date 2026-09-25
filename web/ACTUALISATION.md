@@ -61,6 +61,24 @@ workflow plusieurs fois, une exécution après l'autre (elles sont sérialisées
 Le journal de collecte indique à chaque exécution le nombre de questions encore
 absentes du corpus.
 
+## Législatures précédentes : sélection thématique
+
+Le corpus peut aussi contenir des questions d'une législature précédente, choisies
+par leur titre, sans charger la législature entière (stockage limité de l'offre
+Free). Dans Actions → Refresh parliamentary corpus → Run workflow :
+
+- **legislature** : la législature à collecter, comme dans le nom de l'index du site
+  (`19-24` pour 2019-2024) ;
+- **title_filter** : une expression sur le titre français ou néerlandais, par exemple
+  `Schaerbeek|Schaarbeek|Meiser|Josaphat` (majuscules indifférentes) ;
+- **expand** : le nombre maximal de questions à ajouter (par exemple 100).
+
+Les fiches des autres législatures ne sont ni revérifiées, ni recherchées dans
+l'index de la législature collectée : elles sont conservées telles quelles.
+L'exécution planifiée du lundi porte toujours sur la législature en cours, sans
+filtre. Le panneau « Sources et méthode » du site indique, pour chaque législature,
+s'il s'agit de la législature complète ou d'une sélection thématique.
+
 ## Plafonds par exécution
 
 - Corpus : 6 000 fiches au plus. Au-delà, arrêt sans suppression du corpus.

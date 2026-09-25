@@ -6,6 +6,14 @@ on:
         description: 'Questions absentes du corpus à ajouter, des plus récentes aux plus anciennes (0 = actualiser seulement, 500 au plus)'
         default: '300'
         required: true
+      legislature:
+        description: 'Législature à collecter, comme dans le nom de l’index (24-29 = en cours ; 19-24 = précédente). Les fiches des autres législatures sont conservées telles quelles.'
+        default: '24-29'
+        required: true
+      title_filter:
+        description: 'Facultatif : n’ajouter que les questions dont le titre correspond (ex. Schaerbeek|Schaarbeek|Meiser|Josaphat)'
+        default: ''
+        required: false
   schedule:
     - cron: '20 4 * * 1'
 permissions:
@@ -50,7 +58,12 @@ jobs:
         env:
           # Scheduled runs have no inputs: they add CORPUS_WEEKLY_ADD questions (300 by default).
           EXPAND: ${{ inputs.expand || vars.CORPUS_WEEKLY_ADD || '300' }}
-        run: python scripts/refresh-corpus.py --file data/corpus-active.json --expand "$EXPAND" --max-records 6000 --max-downloads 900
+          # Scheduled runs always refresh the current legislature, without title filter.
+          LEGISLATURE: ${{ inputs.legislature || '24-29' }}
+          TITLE_FILTER: ${{ inputs.title_filter || '' }}
+        run: >-
+          python scripts/refresh-corpus.py --file data/corpus-active.json --expand "$EXPAND"
+          --max-records 6000 --max-downloads 900 --legislature "$LEGISLATURE" --title-filter "$TITLE_FILTER"
       - run: npm run import:data -- --file=data/corpus-refreshed.json --validate-only
       - name: Import and atomically activate
         env:
