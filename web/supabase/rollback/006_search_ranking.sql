@@ -27,6 +27,7 @@ language sql stable security invoker set search_path = public,extensions as $$
 $$;
 
 drop function if exists public.passage_fts(text);
+drop function if exists public.search_words(text);
 drop function if exists public.fold_accents(text);
 
 commit;

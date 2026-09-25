@@ -10,6 +10,7 @@
 --    query vector, the lexical and semantic rankings are fused by rank (RRF).
 -- Same signature and result columns as before: no application change is needed.
 -- Rollback, only if needed: supabase/rollback/006_search_ranking.sql.
+-- Can be run again: it then rebuilds the full-text index.
 begin;
 
 create or replace function public.fold_accents(p text)
@@ -18,12 +19,20 @@ returns text language sql immutable parallel safe as $$
     'àâäáãåçéèêëíìîïñóòôöõúùûüýÿ', 'aaaaaaceeeeiiiinooooouuuuyy'), 'œ', 'oe'), 'æ', 'ae')
 $$;
 
+-- Words joined by a dot or an at sign are indexed separately: the parser would
+-- otherwise read "clean.brussels" as a single host name, while the application
+-- searches for "clean" and "brussels".
+create or replace function public.search_words(p text)
+returns text language sql immutable parallel safe as $$
+  select regexp_replace(public.fold_accents(p), '([a-z0-9])[.@](?=[a-z0-9])', '\1 ', 'g')
+$$;
+
 -- search_text starts with the question title (see scripts/import-data.ts): its words
--- carry weight A, so that "word in the title" is read from the index.
+-- carry weight A, which ranks passages whose title matches first within a question.
 create or replace function public.passage_fts(p_search_text text)
 returns tsvector language sql immutable parallel safe as $$
-  select setweight(pg_catalog.to_tsvector('french', public.fold_accents(split_part(p_search_text, E'\n', 1))), 'A')
-    || pg_catalog.to_tsvector('french', public.fold_accents(substr(p_search_text, strpos(p_search_text, E'\n') + 1)))
+  select setweight(pg_catalog.to_tsvector('french', public.search_words(split_part(p_search_text, E'\n', 1))), 'A')
+    || pg_catalog.to_tsvector('french', public.search_words(substr(p_search_text, strpos(p_search_text, E'\n') + 1)))
 $$;
 
 -- An index on the expression rather than a new column: adding a stored column
@@ -48,16 +57,22 @@ language sql stable security invoker set search_path = public,extensions as $$
   select count(*)::double precision as n from docs
  ), terms as (
   -- Stemmed, accent-free query words; the application joins them with " OR ".
-  select lexeme, quote_literal(lexeme)::tsquery as q, (quote_literal(lexeme) || ':A')::tsquery as in_title
+  select lexeme, quote_literal(lexeme)::tsquery as q
   from unnest(tsvector_to_array(to_tsvector('french',
-    public.fold_accents(replace(left(p_query, 2500), ' OR ', ' '))))) as lexeme
- ), matches as (
-  -- Which query words each question contains (title, question or answer).
-  select dc.question_id, t.lexeme, bool_or(public.passage_fts(p.search_text) @@ t.in_title) as in_title
+    public.search_words(replace(left(p_query, 2500), ' OR ', ' '))))) as lexeme
+ ), found as (
+  -- Which query words each question contains (title, question or answer), read from the index.
+  select distinct dc.question_id, t.lexeme
   from docs dc
   join document_passages p on p.content_hash = dc.content_hash
   join terms t on public.passage_fts(p.search_text) @@ t.q
-  group by dc.question_id, t.lexeme
+ ), titles as (
+  -- Title words, computed once per matching question.
+  select dc.question_id, to_tsvector('french', public.search_words(dc.document->>'titre')) as words
+  from docs dc where dc.question_id in (select question_id from found)
+ ), matches as (
+  select f.question_id, f.lexeme, ti.words @@ t.q as in_title
+  from found f join terms t using (lexeme) join titles ti using (question_id)
  ), idf as (
   select lexeme, ln(1 + (select n from total) / (1 + count(*))) as weight
   from matches group by lexeme

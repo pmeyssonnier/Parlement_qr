@@ -242,6 +242,7 @@ export type Database = {
           section: string
         }[]
       }
+      search_words: { Args: { p: string }; Returns: string }
       version_documents: { Args: { p_version: string }; Returns: Json[] }
     }
     Enums: {
