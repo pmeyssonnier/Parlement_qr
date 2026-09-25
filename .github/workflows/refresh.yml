@@ -3,11 +3,13 @@ on:
   workflow_dispatch:
     inputs:
       selection:
-        description: 'Préréglage. « Schaerbeek 2019-2024 » ajoute les questions 2019-2024 dont le titre cite Schaerbeek ou une de ses voiries régionales (les champs législature et filtre sont alors ignorés).'
+        description: 'Préréglage. « Schaerbeek 2019-2024 » (ou 2014-2019, 2009-2014) ajoute les questions de cette législature dont le titre cite Schaerbeek ou une de ses voiries régionales (les champs législature et filtre sont alors ignorés).'
         type: choice
         options:
           - Actualisation de la législature en cours
           - Schaerbeek 2019-2024 (voiries régionales)
+          - Schaerbeek 2014-2019 (voiries régionales)
+          - Schaerbeek 2009-2014 (voiries régionales)
         default: Actualisation de la législature en cours
       expand:
         description: 'Questions absentes du corpus à ajouter, des plus récentes aux plus anciennes (0 = actualiser seulement, 500 au plus)'
@@ -76,11 +78,16 @@ jobs:
           SELECTION: ${{ inputs.selection || '' }}
         run: |
           case "$SELECTION" in
-            Schaerbeek*) SELECTION_NAME=schaerbeek ;;
+            "Schaerbeek 2019-2024"*) SELECTION_NAME=schaerbeek; LEGISLATURE=19-24 ;;
+            "Schaerbeek 2014-2019"*) SELECTION_NAME=schaerbeek; LEGISLATURE=14-19 ;;
+            "Schaerbeek 2009-2014"*) SELECTION_NAME=schaerbeek; LEGISLATURE=09-14 ;;
             *) SELECTION_NAME= ;;
           esac
-          echo "Préréglage : ${SELECTION_NAME:-aucun} (législature et filtre ci-dessous ignorés s'il y en a un)"
-          echo "Législature : $LEGISLATURE ; filtre : ${TITLE_FILTER:-aucun} ; ajouts : $EXPAND"
+          if [ -n "$SELECTION_NAME" ]; then
+            echo "Préréglage : $SELECTION_NAME (filtre de web/scripts/title-selections.json) ; législature : $LEGISLATURE ; ajouts : $EXPAND"
+          else
+            echo "Législature : $LEGISLATURE ; filtre : ${TITLE_FILTER:-aucun} ; ajouts : $EXPAND"
+          fi
           python scripts/refresh-corpus.py --file data/corpus-active.json --expand "$EXPAND" \
             --max-records 6000 --max-downloads 900 --legislature "$LEGISLATURE" --title-filter "$TITLE_FILTER" \
             --title-filter-label "$TITLE_FILTER_LABEL" --selection "$SELECTION_NAME"

@@ -1,6 +1,10 @@
 {
   "schaerbeek": {
-    "legislature": "19-24",
+    "legislatures": [
+      "19-24",
+      "14-19",
+      "09-14"
+    ],
     "title_filter": "Schaerbeek|Schaarbeek|Meiser|Josaphat|Reyers|Wahis|Lambermont|L[ée]opold III|Britsiers|Diamant|Plasky|Dailly|Jamblinne|Liedts|Haecht|Haacht|Colonel Bourg|Kolonel Bourg|Masui|avenue de la Reine|place de la Reine|Koninginnelaan|Koninginneplein|place Solvay|Solvayplein|avenue de Roodebeek|Roodebeeklaan|rue du Noyer|Notelaarstraat|rue des Palais|Paleizenstraat|rue du Progr[èe]s|Vooruitgangstraat|chauss[ée]e de Louvain|Leuvensesteenweg",
     "title_filter_label": "Schaerbeek ou une de ses voiries régionales"
   }

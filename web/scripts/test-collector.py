@@ -248,6 +248,22 @@ class CollectorTests(unittest.TestCase):
         with self.assertRaises(SystemExit):
             self.run_collector([current],rows,pages,'--selection','inconnue')
 
+    def test_named_selection_for_another_legislature(self):
+        today=collector.dt.date.today()
+        current=current_question('9',today.isoformat()); current['legislature']='2024-2029'
+        rows=[fake_row('3','02/03/2016'),fake_row('2','01/03/2016')]
+        rows[0][8]='Question écrite concernant la gare de Schaerbeek'
+        rows[1][8]='Question écrite concernant le Palais de justice'
+        pages={'3':fake_page(),'2':fake_page()}
+        result,downloaded=self.run_collector([current],rows,pages,'--selection','schaerbeek','--legislature','14-19',
+                                             '--expand','10')
+        self.assertEqual([(q['moncode'],q['legislature']) for q in result['questions'] if q['moncode']!='9'],
+                         [('3','2014-2019')])
+        self.assertIn('dos_qu_legis_14-19',result['source_index'])
+        self.assertIn('Législature 2014-2019 : sélection thématique',result['methode_echantillonnage'])
+        with self.assertRaises(SystemExit):
+            self.run_collector([current],rows,pages,'--selection','schaerbeek','--legislature','24-29')
+
     def test_legislature_names(self):
         self.assertEqual(collector.full_legislature('19-24'),'2019-2024')
         self.assertEqual(collector.full_legislature('89-95'),'1989-1995')

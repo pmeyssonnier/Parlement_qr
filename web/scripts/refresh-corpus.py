@@ -166,15 +166,16 @@ def main():
                         help='Maximum current questions whose text is now empty on the site (previous version kept) before the run stops')
     parser.add_argument('--max-missing-from-index', type=int, default=10,
                         help='Maximum current questions missing from the index (previous version kept) before the run stops')
-    parser.add_argument('--legislature', default=CURRENT_LEGISLATURE,
-                        help='Legislature to collect, as in the index file name (24-29, 19-24…). Questions of other '
-                             'legislatures already in the corpus are kept as they are.')
+    parser.add_argument('--legislature', default=None,
+                        help='Legislature to collect, as in the index file name (24-29, 19-24…; default: 24-29, or '
+                             'the first legislature of --selection). Questions of other legislatures already in the '
+                             'corpus are kept as they are.')
     parser.add_argument('--title-filter', default='',
                         help='Only add questions whose French or Dutch title matches this regular expression '
                              '(case-insensitive), e.g. "Schaerbeek|Schaarbeek|Meiser|Josaphat"')
     parser.add_argument('--selection', default='',
-                        help='Named thematic selection from title-selections.json (sets --legislature, --title-filter '
-                             'and --title-filter-label), e.g. "schaerbeek"')
+                        help='Named thematic selection from title-selections.json (sets --title-filter and '
+                             '--title-filter-label; --legislature must be one of its legislatures), e.g. "schaerbeek"')
     parser.add_argument('--title-filter-label', default='',
                         help='Readable description of --title-filter for the method text, e.g. "Schaerbeek ou une de ses '
                              'voiries régionales" (default: the alternatives of the filter)')
@@ -184,8 +185,12 @@ def main():
         if args.selection not in selections:
             parser.error(f'--selection must be one of: {", ".join(sorted(selections))}')
         chosen = selections[args.selection]
-        args.legislature, args.title_filter = chosen['legislature'], chosen['title_filter']
+        args.legislature = args.legislature or chosen['legislatures'][0]
+        if args.legislature not in chosen['legislatures']:
+            parser.error(f'--selection {args.selection} covers the legislatures {", ".join(chosen["legislatures"])}')
+        args.title_filter = chosen['title_filter']
         args.title_filter_label = chosen.get('title_filter_label', '')
+    args.legislature = args.legislature or CURRENT_LEGISLATURE
     if not 0 <= args.expand <= 500:
         parser.error('--expand must be between 0 and 500')
     if args.max_records < 1 or args.max_downloads < 1 or args.max_network_failures < 0 or args.max_empty_texts < 0 \

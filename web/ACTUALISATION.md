@@ -68,12 +68,15 @@ par leur titre, sans charger la législature entière (stockage limité de l'off
 Free).
 
 **Préréglage (le plus simple).** Dans Actions → Refresh parliamentary corpus → Run
-workflow, choisissez dans la liste **Préréglage** l'option « Schaerbeek 2019-2024
-(voiries régionales) », puis cliquez sur Run workflow : la législature, le filtre et
-son libellé viennent de `web/scripts/title-selections.json` (questions 2019-2024 dont le
-titre cite Schaerbeek, Meiser, Josaphat ou une voirie régionale schaerbeekoise, en
-français et en néerlandais). Pour compléter la liste des voiries, modifiez ce fichier
-dans une PR.
+workflow, choisissez dans la liste **Préréglage** l'option « Schaerbeek 2019-2024 »,
+« Schaerbeek 2014-2019 » ou « Schaerbeek 2009-2014 » (voiries régionales), puis cliquez
+sur Run workflow, sans modifier les autres champs. Le filtre et son libellé viennent de
+`web/scripts/title-selections.json` : questions de la législature choisie dont le titre
+cite Schaerbeek, Meiser, Josaphat ou une voirie régionale schaerbeekoise, en français
+et en néerlandais. Lancez une exécution par législature, l'une après l'autre ; chacune
+conserve les fiches déjà ajoutées pour les autres. Pour compléter la liste des voiries,
+ou ajouter une législature (champ `legislatures`, et une option du préréglage dans
+`.github/workflows/refresh.yml`), modifiez ces fichiers dans une PR.
 
 **Sélection libre.** Avec le préréglage « Actualisation de la législature en cours »,
 les champs suivants s'appliquent :
