@@ -2,7 +2,15 @@ import { type RefObject, useEffect, useRef } from "react";
 import type { ChatResponse } from "@/lib/schema";
 import { Answer } from "./answer";
 
-export type Turn = { id: string; question: string; response?: ChatResponse; error?: string };
+export type Turn = {
+  id: string;
+  question: string;
+  response?: ChatResponse;
+  /** Time between sending the question and receiving the answer. */
+  durationMs?: number;
+  receivedAt?: Date;
+  error?: string;
+};
 
 export function Conversation({ turns, busy }: { turns: Turn[]; busy: boolean }) {
   const bottom = useRef<HTMLDivElement>(null);
@@ -15,7 +23,14 @@ export function Conversation({ turns, busy }: { turns: Turn[]; busy: boolean }) 
             <span>VOUS</span>
             <h2>{turn.question}</h2>
           </div>
-          {turn.response && <Answer response={turn.response} />}
+          {turn.response && (
+            <Answer
+              question={turn.question}
+              response={turn.response}
+              durationMs={turn.durationMs}
+              receivedAt={turn.receivedAt}
+            />
+          )}
           {turn.error && (
             <p className="error" role="alert">
               {turn.error}

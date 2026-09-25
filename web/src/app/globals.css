@@ -557,6 +557,31 @@ textarea:focus-visible {
   color: #8d9783;
   margin-top: 15px;
 }
+.answer-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  margin-top: 10px;
+  font-size: 10px;
+  color: #8d9783;
+}
+.export-answer {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--paper);
+  color: #365735;
+  font-size: 11px;
+  cursor: pointer;
+}
+.export-answer:hover {
+  background: var(--light);
+}
 .warning {
   color: #876231;
   font-size: 11px;
