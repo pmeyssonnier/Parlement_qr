@@ -84,6 +84,11 @@ Production et définissez :
 APP_ORIGIN=https://parlement-citoyen-test.vercel.app
 ```
 
+Les fonctions serveur (dont le chat) s'exécutent à Dublin (`regions: ["dub1"]` dans
+`vercel.json`), au plus près de la base Supabase (West EU, Irlande) : sans ce réglage,
+Vercel les exécute à Washington et chaque requête à la base traverse l'Atlantique.
+Si le projet Supabase change de région, adaptez ce réglage.
+
 Après modification des variables, redéployez depuis Vercel ou exécutez
 `npx.cmd vercel deploy --prod` depuis `web`. Un futur déploiement GitHub doit
 utiliser `web` comme Root Directory dans les paramètres du projet Vercel.
