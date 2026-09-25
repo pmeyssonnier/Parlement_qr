@@ -9,6 +9,7 @@ import type { Database } from "./database.types";
 import { nature } from "./documents";
 import { generatedSchema, type Hit, type QuotaGrant, quotaGrantSchema, searchRowSchema } from "./schema";
 import { contextualQuery, filterLexicalHits, lexicalQuery, localSearch } from "./search";
+import { type Timings, timed } from "./timing";
 import { ttlCache } from "./ttl-cache";
 
 export type { QuotaGrant } from "./schema";
@@ -132,17 +133,19 @@ async function embed(query: string): Promise<number[] | null> {
     return null;
   }
 }
-export async function findHits(query: string, useEmbeddings: boolean): Promise<Hit[]> {
+export async function findHits(query: string, useEmbeddings: boolean, timings?: Timings): Promise<Hit[]> {
   const db = database();
   if (!db) return localSearch(corpus.questions, query);
-  const vector = useEmbeddings ? await embed(query) : null;
-  const { data, error } = await db.rpc("search_passages", {
-    p_query: lexicalQuery(query),
-    // Omitted rather than null: the SQL default (null) applies, and the generated
-    // types declare this optional argument as string | undefined.
-    p_vector: vector ? JSON.stringify(vector) : undefined,
-    p_limit: 6,
-  });
+  const vector = useEmbeddings ? await timed(timings, "embedding", () => embed(query)) : null;
+  const { data, error } = await timed(timings, "search", async () =>
+    db.rpc("search_passages", {
+      p_query: lexicalQuery(query),
+      // Omitted rather than null: the SQL default (null) applies, and the generated
+      // types declare this optional argument as string | undefined.
+      p_vector: vector ? JSON.stringify(vector) : undefined,
+      p_limit: 6,
+    }),
+  );
   if (error) throw new Error("SEARCH_UNAVAILABLE");
   const hits = (data ?? []).map(raw => {
     const row = searchRowSchema.parse(raw);
@@ -160,9 +163,15 @@ export async function findHits(query: string, useEmbeddings: boolean): Promise<H
   });
   return vector ? hits : filterLexicalHits(hits, query);
 }
-export async function answer(message: string, history: { content: string }[], requestId: string, useAi = aiEnabled()) {
+export async function answer(
+  message: string,
+  history: { content: string }[],
+  requestId: string,
+  useAi = aiEnabled(),
+  timings?: Timings,
+) {
   const query = contextualQuery(message, history);
-  const hits = await findHits(query, useAi);
+  const hits = await findHits(query, useAi, timings);
   if (!useAi || !hits.length) {
     const result = extractiveAnswer(hits, requestId);
     if (aiEnabled() && !useAi)
@@ -172,30 +181,32 @@ export async function answer(message: string, history: { content: string }[], re
   }
   const model = process.env.CHAT_MODEL || "gpt-5-mini";
   try {
-    const response = await openai().responses.parse(
-      {
-        model,
-        store: false,
-        ...(model === "gpt-5-mini" ? { reasoning: { effort: "low" as const } } : {}),
-        instructions,
-        max_output_tokens: 3000,
-        input: JSON.stringify({
-          question: message,
-          contexteUtilisateur: history,
-          sources: hits.map(h => ({
-            sourceId: h.passage.id,
-            titre: h.question.titre,
-            auteur: h.question.auteur,
-            destinataire: h.question.destinataire,
-            dateReponse: h.question.date_reponse,
-            nature: nature(h.question),
-            section: h.passage.section,
-            texte: h.passage.text,
-          })),
-        }),
-        text: { format: zodTextFormat(generatedSchema, "reponse_parlementaire") },
-      },
-      { timeout: 30000 },
+    const response = await timed(timings, "generation", () =>
+      openai().responses.parse(
+        {
+          model,
+          store: false,
+          ...(model === "gpt-5-mini" ? { reasoning: { effort: "low" as const } } : {}),
+          instructions,
+          max_output_tokens: 3000,
+          input: JSON.stringify({
+            question: message,
+            contexteUtilisateur: history,
+            sources: hits.map(h => ({
+              sourceId: h.passage.id,
+              titre: h.question.titre,
+              auteur: h.question.auteur,
+              destinataire: h.question.destinataire,
+              dateReponse: h.question.date_reponse,
+              nature: nature(h.question),
+              section: h.passage.section,
+              texte: h.passage.text,
+            })),
+          }),
+          text: { format: zodTextFormat(generatedSchema, "reponse_parlementaire") },
+        },
+        { timeout: 30000 },
+      ),
     );
     return validateGenerated(response.output_parsed, hits, requestId);
   } catch (error) {

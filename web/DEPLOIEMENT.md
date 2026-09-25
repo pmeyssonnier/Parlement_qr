@@ -87,3 +87,37 @@ APP_ORIGIN=https://parlement-citoyen-test.vercel.app
 Après modification des variables, redéployez depuis Vercel ou exécutez
 `npx.cmd vercel deploy --prod` depuis `web`. Un futur déploiement GitHub doit
 utiliser `web` comme Root Directory dans les paramètres du projet Vercel.
+
+## Diagnostiquer une panne ou une lenteur
+
+Chaque question posée au chat écrit une ligne dans Vercel → projet → **Logs**, sans
+la question, la réponse ni aucune donnée personnelle : un identifiant aléatoire
+(`requestId`, également renvoyé au navigateur en cas d'erreur), un code et la durée
+de chaque étape en millisecondes.
+
+```json
+{"requestId":"…","code":"CHAT_OK","mode":"ia","status":"documente","ms":{"quota":85,"embedding":420,"search":230,"generation":24800,"total":25600}}
+{"requestId":"…","code":"CHAT_UNAVAILABLE","cause":"SEARCH_UNAVAILABLE","ms":{"quota":90,"embedding":400,"search":8000,"total":8500}}
+```
+
+| Durée | Étape |
+|---|---|
+| `quota` | Compteur de questions (Supabase, `reserve_chat_quota`) |
+| `embedding` | Vectorisation de la question (OpenAI, mode IA seulement) |
+| `search` | Recherche des passages (Supabase, `search_passages`) |
+| `generation` | Rédaction de la synthèse (OpenAI, mode IA seulement) |
+| `total` | Ensemble de la requête |
+
+En cas d'erreur 503, `cause` indique l'étape en échec :
+
+| Cause | Signification |
+|---|---|
+| `QUOTA_UNAVAILABLE` | Compteur de questions injoignable ou en erreur (Supabase) |
+| `SEARCH_UNAVAILABLE` | Recherche en erreur (Supabase) |
+| `CONFIGURATION` | Mode IA sans Supabase ou avec un `QUOTA_SECRET` de moins de 32 caractères |
+| `UNEXPECTED` | Autre erreur, par exemple une fiche renvoyée dans un format inattendu |
+
+Une étape absente de `ms` n'a pas été atteinte. Un échec d'OpenAI ne provoque pas de
+503 : la vectorisation manquante est notée `EMBEDDING_UNAVAILABLE` et la recherche se
+fait par mots ; une synthèse en échec est notée `AI_TIMEOUT`, `AI_API_ERROR`… et
+l'application affiche les extraits.
