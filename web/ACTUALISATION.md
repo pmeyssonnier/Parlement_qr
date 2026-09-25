@@ -73,6 +73,11 @@ absentes du corpus.
   de 10 pages reportées, ou dès 3 pages reportées de suite (site en panne),
   l'exécution s'arrête sans remplacer le corpus. Le bilan de collecte indique le
   nombre de fiches reportées.
+- Texte disparu : une fiche déjà dans le corpus qui revient du site sans texte de
+  question (incident passager du site) **garde sa version précédente** et sera
+  revérifiée à l'exécution suivante. Au-delà de 10 fiches dans ce cas lors d'une même
+  exécution (structure des pages probablement modifiée), l'exécution s'arrête sans
+  remplacer le corpus. Le bilan de collecte indique le nombre de fiches conservées.
 - Embeddings : au plus 100 appels et 3 000 000 d'octets UTF-8 de texte, soit environ
   400 fiches nouvelles. Le dépassement est détecté **avant** toute écriture.
 - Modèle fixé pour le workflow : text-embedding-3-small.

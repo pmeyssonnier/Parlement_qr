@@ -125,11 +125,13 @@ def main():
     parser.add_argument('--max-downloads', type=int, default=900, help='Maximum question pages downloaded in this run')
     parser.add_argument('--max-network-failures', type=int, default=10,
                         help='Maximum question pages postponed after network errors before the run stops')
+    parser.add_argument('--max-empty-texts', type=int, default=10,
+                        help='Maximum current questions whose text is now empty on the site (previous version kept) before the run stops')
     args = parser.parse_args()
     if not 0 <= args.expand <= 500:
         parser.error('--expand must be between 0 and 500')
-    if args.max_records < 1 or args.max_downloads < 1 or args.max_network_failures < 0:
-        parser.error('--max-records and --max-downloads must be positive, --max-network-failures at least 0')
+    if args.max_records < 1 or args.max_downloads < 1 or args.max_network_failures < 0 or args.max_empty_texts < 0:
+        parser.error('--max-records and --max-downloads must be positive, --max-network-failures and --max-empty-texts at least 0')
     current = json.loads(Path(args.file).read_text(encoding='utf-8'))
     # Nothing can be done without the index: more patience than for a page.
     index_text = download(INDEX, attempts=5, first_wait=5)
@@ -172,11 +174,21 @@ def main():
 
     previous = {q['moncode']: q for q in current['questions']}
     questions = list(kept)
+    emptied = []
     for row in recheck:
         try:
             questions.append(fetch(row))
         except MissingQuestionText:
-            raise ValueError('Texte vide pour une fiche existante : ' + code_of(row) + '. Corpus non remplacé.')
+            # The site answered but the text vanished: keep the previous version and
+            # recheck next run. Many at once suggests a change in the page layout.
+            questions.append(previous[code_of(row)])
+            emptied.append(code_of(row))
+            in_a_row = 0
+            print('Conservée (texte vide sur le site) :', code_of(row))
+            if len(emptied) > args.max_empty_texts:
+                raise ValueError(f'{len(emptied)} fiches existantes ont désormais un texte vide sur le site : '
+                                 'structure des pages modifiée ? Corpus non remplacé.')
+            continue
         except NETWORK_ERRORS as error:
             # The previous version stays; the question is rechecked next run.
             questions.append(previous[code_of(row)])
@@ -206,6 +218,7 @@ def main():
         print('Ajoutée', code_of(row))
     (snapshot / 'excluded.json').write_text(json.dumps(skipped, ensure_ascii=False, indent=2), encoding='utf-8')
     (snapshot / 'postponed.json').write_text(json.dumps(postponed), encoding='utf-8')
+    (snapshot / 'emptied.json').write_text(json.dumps(emptied), encoding='utf-8')
     if not questions:
         raise ValueError('Aucune fiche exploitable : corpus non remplacé.')
     order = {code_of(r): i for i, r in enumerate(rows)}
@@ -221,7 +234,8 @@ def main():
     missing = len(candidates) - added
     print(f'Validated collection: {len(questions)} records → {output}')
     print(f'Revérifiées : {len(recheck)} ; conservées sans téléchargement : {len(kept)} ; ajoutées : {added} ; '
-          f'écartées : {len(skipped)} ; reportées (site injoignable) : {len(postponed)} ; '
+          f'écartées : {len(skipped)} ; conservées (texte vide sur le site) : {len(emptied)} ; '
+          f'reportées (site injoignable) : {len(postponed)} ; '
           f'encore absentes du corpus : {missing} ; pages téléchargées : {downloads}')
 
 if __name__ == '__main__':
