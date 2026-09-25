@@ -53,7 +53,6 @@ export type Database = {
           content_hash: string
           embedding: string | null
           embedding_model: string | null
-          fts: unknown
           id: string
           position: number
           search_text: string
@@ -64,7 +63,6 @@ export type Database = {
           content_hash: string
           embedding?: string | null
           embedding_model?: string | null
-          fts?: unknown
           id: string
           position: number
           search_text: string
@@ -75,7 +73,6 @@ export type Database = {
           content_hash?: string
           embedding?: string | null
           embedding_model?: string | null
-          fts?: unknown
           id?: string
           position?: number
           search_text?: string
@@ -212,6 +209,8 @@ export type Database = {
           method: string
         }[]
       }
+      fold_accents: { Args: { p: string }; Returns: string }
+      passage_fts: { Args: { p_search_text: string }; Returns: unknown }
       prune_corpus_versions: { Args: { p_keep: number }; Returns: number }
       ready_documents: {
         Args: { p_hashes: string[]; p_model: string }
