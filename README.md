@@ -44,9 +44,61 @@ reportée à l'exécution suivante ; si le site est en panne, l'exécution s'arr
 sans toucher au corpus en ligne. La nouvelle version n'est activée qu'après un
 import complet, et les deux précédentes sont conservées pour un retour arrière.
 
-Depuis la migration 005, chaque fiche n'est stockée qu'une fois quelle que soit la
-version qui l'utilise : environ 180 Mo pour la législature complète, compatible avec
-l'offre Free de Supabase (500 Mo). Détails dans [web/ACTUALISATION.md](web/ACTUALISATION.md).
+### Stockage
+
+Depuis la migration 005, chaque fiche n'est stockée qu'une fois, quelle que soit la
+version qui l'utilise. Mesure du 25 septembre 2026, avec 2 406 fiches et 7 versions
+conservées :
+
+| Élément | Taille |
+|---|---|
+| `document_passages` (passages, vecteurs et index) | 155 Mo |
+| — dont données (textes et vecteurs) | ~75 Mo |
+| — dont index vectoriel HNSW et index plein texte | ~80 Mo |
+| `question_documents` (fiches complètes) | 9 Mo |
+| `version_questions` (liste des fiches de chaque version) | 2 Mo |
+| Autres tables et système Supabase | ~10 Mo |
+| **Base complète** | **176 Mo** |
+
+- Une fiche coûte environ **69 ko**, index compris.
+- Les versions de retour arrière ne coûtent presque rien : aucune fiche ne leur est
+  propre, toutes sont partagées avec la version active.
+- Projection : environ **190 Mo** en fin de rattrapage (environ 2 600 fiches) et
+  **425 Mo** en fin de législature (environ 6 000 fiches), pour une limite de 500 Mo
+  avec l'offre Free de Supabase. À surveiller à partir de 2028.
+
+Pour mesurer la place occupée, dans l'éditeur SQL de Supabase :
+
+```sql
+-- Taille totale de la base
+select pg_size_pretty(pg_database_size(current_database())) as taille_base;
+
+-- Répartition par table (données + index)
+select relname as table_name,
+       pg_size_pretty(pg_total_relation_size(relid)) as taille_totale
+from pg_catalog.pg_statio_user_tables
+where schemaname = 'public'
+order by pg_total_relation_size(relid) desc;
+
+-- Poids de chaque version (hors index) ; « propres » : passages qu'aucune autre
+-- version n'utilise, c'est-à-dire ce que la version coûte réellement
+with partage as (
+  select content_hash, count(*) as nb_versions
+  from version_questions
+  group by content_hash
+)
+select v.id, v.active, v.activation_unknown, v.count as fiches,
+       pg_size_pretty(sum(pg_column_size(p.*))) as passages,
+       pg_size_pretty(coalesce(sum(pg_column_size(p.*)) filter (where s.nb_versions = 1), 0)) as propres
+from corpus_versions v
+join version_questions vq on vq.version_id = v.id
+join partage s on s.content_hash = vq.content_hash
+join document_passages p on p.content_hash = vq.content_hash
+group by v.id, v.active, v.activation_unknown, v.count, v.created_at
+order by v.created_at desc;
+```
+
+Détails dans [web/ACTUALISATION.md](web/ACTUALISATION.md).
 
 ## Organisation du dépôt
 

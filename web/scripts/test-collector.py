@@ -157,6 +157,24 @@ class CollectorTests(unittest.TestCase):
         self.assertEqual(result['fiches_ecartees'],[])
         self.assertEqual(len(downloaded),5)
 
+    def test_existing_question_emptied_on_the_site_keeps_its_previous_version(self):
+        today=collector.dt.date.today()
+        recent=(today-collector.dt.timedelta(days=10)).strftime('%d/%m/%Y')
+        rows=[fake_row(c,recent) for c in ('9','8','7')]
+        current=[current_question(c,today.isoformat()) for c in ('9','8')]  # recent, unanswered: rechecked
+        for question in current:
+            question['question']='Texte connu %s.' % question['moncode']
+        pages={'9':fake_page(question=''),'8':fake_page(),'7':fake_page()}
+        result,downloaded=self.run_collector(current,rows,pages,'--expand','1')
+        self.assertEqual([q['moncode'] for q in result['questions']],['9','8','7'])
+        self.assertEqual(result['questions'][0]['question'],'Texte connu 9.')  # previous version
+        self.assertEqual(result['questions'][1]['question'],'Texte de la question.')
+        self.assertEqual(result['fiches_ecartees'],[])
+        self.assertEqual(len(downloaded),3)
+        # Too many emptied at once: the page layout probably changed.
+        with self.assertRaisesRegex(ValueError,'2 fiches existantes'):
+            self.run_collector(current,rows,{c:fake_page(question='') for c in pages},'--max-empty-texts','1')
+
     def test_run_stops_when_the_site_is_down(self):
         rows=[fake_row(str(c),'0%d/09/2026' % c) for c in range(9,0,-1)]
         down=TimeoutError('timed out')

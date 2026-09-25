@@ -73,6 +73,11 @@ absentes du corpus.
   de 10 pages reportées, ou dès 3 pages reportées de suite (site en panne),
   l'exécution s'arrête sans remplacer le corpus. Le bilan de collecte indique le
   nombre de fiches reportées.
+- Texte disparu : une fiche déjà dans le corpus qui revient du site sans texte de
+  question (incident passager du site) **garde sa version précédente** et sera
+  revérifiée à l'exécution suivante. Au-delà de 10 fiches dans ce cas lors d'une même
+  exécution (structure des pages probablement modifiée), l'exécution s'arrête sans
+  remplacer le corpus. Le bilan de collecte indique le nombre de fiches conservées.
 - Embeddings : au plus 100 appels et 3 000 000 d'octets UTF-8 de texte, soit environ
   400 fiches nouvelles. Le dépassement est détecté **avant** toute écriture.
 - Modèle fixé pour le workflow : text-embedding-3-small.
@@ -85,10 +90,12 @@ qu'une fois ; une version du corpus n'est qu'une liste de références. Une vers
 retour arrière ne coûte que les fiches qui ont changé depuis. Le nettoyage supprime
 les contenus que plus aucune version n'utilise.
 
-Ordre de grandeur mesuré : environ 180 Mo pour la législature complète (environ
-2 600 fiches), dont environ 90 Mo de vecteurs et 70 Mo d'index de recherche
-vectorielle. Environ 6 000 fiches en fin de législature représenteraient environ
-420 Mo : à surveiller avec l'offre Free de Supabase (500 Mo).
+Mesure du 25 septembre 2026 : base complète de 176 Mo pour 2 406 fiches, dont
+155 Mo pour `document_passages` (environ 75 Mo de données, environ 80 Mo d'index
+vectoriel et plein texte), soit environ 69 ko par fiche, index compris. Projection :
+environ 190 Mo pour la législature complète (environ 2 600 fiches) et environ 425 Mo
+pour 6 000 fiches en fin de législature : à surveiller avec l'offre Free de Supabase
+(500 Mo). Les requêtes de mesure figurent dans le README.
 
 Les plafonds OpenAI portent sur le volume et les appels, pas sur des euros.
 Ils s'appliquent à chaque lancement, y compris manuel. Plusieurs lancements
