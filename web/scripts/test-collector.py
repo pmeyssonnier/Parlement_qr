@@ -204,6 +204,9 @@ class CollectorTests(unittest.TestCase):
         self.assertIn('Législature 2019-2024 : sélection thématique',result['methode_echantillonnage'])
         self.assertIn('Schaerbeek, Schaarbeek, Meiser ou Josaphat',result['methode_echantillonnage'])
         self.assertIn('Législature 2024-2029 : 1 fiches.',result['methode_echantillonnage'])
+        result,_=self.run_collector([current],rows,pages,'--legislature','19-24','--title-filter','Meiser|Schaarbeek',
+                                    '--title-filter-label','Schaerbeek ou une de ses voiries régionales','--expand','10')
+        self.assertIn('dont le titre cite Schaerbeek ou une de ses voiries régionales.',result['methode_echantillonnage'])
 
     def test_current_refresh_keeps_past_legislature_questions(self):
         today=collector.dt.date.today()

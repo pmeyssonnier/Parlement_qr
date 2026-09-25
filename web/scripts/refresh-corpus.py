@@ -171,6 +171,9 @@ def main():
     parser.add_argument('--title-filter', default='',
                         help='Only add questions whose French or Dutch title matches this regular expression '
                              '(case-insensitive), e.g. "Schaerbeek|Schaarbeek|Meiser|Josaphat"')
+    parser.add_argument('--title-filter-label', default='',
+                        help='Readable description of --title-filter for the method text, e.g. "Schaerbeek ou une de ses '
+                             'voiries régionales" (default: the alternatives of the filter)')
     args = parser.parse_args()
     if not 0 <= args.expand <= 500:
         parser.error('--expand must be between 0 and 500')
@@ -295,7 +298,8 @@ def main():
     count = sum(q.get('legislature', '2024-2029') == legislature for q in questions)
     if title_filter:
         words = [w for w in re.split(r'\|', args.title_filter) if w]
-        label = (', '.join(words[:-1]) + ' ou ' + words[-1] if len(words) > 1 else args.title_filter).replace('.', '')
+        label = (args.title_filter_label or
+                 (', '.join(words[:-1]) + ' ou ' + words[-1] if len(words) > 1 else args.title_filter)).replace('.', '')
         sentence = (f'sélection thématique, et non la législature complète : {count} questions dont le titre cite '
                     f'{label}')
     else:

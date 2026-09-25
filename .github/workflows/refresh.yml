@@ -14,6 +14,10 @@ on:
         description: 'Facultatif : n’ajouter que les questions dont le titre correspond (ex. Schaerbeek|Schaarbeek|Meiser|Josaphat)'
         default: ''
         required: false
+      title_filter_label:
+        description: 'Facultatif : libellé du filtre affiché dans « Sources et méthode » (ex. Schaerbeek ou une de ses voiries régionales)'
+        default: ''
+        required: false
   schedule:
     - cron: '20 4 * * 1'
 permissions:
@@ -61,9 +65,11 @@ jobs:
           # Scheduled runs always refresh the current legislature, without title filter.
           LEGISLATURE: ${{ inputs.legislature || '24-29' }}
           TITLE_FILTER: ${{ inputs.title_filter || '' }}
+          TITLE_FILTER_LABEL: ${{ inputs.title_filter_label || '' }}
         run: >-
           python scripts/refresh-corpus.py --file data/corpus-active.json --expand "$EXPAND"
           --max-records 6000 --max-downloads 900 --legislature "$LEGISLATURE" --title-filter "$TITLE_FILTER"
+          --title-filter-label "$TITLE_FILTER_LABEL"
       - run: npm run import:data -- --file=data/corpus-refreshed.json --validate-only
       - name: Import and atomically activate
         env:

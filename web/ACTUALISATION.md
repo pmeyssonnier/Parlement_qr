@@ -71,7 +71,13 @@ Free). Dans Actions → Refresh parliamentary corpus → Run workflow :
   (`19-24` pour 2019-2024) ;
 - **title_filter** : une expression sur le titre français ou néerlandais, par exemple
   `Schaerbeek|Schaarbeek|Meiser|Josaphat` (majuscules indifférentes) ;
+- **title_filter_label** (facultatif) : le libellé du filtre affiché aux visiteurs, par
+  exemple « Schaerbeek ou une de ses voiries régionales » ;
 - **expand** : le nombre maximal de questions à ajouter (par exemple 100).
+
+Le filtre ne porte que sur les titres. Préférez les noms propres au secteur (Meiser,
+Lambermont, Dailly…) et précisez le type de voie pour les noms courants (« rue des
+Palais » plutôt que « Palais »), en français et en néerlandais.
 
 Les fiches des autres législatures ne sont ni revérifiées, ni recherchées dans
 l'index de la législature collectée : elles sont conservées telles quelles.
