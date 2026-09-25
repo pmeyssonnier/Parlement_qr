@@ -100,9 +100,22 @@ class CollectorTests(unittest.TestCase):
         answered=current_question('170000','2024-12-01','Réponse','2025-01-15')
         self.assertFalse(any(collector.needs_recheck(answered,day) for day in weeks))
 
-    def test_plan_refuses_questions_missing_from_index(self):
-        with self.assertRaisesRegex(ValueError,'absentes de l’index'):
-            collector.plan([fake_row('1','01/01/2026')],[current_question('9','2026-01-01')],collector.dt.date(2026,9,24))
+    def test_questions_missing_from_index_keep_their_previous_version(self):
+        today=collector.dt.date.today()
+        recent=(today-collector.dt.timedelta(days=10)).strftime('%d/%m/%Y')
+        rows=[fake_row(c,recent) for c in ('9','7','5')]
+        incomplete=fake_row('8',''); incomplete[5]=''  # listed, but without a reception date
+        current=[current_question(c,(today-collector.dt.timedelta(days=d)).isoformat()) for c,d in (('9',10),('8',12),('6',20))]
+        index=json.dumps(dict(data=rows+[incomplete]))
+        self.assertEqual(collector.missing_from_index(index,collector.index_rows(index),current),
+                         [dict(moncode='8',reason='incomplete_row'),dict(moncode='6',reason='not_listed')])
+        pages={'9':fake_page(),'7':fake_page(),'5':fake_page()}
+        result,downloaded=self.run_collector(current,rows+[incomplete],pages,'--expand','2')
+        # 8 and 6 are kept without download, in date order (most recent first).
+        self.assertEqual([q['moncode'] for q in result['questions']],['9','7','5','8','6'])
+        self.assertEqual(sorted(re.search(r'moncode=(\d+)',u)[1] for u in downloaded),['5','7','9'])
+        with self.assertRaisesRegex(ValueError,'2 fiches du corpus absentes'):
+            self.run_collector(current,rows+[incomplete],pages,'--max-missing-from-index','1')
 
     def run_collector(self,current,rows,pages,*args):
         index=json.dumps(dict(data=rows))
