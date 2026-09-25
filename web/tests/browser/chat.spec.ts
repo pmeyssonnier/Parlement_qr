@@ -6,6 +6,10 @@ test("question, source officielle, relance et nouveau chat", async ({ page }) =>
   await page.getByRole("button", { name: /Mobilité/ }).click();
   await expect(page.getByText("Sources utilisées")).toBeVisible();
   await expect(page.locator(".answer blockquote").first()).toContainText(/STIB|bus|métro/);
+  await expect(page.locator(".answer-footer").first()).toContainText(/Réponse en \d+,\d s/);
+  const download = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Exporter la réponse" }).first().click();
+  expect((await download).suggestedFilename()).toMatch(/^reponse-parlement-\d{4}-\d{2}-\d{2}-\d{4}\.html$/);
   await page.locator(".source-card summary").first().click();
   await expect(page.getByRole("link", { name: "Lire la fiche officielle" }).first()).toHaveAttribute(
     "href",

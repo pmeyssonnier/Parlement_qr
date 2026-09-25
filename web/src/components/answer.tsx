@@ -1,5 +1,6 @@
-import { ArrowUpRight, BookOpen, ChevronDown, Landmark } from "lucide-react";
-import { dateLabel, shortTitle } from "@/lib/format";
+import { ArrowUpRight, BookOpen, ChevronDown, Download, Landmark } from "lucide-react";
+import { downloadAnswer } from "@/lib/export";
+import { dateLabel, durationLabel, shortTitle } from "@/lib/format";
 import type { ChatResponse, Source } from "@/lib/schema";
 
 function SourceCard({ source, index }: { source: Source; index: number }) {
@@ -29,7 +30,17 @@ function SourceCard({ source, index }: { source: Source; index: number }) {
   );
 }
 
-export function Answer({ response }: { response: ChatResponse }) {
+export function Answer({
+  question,
+  response,
+  durationMs,
+  receivedAt,
+}: {
+  question: string;
+  response: ChatResponse;
+  durationMs?: number;
+  receivedAt?: Date;
+}) {
   const { mode, paragraphs, sources, notice } = response;
   return (
     <div className="answer">
@@ -66,6 +77,16 @@ export function Answer({ response }: { response: ChatResponse }) {
         </div>
       )}
       <p className="answer-notice">{notice}</p>
+      <div className="answer-footer">
+        {durationMs !== undefined && <span>Réponse en {durationLabel(durationMs)}</span>}
+        <button
+          type="button"
+          className="export-answer"
+          onClick={() => downloadAnswer({ question, response, durationMs, at: receivedAt ?? new Date() })}
+        >
+          <Download size={13} aria-hidden="true" /> Exporter la réponse
+        </button>
+      </div>
     </div>
   );
 }

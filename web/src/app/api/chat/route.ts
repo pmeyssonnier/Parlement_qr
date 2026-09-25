@@ -3,6 +3,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { permittedOrigins } from "@/lib/origins";
 import { chatInput } from "@/lib/schema";
 import { aiEnabled, answer, reserveQuota, sessionFromCookie } from "@/lib/server";
+import { failureCode, type Timings, timed } from "@/lib/timing";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -16,6 +17,10 @@ export async function POST(request: NextRequest) {
   if (!request.headers.get("content-type")?.startsWith("application/json"))
     return fail("Format de requête invalide.", 415);
   const session = sessionFromCookie(request.headers.get("cookie"));
+  // Step durations of this request, logged with its outcome.
+  const timings: Timings = {};
+  const started = performance.now();
+  const total = () => ({ ...timings, total: Math.round(performance.now() - started) });
   try {
     // Bound streamed input, including requests without a Content-Length header.
     const reader = request.body?.getReader();
@@ -38,13 +43,14 @@ export async function POST(request: NextRequest) {
     const ip = process.env.VERCEL
       ? request.headers.get("x-vercel-forwarded-for")?.split(",")[0]?.trim() || "unknown"
       : "local";
-    const grant = await reserveQuota(session.id, ip, aiEnabled());
+    const grant = await timed(timings, "quota", () => reserveQuota(session.id, ip, aiEnabled()));
     if (grant === "refuse")
       return fail(
         "La limite de questions est atteinte. Réessayez plus tard ; les documents restent consultables.",
         429,
       );
-    const result = await answer(input.data.message, input.data.history, requestId, grant === "ia");
+    const result = await answer(input.data.message, input.data.history, requestId, grant === "ia", timings);
+    console.log(JSON.stringify({ requestId, code: "CHAT_OK", mode: result.mode, status: result.status, ms: total() }));
     const response = NextResponse.json(result, { headers: { "Cache-Control": "no-store" } });
     response.cookies.set("pc_session", session.cookie, {
       httpOnly: true,
@@ -56,8 +62,9 @@ export async function POST(request: NextRequest) {
     return response;
   } catch (error) {
     if (error instanceof SyntaxError) return fail("Le message n’a pas pu être lu.", 400);
-    // Only a random request ID and an application-owned code enter operational logs.
-    console.error(JSON.stringify({ requestId, code: "CHAT_UNAVAILABLE" }));
+    // Only a random request ID, application-owned codes and durations enter
+    // operational logs: the cause says which step failed (QUOTA_UNAVAILABLE…).
+    console.error(JSON.stringify({ requestId, code: "CHAT_UNAVAILABLE", cause: failureCode(error), ms: total() }));
     return fail(
       "Le service est momentanément indisponible. Vous pouvez consulter les sources et réessayer plus tard.",
       503,

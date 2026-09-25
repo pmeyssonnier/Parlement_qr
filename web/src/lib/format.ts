@@ -8,3 +8,8 @@ export function shortTitle(title: string) {
 export function dateLabel(date: string | null) {
   return date ? longDate.format(new Date(date)) : "date non renseignée";
 }
+const seconds = new Intl.NumberFormat("fr-BE", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+/** Response time as shown to readers: "34,8 s". */
+export function durationLabel(ms: number) {
+  return `${seconds.format(ms / 1000)} s`;
+}

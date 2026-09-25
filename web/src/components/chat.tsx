@@ -34,9 +34,12 @@ export function Chat({ corpus }: { corpus: CorpusSummary }) {
     const abort = new AbortController();
     controller.current = abort;
     const timer = setTimeout(() => abort.abort(), REQUEST_TIMEOUT_MS);
+    // Time the reader waited, network included.
+    const started = performance.now();
     try {
       const response = await askQuestion(message, history, abort.signal);
-      setTurns(prev => prev.map(t => (t.id === id ? { ...t, response } : t)));
+      const durationMs = Math.round(performance.now() - started);
+      setTurns(prev => prev.map(t => (t.id === id ? { ...t, response, durationMs, receivedAt: new Date() } : t)));
     } catch (error) {
       setTurns(prev => prev.map(t => (t.id === id ? { ...t, error: failureMessage(error) } : t)));
     } finally {
