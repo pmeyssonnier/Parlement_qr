@@ -24,10 +24,10 @@ Avec Supabase, elle interroge le corpus actif (recherche plein texte et vectorie
 
 ## Corpus et actualisation
 
-Le corpus couvre les questions écrites de la législature 2024-2029. Au 24 septembre
-2026, 2 406 fiches sont en ligne ; il reste environ 200 questions à rattraper, plus
-une vingtaine dont le texte n'est pas encore publié par le Parlement (elles seront
-reprises automatiquement).
+Le corpus couvre les questions écrites de la législature 2024-2029. Le rattrapage
+est terminé depuis le 25 septembre 2026 : **2 578 fiches** (8 010 passages) sont en
+ligne. Seules 25 questions récentes n'y figurent pas encore, car leur texte n'est pas
+encore publié par le Parlement ; elles seront ajoutées automatiquement.
 
 Le workflow `.github/workflows/refresh.yml` actualise le corpus :
 
@@ -63,7 +63,7 @@ conservées :
 - Une fiche coûte environ **69 ko**, index compris.
 - Les versions de retour arrière ne coûtent presque rien : aucune fiche ne leur est
   propre, toutes sont partagées avec la version active.
-- Projection : environ **190 Mo** en fin de rattrapage (environ 2 600 fiches) et
+- Projection : environ **188 Mo** après le rattrapage (2 578 fiches) et
   **425 Mo** en fin de législature (environ 6 000 fiches), pour une limite de 500 Mo
   avec l'offre Free de Supabase. À surveiller à partir de 2028.
 
@@ -108,7 +108,7 @@ Détails dans [web/ACTUALISATION.md](web/ACTUALISATION.md).
 | `web/src/app/` | Page d'accueil et routes serveur (`/api/chat`, `/api/health`) |
 | `web/src/components/` | Interface du chat |
 | `web/src/lib/` | Recherche, génération, quotas, schémas et client de l'API |
-| `web/supabase/migrations/` | Schéma PostgreSQL, à appliquer dans l'ordre (001 → 005) |
+| `web/supabase/migrations/` | Schéma PostgreSQL, à appliquer dans l'ordre (001 → 006) |
 | `web/scripts/` | Import, export et actualisation du corpus, audit de la recherche |
 | `web/tests/` | Tests unitaires (`node:test`) et de navigateur (Playwright) |
 | `web/data/` | Corpus d'échantillon et copies des pages collectées |

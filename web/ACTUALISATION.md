@@ -20,7 +20,7 @@ Copiez leurs valeurs directement depuis votre configuration locale, sans les
 publier dans un fichier ou une conversation. Les variables Vercel ne sont pas
 transmises automatiquement à GitHub Actions.
 
-Avant la première exécution, appliquez dans l'ordre les migrations 003, 004 et 005 de
+Avant la première exécution, appliquez dans l'ordre les migrations 003, 004, 005 et 006 de
 `supabase/migrations/` dans l'éditeur SQL de Supabase.
 
 Dans Actions → Refresh parliamentary corpus → Run workflow, mettez expand à 0
@@ -54,10 +54,10 @@ Le nombre de questions ajoutées par exécution vaut 300 par défaut :
 - lancement manuel : champ **expand** (0 = actualiser seulement, 500 au plus) ;
 - exécution planifiée : variable de dépôt `CORPUS_WEEKLY_ADD`, 300 si elle est absente.
 
-Environ 2 600 questions écrites sont à rattraper : une dizaine d'exécutions suffisent.
-Pour aller plus vite que le rythme hebdomadaire, lancez manuellement le workflow
-plusieurs fois, une exécution après l'autre (elles sont sérialisées). Une fois le
-rattrapage terminé, le même réglage n'ajoute plus que les nouvelles questions.
+Le rattrapage de la législature est terminé depuis le 25 septembre 2026 (2 578 fiches,
+en 14 exécutions). Le même réglage n'ajoute désormais que les nouvelles questions.
+Pour un rattrapage futur (par exemple après une remise à zéro), lancez manuellement le
+workflow plusieurs fois, une exécution après l'autre (elles sont sérialisées).
 Le journal de collecte indique à chaque exécution le nombre de questions encore
 absentes du corpus.
 
@@ -99,7 +99,7 @@ les contenus que plus aucune version n'utilise.
 Mesure du 25 septembre 2026 : base complète de 176 Mo pour 2 406 fiches, dont
 155 Mo pour `document_passages` (environ 75 Mo de données, environ 80 Mo d'index
 vectoriel et plein texte), soit environ 69 ko par fiche, index compris. Projection :
-environ 190 Mo pour la législature complète (environ 2 600 fiches) et environ 425 Mo
+environ 188 Mo après le rattrapage (2 578 fiches) et environ 425 Mo
 pour 6 000 fiches en fin de législature : à surveiller avec l'offre Free de Supabase
 (500 Mo). Les requêtes de mesure figurent dans le README.
 
