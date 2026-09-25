@@ -126,3 +126,49 @@ Une étape absente de `ms` n'a pas été atteinte. Un échec d'OpenAI ne provoqu
 503 : la vectorisation manquante est notée `EMBEDDING_UNAVAILABLE` et la recherche se
 fait par mots ; une synthèse en échec est notée `AI_TIMEOUT`, `AI_API_ERROR`… et
 l'application affiche les extraits.
+
+## Coûts
+
+### Fonctionnement
+
+| Service | Formule | Coût |
+|---|---|---|
+| Vercel | Hobby | 0 € |
+| Supabase | Free | 0 € |
+| OpenAI | À l'usage : `text-embedding-3-small` (vectorisation) et `gpt-5-mini` (synthèse) | Variable, voir https://platform.openai.com/usage |
+
+OpenAI est le seul coût variable. Deux variables Vercel le plafonnent :
+`DAILY_AI_REQUEST_LIMIT` (100 synthèses IA par jour pour tout le site) et
+`AI_IP_DAILY_LIMIT` (10 par adresse IP). Au-delà, l'application passe en mode extraits,
+qui n'appelle pas OpenAI. Les compteurs sont dans la table `quotas` de Supabase
+et repartent à zéro à minuit UTC. Pour éviter toute surprise, fixez aussi une limite
+mensuelle dans les paramètres de facturation OpenAI.
+
+### Développement
+
+L'application a été développée avec Claude Code. Avec un abonnement claude.ai (Pro ou
+Max), le développement est inclus dans l'abonnement et ne génère aucune facture
+supplémentaire. À titre indicatif, voici la consommation de la session du 24 au
+25/09/2026 (64 des 69 premiers commits), valorisée au tarif public de l'API Anthropic :
+
+| Poste | Jetons | Tarif API | Coût |
+|---|---|---|---|
+| Entrée non mise en cache | 1 728 | 4 $/M | 0,01 $ |
+| Sortie | 653 079 | 20 $/M | 13,06 $ |
+| Écriture en cache (1 h) | 1 820 887 | 8 $/M | 14,57 $ |
+| Lecture du cache | 272 975 732 | 0,20 $/M | 54,60 $ |
+| **Total** | | | **≈ 82 $** |
+
+La session initiale du 23/09 n'est pas comptée. La relecture du contexte à chaque
+action représente les deux tiers du total : plusieurs sessions courtes coûtent moins
+cher qu'une très longue.
+
+Pour suivre le coût de chaque application :
+
+- **Clé API** : créez un workspace et une clé par application dans
+  console.anthropic.com. La page Usage / Cost détaille ensuite les dépenses par workspace.
+- **Claude Code en local** : la commande `/cost` affiche le coût de la session. Les
+  historiques sont rangés par projet dans `%USERPROFILE%\.claude\projects\`. En
+  additionnant les champs `usage` des fichiers `.jsonl` de chaque dossier, on obtient
+  la consommation de chaque application.
+- **Abonnement claude.ai** : l'usage est global, sans détail par application.
