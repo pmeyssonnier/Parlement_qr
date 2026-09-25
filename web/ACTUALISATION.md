@@ -85,10 +85,12 @@ qu'une fois ; une version du corpus n'est qu'une liste de références. Une vers
 retour arrière ne coûte que les fiches qui ont changé depuis. Le nettoyage supprime
 les contenus que plus aucune version n'utilise.
 
-Ordre de grandeur mesuré : environ 180 Mo pour la législature complète (environ
-2 600 fiches), dont environ 90 Mo de vecteurs et 70 Mo d'index de recherche
-vectorielle. Environ 6 000 fiches en fin de législature représenteraient environ
-420 Mo : à surveiller avec l'offre Free de Supabase (500 Mo).
+Mesure du 25 septembre 2026 : base complète de 176 Mo pour 2 406 fiches, dont
+155 Mo pour `document_passages` (environ 75 Mo de données, environ 80 Mo d'index
+vectoriel et plein texte), soit environ 69 ko par fiche, index compris. Projection :
+environ 190 Mo pour la législature complète (environ 2 600 fiches) et environ 425 Mo
+pour 6 000 fiches en fin de législature : à surveiller avec l'offre Free de Supabase
+(500 Mo). Les requêtes de mesure figurent dans le README.
 
 Les plafonds OpenAI portent sur le volume et les appels, pas sur des euros.
 Ils s'appliquent à chaque lancement, y compris manuel. Plusieurs lancements
