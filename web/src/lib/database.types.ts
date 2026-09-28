@@ -23,6 +23,7 @@ export type Database = {
           created_at: string
           extracted_at: string
           id: string
+          index_config: string | null
           method: string
         }
         Insert: {
@@ -33,6 +34,7 @@ export type Database = {
           created_at?: string
           extracted_at: string
           id?: string
+          index_config?: string | null
           method: string
         }
         Update: {
@@ -43,6 +45,7 @@ export type Database = {
           created_at?: string
           extracted_at?: string
           id?: string
+          index_config?: string | null
           method?: string
         }
         Relationships: []

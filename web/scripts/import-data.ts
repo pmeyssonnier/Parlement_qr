@@ -1,11 +1,12 @@
-import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import OpenAI from "openai";
 import type { Database } from "../src/lib/database.types";
-import { passages, validateCorpus } from "../src/lib/documents";
+import { passages, searchText, validateCorpus } from "../src/lib/documents";
+import { DEFAULT_EMBEDDING_MODEL, EMBEDDING_DIMENSIONS } from "../src/lib/embedding";
 import type { Question } from "../src/lib/schema";
 import { assertBudgetFits, embeddingBatches, ImportBudget, positiveLimit } from "./import-budget";
+import { contentHash, indexConfig } from "./index-config";
 import { retentionSummary } from "./retention";
 
 type Db = SupabaseClient<Database>;
@@ -19,24 +20,25 @@ const PASSAGE_CHUNK = 100;
 // Hashes checked, and version references written, per database call.
 const REFERENCE_CHUNK = 500;
 
-function toItem(q: Question): Item {
+function toItem(q: Question, config: string): Item {
   const ps = passages(q);
-  return {
-    q,
-    hash: createHash("sha256").update(JSON.stringify(q)).digest("hex"),
-    passages: ps,
-    texts: ps.map(p => `${q.titre}\n${q.auteur}\n${q.destinataire}\n${p.section.toUpperCase()}\n${p.text}`),
-  };
+  return { q, hash: contentHash(q, config), passages: ps, texts: ps.map(p => searchText(q, p)) };
 }
 
-// Contents are stored once, keyed by their hash (migration 005). A content is
-// ready when all its passages are stored with an embedding of the current
-// model; any other content is (re)written.
-async function readyHashes(db: Db, items: Item[], model: string) {
+// Contents are stored once, keyed by their hash (migration 005), which covers
+// the index configuration (migration 008): stored rows are never rewritten. A
+// content is ready when all its passages are stored with an embedding of the
+// model (any passage counts without embeddings); missing passages of a content
+// interrupted mid-import are added.
+async function readyHashes(db: Db, items: Item[], model: string | null) {
   const ready = new Set<string>();
   for (let from = 0; from < items.length; from += REFERENCE_CHUNK) {
     const chunk = items.slice(from, from + REFERENCE_CHUNK);
-    const { data, error } = await db.rpc("ready_documents", { p_hashes: chunk.map(item => item.hash), p_model: model });
+    const { data, error } = await db.rpc("ready_documents", {
+      p_hashes: chunk.map(item => item.hash),
+      // null counts every passage (SQL); the generated types cannot express it.
+      p_model: model as string,
+    });
     if (error)
       throw new Error(
         "Lecture des contenus stockés impossible : appliquez la migration 005_deduplicate_documents.sql.",
@@ -50,7 +52,10 @@ async function readyHashes(db: Db, items: Item[], model: string) {
 async function main() {
   const path = process.argv.find(a => a.startsWith("--file="))?.slice(7) || "data/corpus.json";
   const corpus = validateCorpus(JSON.parse(await readFile(path, "utf8")));
-  const items = corpus.questions.map(toItem);
+  const withoutEmbeddings = process.argv.includes("--without-embeddings");
+  const model = withoutEmbeddings ? null : process.env.EMBEDDING_MODEL || DEFAULT_EMBEDDING_MODEL;
+  const config = indexConfig(model);
+  const items = corpus.questions.map(q => toItem(q, config));
   const passageCount = items.reduce((n, item) => n + item.passages.length, 0);
   const maxRecords = positiveLimit(process.env.IMPORT_MAX_RECORDS, 6000);
   const keepVersions = positiveLimit(process.env.IMPORT_KEEP_VERSIONS, 2);
@@ -65,11 +70,9 @@ async function main() {
   }
   const { SUPABASE_URL: url, SUPABASE_SECRET_KEY: key, OPENAI_API_KEY: apiKey } = process.env;
   if (!url || !key) throw new Error("Configurez SUPABASE_URL et SUPABASE_SECRET_KEY dans .env.local.");
-  const withoutEmbeddings = process.argv.includes("--without-embeddings");
   if (!apiKey && !withoutEmbeddings) throw new Error("Configurez OPENAI_API_KEY ou utilisez --without-embeddings.");
   const db = createClient<Database>(url, key, { auth: { persistSession: false } });
   const client = !withoutEmbeddings ? new OpenAI({ apiKey, timeout: 60000, maxRetries: 0 }) : null;
-  const model = process.env.EMBEDDING_MODEL || "text-embedding-3-small";
 
   // Only contents not stored yet (or stored without a usable embedding) are
   // written and sent to OpenAI. The budget is checked before anything is written.
@@ -80,25 +83,32 @@ async function main() {
 
   const { data: version, error } = await db
     .from("corpus_versions")
-    .insert({ count: corpus.questions.length, extracted_at: corpus.extrait_le, method: corpus.methode_echantillonnage })
+    .insert({
+      count: corpus.questions.length,
+      extracted_at: corpus.extrait_le,
+      method: corpus.methode_echantillonnage,
+      index_config: config,
+    })
     .select("id")
     .single();
   if (error || !version)
-    throw new Error("Impossible de créer la version. Vérifiez la migration et les accès Supabase.");
+    throw new Error(
+      "Impossible de créer la version. Appliquez la migration 008_index_config.sql et vérifiez les accès Supabase.",
+    );
   try {
     let stored = 0;
     for (const batch of batches) {
       const texts = batch.flatMap(item => item.texts);
       // pgvector accepts the "[x,y,…]" text form.
       let vectors: (string | null)[] = texts.map(() => null);
-      if (client) {
+      if (client && model) {
         budget.reserve(texts);
-        const response = await client.embeddings.create({ model, dimensions: 1536, input: texts });
+        const response = await client.embeddings.create({ model, dimensions: EMBEDDING_DIMENSIONS, input: texts });
         if (response.data.length !== texts.length) throw new Error("Réponse OpenAI incomplète.");
         vectors = response.data.sort((a, b) => a.index - b.index).map(d => JSON.stringify(d.embedding));
       }
       // A content may already exist with incomplete passages: keep the
-      // document, complete or replace its passages.
+      // document and its stored passages, add the missing ones.
       const { error: de } = await db.from("question_documents").upsert(
         batch.map(item => ({ content_hash: item.hash, question_id: item.q.id, document: item.q })),
         { onConflict: "content_hash", ignoreDuplicates: true },
@@ -118,9 +128,11 @@ async function main() {
         const chunk = rows.slice(from, from + PASSAGE_CHUNK).map((row, i) => ({
           ...row,
           embedding: vectors[from + i] ?? null,
-          embedding_model: client ? model : null,
+          embedding_model: model,
         }));
-        const { error: pe } = await db.from("document_passages").upsert(chunk, { onConflict: "content_hash,id" });
+        const { error: pe } = await db
+          .from("document_passages")
+          .upsert(chunk, { onConflict: "content_hash,id", ignoreDuplicates: true });
         if (pe) throw new Error("Échec de l’enregistrement des passages.");
       }
       stored += batch.length;
@@ -140,7 +152,7 @@ async function main() {
       p_id: version.id,
       p_passage_count: passageCount,
     });
-    if (activationError) throw new Error("La nouvelle version n’a pas été activée : import incomplet.");
+    if (activationError) throw new Error(`La nouvelle version n’a pas été activée : ${activationError.message}.`);
     console.log(
       `Corpus activé : ${corpus.questions.length} fiches, ${passageCount} passages ` +
         `(${items.length - missing.length} déjà stockées, ${missing.length} nouvelles ou modifiées). Version : ${version.id}`,

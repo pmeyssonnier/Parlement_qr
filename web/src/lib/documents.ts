@@ -68,6 +68,17 @@ export function passages(q: Question): Passage[] {
     })),
   );
 }
+/**
+ * Version of what the import stores and embeds for a question: passages()
+ * and searchText(). Change it with either function: the next import then
+ * stores and embeds every question again instead of mixing both formats.
+ * tests/index-config.test.ts fails until it is changed.
+ */
+export const INDEX_FORMAT = "passages-1";
+/** Text embedded and indexed for full-text search, for one passage. */
+export function searchText(q: Question, p: Passage): string {
+  return `${q.titre}\n${q.auteur}\n${q.destinataire}\n${p.section.toUpperCase()}\n${p.text}`;
+}
 export function toSource(hit: Hit): Source {
   return {
     id: hit.passage.id,

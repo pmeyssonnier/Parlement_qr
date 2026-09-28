@@ -7,6 +7,7 @@ import { extractiveAnswer, instructions, validateGenerated } from "./answer";
 import { corpus } from "./corpus";
 import type { Database } from "./database.types";
 import { nature } from "./documents";
+import { DEFAULT_EMBEDDING_MODEL, EMBEDDING_DIMENSIONS, questionEmbeddingModel } from "./embedding";
 import { generatedSchema, type Hit, type QuotaGrant, quotaGrantSchema, searchRowSchema } from "./schema";
 import { contextHits, contextualQuery, filterLexicalHits, lexicalQuery, localSearch } from "./search";
 import { type Timings, timed } from "./timing";
@@ -120,11 +121,31 @@ export async function corpusInfo() {
 // The corpus changes once a week: the home page does not need two queries,
 // one of them an exact count, on every view. /api/health stays uncached.
 export const cachedCorpusInfo = ttlCache(corpusInfo, 10 * 60 * 1000);
+// The model the active version was indexed with (migration 008): an import
+// with another model, or a rollback, never compares incompatible vectors. A
+// failed read degrades to lexical search; it is retried after a minute.
+const activeIndexConfig = ttlCache(async () => {
+  const db = database();
+  if (!db) return null;
+  const { data, error } = await db.from("corpus_versions").select("index_config").eq("active", true).single();
+  if (error || !data) throw new Error("INDEX_CONFIG_UNAVAILABLE");
+  return data.index_config;
+}, 60 * 1000);
+export async function questionModel(config: () => Promise<string | null> = activeIndexConfig) {
+  try {
+    return questionEmbeddingModel(await config(), process.env.EMBEDDING_MODEL || DEFAULT_EMBEDDING_MODEL);
+  } catch {
+    console.error(JSON.stringify({ code: "INDEX_CONFIG_UNAVAILABLE" }));
+    return null;
+  }
+}
 // A failed embedding call degrades to lexical search instead of failing the request.
 async function embed(query: string): Promise<number[] | null> {
+  const model = await questionModel();
+  if (!model) return null;
   try {
     const result = await openai().embeddings.create(
-      { model: process.env.EMBEDDING_MODEL || "text-embedding-3-small", input: query, dimensions: 1536 },
+      { model, input: query, dimensions: EMBEDDING_DIMENSIONS },
       { timeout: 15000 },
     );
     return result.data[0]?.embedding ?? null;

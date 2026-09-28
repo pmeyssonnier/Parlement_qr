@@ -31,7 +31,7 @@ Copiez les valeurs directement depuis `.env.local`, sans les transmettre dans un
 | QUOTA_SECRET | Même secret aléatoire de 32 caractères minimum que dans `.env.local` |
 | AI_ENABLED | true |
 | CHAT_MODEL | gpt-5-mini |
-| EMBEDDING_MODEL | text-embedding-3-small |
+| EMBEDDING_MODEL | text-embedding-3-small (utilisé seulement pour une version importée avant la migration 008 ; ensuite, la question est vectorisée avec le modèle de la version active) |
 | DAILY_AI_REQUEST_LIMIT | 100 |
 | AI_IP_DAILY_LIMIT | 10 |
 | SESSION_HOURLY_REQUEST_LIMIT | 20 |
