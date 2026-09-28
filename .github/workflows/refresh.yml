@@ -25,6 +25,10 @@ on:
         description: 'Facultatif : libellé du filtre affiché dans « Sources et méthode » (ex. Schaerbeek ou une de ses voiries régionales)'
         default: ''
         required: false
+      max_embedding_mb:
+        description: 'Plafond de texte envoyé à OpenAI, en Mo (3 par défaut ; 25 pour une réindexation complète, environ 0,10 $)'
+        default: '3'
+        required: true
   schedule:
     - cron: '20 4 * * 1'
 permissions:
@@ -40,11 +44,15 @@ jobs:
     timeout-minutes: 60
     env:
       # Contents are stored once (migration 005): a rollback version only costs
-      # the questions that changed. Embedding caps fit about 400 new questions.
+      # the questions that changed. Embedding caps fit about 400 new questions;
+      # a full reindex (new model or passage format, migration 008) needs a
+      # manual run with a higher max_embedding_mb. The cost is capped by the
+      # bytes; the call cap only stops a runaway loop (a full reindex of
+      # 8 300 passages takes about 90 calls).
       IMPORT_MAX_RECORDS: '6000'
       IMPORT_KEEP_VERSIONS: '2'
-      IMPORT_MAX_EMBEDDING_CALLS: '100'
-      IMPORT_MAX_EMBEDDING_BYTES: '3000000'
+      IMPORT_MAX_EMBEDDING_CALLS: '300'
+      IMPORT_MAX_EMBEDDING_BYTES: ${{ format('{0}000000', inputs.max_embedding_mb || '3') }}
       EMBEDDING_MODEL: text-embedding-3-small
     defaults:
       run:

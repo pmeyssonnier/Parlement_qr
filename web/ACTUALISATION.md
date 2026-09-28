@@ -20,7 +20,7 @@ Copiez leurs valeurs directement depuis votre configuration locale, sans les
 publier dans un fichier ou une conversation. Les variables Vercel ne sont pas
 transmises automatiquement à GitHub Actions.
 
-Avant la première exécution, appliquez dans l'ordre les migrations 003 à 007 de
+Avant la première exécution, appliquez dans l'ordre les migrations 003 à 008 de
 `supabase/migrations/` dans l'éditeur SQL de Supabase.
 
 Dans Actions → Refresh parliamentary corpus → Run workflow, mettez expand à 0
@@ -119,10 +119,51 @@ s'il s'agit de la législature complète ou d'une sélection thématique.
   enregistrée dans `missing-from-index.json` de l'artefact, à côté de l'index reçu.
   Au-delà de 10 fiches absentes (index probablement tronqué), l'exécution s'arrête
   sans remplacer le corpus.
-- Embeddings : au plus 100 appels et 3 000 000 d'octets UTF-8 de texte, soit environ
-  400 fiches nouvelles. Le dépassement est détecté **avant** toute écriture.
+- Embeddings : au plus 3 000 000 d'octets UTF-8 de texte, soit environ 400 fiches
+  nouvelles, et 300 appels. Le dépassement est détecté **avant** toute écriture, et le
+  message donne le volume prévu. Pour une réindexation complète, lancez le workflow à la
+  main avec `max_embedding_mb` relevé (voir « Réindexation »).
 - Modèle fixé pour le workflow : text-embedding-3-small.
 - Durée maximale de la tâche : 60 minutes ; exécutions sérialisées.
+
+## Réindexation (migration 008)
+
+Chaque contenu stocké est identifié par une empreinte de la fiche **et** de sa
+configuration d'indexation : format des passages (`INDEX_FORMAT` dans
+`src/lib/documents.ts`), modèle d'embedding et dimensions. La configuration est
+enregistrée sur chaque version (`corpus_versions.index_config`), et les lignes stockées
+ne peuvent plus être modifiées. Un import en préparation ou échoué ne touche donc
+jamais les vecteurs de la version active. La recherche vectorise la question avec le
+modèle de la version active, pas avec la variable `EMBEDDING_MODEL`. `activate_corpus`
+refuse une version dont un passage n'a pas de vecteur de ce modèle, ou dont une fiche
+n'a aucun passage.
+
+Une réindexation complète est donc nécessaire :
+- une fois, juste après la migration 008 (toutes les empreintes changent) ;
+- à chaque changement de modèle d'embedding ;
+- à chaque changement de `passages()` ou de `searchText()`, que le test
+  `tests/index-config.test.ts` signale en demandant de changer `INDEX_FORMAT`.
+
+Procédure :
+1. Appliquez `supabase/migrations/008_index_config.sql` dans l'éditeur SQL de
+   Supabase. La version active reste en ligne.
+2. Fusionnez le code qui l'utilise. N'attendez pas entre les deux étapes : l'ancien code
+   d'import ne peut plus compléter un contenu déjà stocké.
+3. Lancez le workflow à la main avec `expand` à 0 et `max_embedding_mb` à 25. Pour le
+   corpus de 2 689 fiches (environ 8 300 passages et 16 Mo de texte) : environ 90
+   appels, 4 millions de tokens, soit environ 0,10 $ avec text-embedding-3-small.
+4. Le journal doit indiquer « 0 déjà stockées, 2 689 nouvelles ou modifiées », puis
+   « Corpus activé ».
+
+Stockage : la réindexation ajoute une copie complète des passages, index compris,
+soit environ 165 Mo. La base passe d'environ 200 Mo à environ 360 Mo, sous la limite
+de 500 Mo de l'offre Free. Les anciens contenus sont supprimés quand plus aucune
+version conservée ne les utilise, soit après deux actualisations hebdomadaires.
+Vérifiez la taille avec les requêtes de mesure du README.
+
+La migration a été testée sur PostgreSQL 16 et pgvector 0.8.0 avec
+`supabase/tests/008_index_config.sql` (14 cas). Ce test s'exécute sur une base locale
+jetable, jamais sur Supabase.
 
 ## Stockage
 
