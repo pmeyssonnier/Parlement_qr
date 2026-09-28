@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { extractiveAnswer } from "../src/lib/answer";
 import { askQuestion, failureMessage, isChatResponse, ServiceError } from "../src/lib/api-client";
+import { corpus } from "../src/lib/corpus";
+import { localSearch } from "../src/lib/search";
 
 const reply =
   (body: string, status = 200): typeof fetch =>
@@ -30,4 +32,19 @@ test("client : une réponse 200 mal formée est refusée", async () => {
 test("client : délai dépassé et panne réseau", () => {
   assert.match(failureMessage(new DOMException("aborted", "AbortError")), /trop de temps/);
   assert.match(failureMessage(new TypeError("Failed to fetch")), /Vérifiez votre connexion/);
+});
+test("client : chaque paragraphe et chaque source sont vérifiés", () => {
+  const response = extractiveAnswer(localSearch(corpus.questions, "STIB forte chaleur"), "req");
+  assert.ok(response.sources.length);
+  assert.ok(isChatResponse(response));
+  const [source] = response.sources;
+  assert.ok(source);
+  const withSource = (changes: Record<string, unknown>) => ({ ...response, sources: [{ ...source, ...changes }] });
+  // Rendered as href: a javascript: or data: link must never reach the page.
+  assert.equal(isChatResponse(withSource({ url: "javascript:alert(1)" })), false);
+  assert.equal(isChatResponse(withSource({ url: "http://www.parlement.brussels/x" })), false);
+  assert.equal(isChatResponse(withSource({ excerpt: undefined })), false);
+  assert.equal(isChatResponse(withSource({ nature: "autre" })), false);
+  assert.equal(isChatResponse({ ...response, paragraphs: [{ text: "x" }] }), false);
+  assert.equal(isChatResponse({ ...response, requestId: undefined }), false);
 });

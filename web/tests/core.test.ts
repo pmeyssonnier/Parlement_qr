@@ -5,7 +5,7 @@ import { corpus } from "../src/lib/corpus";
 import { nature, passages, safeSourceUrl, validateCorpus } from "../src/lib/documents";
 import { chatInput, chatResponseSchema } from "../src/lib/schema";
 import { contextualQuery, filterLexicalHits, lexicalQuery, localSearch } from "../src/lib/search";
-import { localQuota } from "../src/lib/server";
+import { fallbackAnswer, localQuota } from "../src/lib/server";
 
 const [sample] = corpus.questions;
 assert.ok(sample);
@@ -201,4 +201,37 @@ test("quota anti-abus : refus sans consommer les autres compteurs", () => {
   );
   assert.equal(localQuota([["t:b", 2, 1000]], now), true);
   assert.equal(localQuota([["t:b", 2, 1000]], now), false);
+});
+
+test("sans IA : un paragraphe par fiche, avec ses passages", () => {
+  const hits = localSearch(corpus.questions, "STIB forte chaleur");
+  const result = extractiveAnswer(hits, "test");
+  const fiches = new Set(hits.slice(0, 3).map(h => h.question.id));
+  assert.equal(result.paragraphs.length, fiches.size);
+  assert.deepEqual(
+    [...result.paragraphs.flatMap(p => p.sourceIds)].sort(),
+    hits
+      .slice(0, 3)
+      .map(h => h.passage.id)
+      .sort(),
+  );
+  // Sources are numbered in the order of the paragraphs that show them.
+  assert.deepEqual(
+    result.sources.map(s => s.id),
+    result.paragraphs.flatMap(p => p.sourceIds),
+  );
+  assert.ok(result.paragraphs.some(p => p.sourceIds.length > 1 && p.text.startsWith("Passages de la réponse")));
+  assert.ok(chatResponseSchema.safeParse(result).success);
+});
+
+test("synthèse IA en échec : nouvelle recherche sans IA, pas les résultats hybrides", async () => {
+  const searched: string[] = [];
+  const result = await fallbackAnswer("prix du bitcoin", "req", async q => {
+    searched.push(q);
+    return localSearch(corpus.questions, q);
+  });
+  assert.deepEqual(searched, ["prix du bitcoin"]);
+  assert.equal(result.status, "insuffisant");
+  const found = await fallbackAnswer("STIB forte chaleur", "req", async q => localSearch(corpus.questions, q));
+  assert.equal(found.status, "documente");
 });

@@ -5,6 +5,12 @@ permissions:
 jobs:
   check:
     runs-on: ubuntu-24.04
+    # Local corpus, no AI: the checks never reach Supabase or OpenAI (no cost).
+    env:
+      AI_ENABLED: ""
+      SUPABASE_URL: ""
+      SUPABASE_SECRET_KEY: ""
+      OPENAI_API_KEY: ""
     defaults:
       run:
         working-directory: web
@@ -21,6 +27,8 @@ jobs:
       - run: npm test
       - run: python3 scripts/test-collector.py
       - run: npm run import:data -- --validate-only
+      - name: Search cases (data/corpus-refreshed.json, local search)
+        run: npm run audit:search
       - run: npm run build
       - run: npx playwright install --with-deps chromium
       - name: End-to-end tests (production build, local corpus, AI disabled)

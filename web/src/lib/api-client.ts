@@ -11,15 +11,40 @@ export function errorMessage(data: unknown) {
     ? data.error
     : "Le service est indisponible.";
 }
-export function isChatResponse(data: unknown): data is ChatResponse {
-  if (!data || typeof data !== "object") return false;
-  const r = data as Record<string, unknown>;
+const isObject = (v: unknown): v is Record<string, unknown> => !!v && typeof v === "object" && !Array.isArray(v);
+const isString = (v: unknown): v is string => typeof v === "string";
+const natures = ["fond", "incompetence", "renvoi", "absente"];
+
+function isParagraph(v: unknown) {
+  return isObject(v) && isString(v.text) && Array.isArray(v.sourceIds) && v.sourceIds.every(isString);
+}
+function isSource(v: unknown) {
   return (
-    (r.mode === "ia" || r.mode === "extraits") &&
-    (r.status === "documente" || r.status === "insuffisant") &&
-    Array.isArray(r.paragraphs) &&
-    Array.isArray(r.sources) &&
-    typeof r.notice === "string"
+    isObject(v) &&
+    isString(v.id) &&
+    isString(v.title) &&
+    isString(v.author) &&
+    isString(v.recipient) &&
+    (v.date === null || isString(v.date)) &&
+    // Rendered as href: only https links, never javascript: or data: ones.
+    isString(v.url) &&
+    v.url.startsWith("https://") &&
+    isString(v.excerpt) &&
+    natures.includes(v.nature as string)
+  );
+}
+/** Everything the answer view and the export read, down to each paragraph and source. */
+export function isChatResponse(data: unknown): data is ChatResponse {
+  return (
+    isObject(data) &&
+    (data.mode === "ia" || data.mode === "extraits") &&
+    (data.status === "documente" || data.status === "insuffisant") &&
+    Array.isArray(data.paragraphs) &&
+    data.paragraphs.every(isParagraph) &&
+    Array.isArray(data.sources) &&
+    data.sources.every(isSource) &&
+    isString(data.notice) &&
+    isString(data.requestId)
   );
 }
 export async function askQuestion(

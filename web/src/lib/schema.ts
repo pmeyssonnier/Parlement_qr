@@ -76,6 +76,8 @@ export const generatedSchema = z.object({
   paragraphs: z.array(paragraphSchema),
   limits: z.string(),
 });
+/** Paragraph limit stated in the instructions. */
+export const MAX_PARAGRAPHS = 5;
 // Enforced server-side on a documented answer before anything is displayed.
 export const documentedParagraphsSchema = z
   .array(
@@ -88,7 +90,8 @@ export const documentedParagraphsSchema = z
     }),
   )
   .min(1)
-  .max(8);
+  // A slightly longer answer is still better than falling back to extracts.
+  .max(MAX_PARAGRAPHS + 3);
 
 export const quotaGrantSchema = z.enum(["ia", "extraits", "refuse"]);
 export type QuotaGrant = z.infer<typeof quotaGrantSchema>;

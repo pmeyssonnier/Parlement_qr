@@ -1,20 +1,17 @@
 import { readFile, writeFile } from "node:fs/promises";
+import { extractiveAnswer } from "../src/lib/answer";
 import { validateCorpus } from "../src/lib/documents";
+import type { Hit } from "../src/lib/schema";
 import { contextualQuery, localSearch } from "../src/lib/search";
 import { answer, findHits } from "../src/lib/server";
+import { type CaseResult, evaluateCase, type SearchCase, searchCases, summarize, withDisplay } from "./search-cases";
 
-const cases = [
-  { q: "Comment les expatriés sont-ils informés de leur droit de vote ?", id: "167744" },
-  { q: "Que fait la STIB en cas de forte chaleur ?", id: "167348" },
-  { q: "Que prévoit clean.brussels pour réduire les emballages ?", id: "166346" },
-  { q: "Quelle est la fréquentation du tram 55 ?", id: "170245" },
-  { q: "Combien de ménages bénéficient de l’allocation loyer ?", id: "170157" },
-  { q: "Quelle est la puissance des bornes de recharge publiques ?", id: "170152" },
-  { q: "Quel est le délai du premier rendez-vous chez Actiris ?", id: "170155" },
-  { q: "Quelles sont les exemptions LEZ pour les bénéficiaires BIM ?", id: "169916" },
-  { q: "Quelles sont les mesures concernant les cantines scolaires ?", id: null },
-  { q: "Astronautes martiens et fusées interstellaires", id: null },
-] as const;
+const distinctQuestions = (hits: Hit[]) => [...new Set(hits.map(h => h.question.moncode))];
+const byId = (id: string) => {
+  const c = searchCases.find(x => x.id === id);
+  if (!c) throw new Error(`Cas inconnu : ${id}`);
+  return c;
+};
 class MissingCorpus extends Error {
   constructor(file: string) {
     super(`${file} introuvable : générez-le avec python scripts/refresh-corpus.py ou passez --file=<corpus.json>.`);
@@ -27,47 +24,84 @@ async function main() {
     throw new MissingCorpus(file);
   });
   const corpus = validateCorpus(JSON.parse(raw));
-  const results: unknown[] = [];
-  let failed = 0;
+  const only = process.argv.find(a => a.startsWith("--case="))?.slice(7);
+  const cases = only ? [byId(only)] : searchCases;
+  const results: CaseResult[] = [];
   for (const c of cases) {
-    const hits = process.argv.includes("--remote") ? await findHits(c.q, false) : localSearch(corpus.questions, c.q);
-    const ids = [...new Set(hits.map(h => h.question.moncode))];
-    const pass = c.id ? ids.includes(c.id) : ids.length === 0;
-    if (!pass) failed++;
-    results.push({ question: c.q, mode: "lexical", pass, ids });
-    console.log(JSON.stringify(results.at(-1)));
+    const query = contextualQuery(
+      c.question,
+      (c.history ?? []).map(content => ({ content })),
+    );
+    const hits = process.argv.includes("--remote")
+      ? await findHits(query, false)
+      : localSearch(corpus.questions, query);
+    // Judged down to the sources a reader sees without AI, not only the questions found.
+    const questionOf = new Map(hits.map(h => [h.passage.id, h.question.moncode]));
+    const shown = extractiveAnswer(hits, "audit").sources.flatMap(s => questionOf.get(s.id) ?? []);
+    const result = withDisplay(evaluateCase(c, distinctQuestions(hits)), c, shown);
+    results.push(result);
+    const status = result.pass ? (result.gap ? "RÉSOLU" : "OK") : result.gap ? "ÉCART CONNU" : "ÉCHEC";
+    console.log(
+      `${status.padEnd(11)} ${c.id.padEnd(22)} rang=${result.rank ?? "-"} ${JSON.stringify(result.ids)}${result.reason ? ` (${result.reason})` : ""}`,
+    );
   }
+  const summary = summarize(results);
+  const ai: unknown[] = [];
+  let aiFailed = 0;
   if (process.argv.includes("--ai")) {
     // Passages sent to the model (one more embedding call per case): tells a search
     // failure from a model judgment.
     const sent = async (q: string) => (await findHits(q, true)).map(h => h.passage.id);
-    for (const c of [cases[3], cases[8], cases[9]]) {
-      const hits = await sent(c.q);
-      const r = await answer(c.q, [], "audit", true);
-      const expected = c.id;
+    const aiCases: SearchCase[] = [byId("tram-55"), byId("stib-chaleur"), byId("hors-cantines"), byId("hors-espace")];
+    for (const c of aiCases) {
+      const hits = await sent(c.question);
+      const r = await answer(c.question, [], "audit", true);
+      const expected = c.expect;
       const pass = expected
-        ? r.mode === "ia" && r.status === "documente" && r.sources.some(s => s.id.includes(expected))
+        ? r.mode === "ia" && r.status === "documente" && r.sources.some(s => expected.some(id => s.id.includes(id)))
         : r.status === "insuffisant" && !r.sources.length;
-      if (!pass) failed++;
-      const result = { question: c.q, mode: r.mode, pass, hits, response: r };
-      results.push(result);
+      if (!pass) aiFailed++;
+      const result = { question: c.question, mode: r.mode, pass, hits, response: r };
+      ai.push(result);
       console.log(JSON.stringify(result));
     }
-    const history = [{ content: cases[0].q }];
+    const history = [{ content: byId("expatries-vote").question }];
     const q =
       "Quelles actions ont effectivement été réalisées, selon la réponse ministérielle, sans reprendre les propositions de la députée ?";
     const hits = await sent(contextualQuery(q, history));
     const r = await answer(q, history, "audit-followup", true);
     const pass = r.mode === "ia" && r.status === "documente" && r.sources.some(s => s.id.includes("167744"));
-    if (!pass) failed++;
-    results.push({ question: q, query: contextualQuery(q, history), pass, hits, response: r });
-    console.log(JSON.stringify(results.at(-1)));
+    if (!pass) aiFailed++;
+    ai.push({ question: q, query: contextualQuery(q, history), pass, hits, response: r });
+    console.log(JSON.stringify(ai.at(-1)));
   }
+  const failed = summary.failed + aiFailed;
   await writeFile(
     "data/search-audit.json",
-    JSON.stringify({ date: new Date().toISOString(), corpus: corpus.questions.length, failed, results }, null, 2),
+    JSON.stringify(
+      {
+        date: new Date().toISOString(),
+        mode: process.argv.includes("--remote") ? "supabase" : "local",
+        corpus: corpus.questions.length,
+        ...summary,
+        failed,
+        results,
+        ai,
+      },
+      null,
+      2,
+    ),
   );
-  console.log(`Audit : ${results.length} cas, ${failed} échecs.`);
+  for (const kind of [...new Set(results.map(r => r.kind))]) {
+    const group = results.filter(r => r.kind === kind);
+    console.log(`  ${kind.padEnd(11)} ${group.filter(r => r.pass).length}/${group.length}`);
+  }
+  console.log(
+    `Audit : ${results.length} cas, ${failed} échecs, ${summary.knownGaps} écarts connus. ` +
+      `Premier rang ${(summary.top1 * 100).toFixed(0)} %, MRR ${summary.mrr.toFixed(2)}.`,
+  );
+  if (summary.resolvedGaps.length)
+    console.log(`Écarts désormais résolus, retirer leur marqueur « gap » : ${summary.resolvedGaps.join(", ")}`);
   if (failed) process.exitCode = 1;
 }
 main().catch(error => {
