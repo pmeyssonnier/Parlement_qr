@@ -261,6 +261,37 @@ officiels tels quels.
 Parlement bruxellois »), les règles propres au domaine (bénéficiaires, compétences…)
 et, si besoin, la détection de `nature()`.
 
+### 6.1 Exporter la réponse en fichier HTML (`web/src/lib/export.ts`)
+
+Sous chaque réponse, le bouton **Exporter la réponse** (`answer.tsx`) enregistre un
+fichier HTML autonome. Ce fichier :
+- s'ouvre dans n'importe quel navigateur, sans connexion ;
+- garde les liens vers les fiches officielles ;
+- s'imprime en PDF et s'ouvre dans Word.
+
+Tout se passe dans le navigateur, sans dépendance ni appel au serveur :
+1. `answerHtml()` assemble la question, les paragraphes, les sources numérotées
+   `[1]`, `[2]`… (extrait, auteur, date, lien) et un pied de page daté ;
+2. `downloadAnswer()` crée un `Blob` et déclenche le téléchargement ;
+3. le fichier reçoit un nom du type `reponse-parlement-2026-09-28-1432.html`
+   (`answerFileName`).
+
+Tout le texte est échappé (`escapeHtml`) : un titre ou un extrait ne peut pas
+injecter de code dans le fichier.
+
+**À adapter :**
+
+| Élément | Où | Exemple pour une autre source |
+|---|---|---|
+| Nom du fichier | `answerFileName` : `reponse-parlement-` | `reponse-faq-` |
+| Pied de page | dernier `<p>` du `<footer>` | « FAQ publiée par … Initiative indépendante… » |
+| Titre court des sources | `shortTitle` (`format.ts`) retire « Question écrite concernant » | préfixe propre à la source, ou rien |
+| Métadonnées d'une source | `meta` : auteur · date, destinataire | catégorie, date de mise à jour… |
+| Avertissement | `nature === "incompetence"` | à retirer si la notion n'existe pas |
+| Couleurs et police | bloc `<style>` | charte de la nouvelle source |
+
+La version Python de cet export, pour le prototype Colab, se trouve à la fin du guide.
+
 ## Étape 7 — Automatiser l'actualisation
 
 **Fichier :** `.github/workflows/refresh.yml`, documenté dans `web/ACTUALISATION.md`.
@@ -412,18 +443,108 @@ CONSIGNES = ("Réponds en français, uniquement avec les sources fournies. Termi
              "par ses références [sourceId]. Si aucune source ne répond au sujet, dis-le.")
 
 def repondre(question):
+    """Renvoie (synthèse, fiches trouvées) ; la synthèse cite les [sourceId]."""
     trouves = rechercher(question)
     if not trouves:
-        return "Aucune source suffisamment proche."
+        return "Aucune source suffisamment proche.", []
     sources = [{"sourceId": p["id"], "titre": p["fiche"]["titre"],
                 "date": p["fiche"]["date_reponse"], "texte": p["texte"]} for _, p in trouves]
     r = client.responses.create(model="gpt-5-mini", instructions=CONSIGNES,
                                 input=json.dumps({"question": question, "sources": sources}, ensure_ascii=False))
-    liens = "\n".join(f"- [{p['id']}] {p['fiche']['titre']} — {p['fiche']['url_source']} (similarité {s:.2f})"
-                      for s, p in trouves)
-    return r.output_text + "\n\nSources consultées :\n" + liens
+    return r.output_text, trouves
 
-print(repondre("Quelle est la fréquentation du tram 55 ?"))
+question = "Quelle est la fréquentation du tram 55 ?"
+synthese, trouves = repondre(question)
+print(synthese, "\n\nSources consultées :")
+for s, p in trouves:
+    print(f"- [{p['id']}] {p['fiche']['titre']} — {p['fiche']['url_source']} (similarité {s:.2f})")
+```
+
+### Exporter la réponse en HTML (comme le bouton de l'application)
+
+Cette cellule reproduit `web/src/lib/export.ts`. Elle produit le même fichier
+autonome : question, synthèse avec références `[1]`, `[2]`…, sources avec extrait et
+lien officiel, puis pied de page daté. Colab propose ensuite de le télécharger.
+
+```python
+import datetime as dt, html, re
+
+def echapper(texte):
+    return html.escape(texte or "", quote=True)
+
+def multiligne(texte):
+    return echapper(texte).replace("\n", "<br>")
+
+def reponse_html(question, synthese, trouves, obtenue_le=None, extrait_max=700):
+    obtenue_le = obtenue_le or dt.datetime.now()
+    ids = [p["id"] for _, p in trouves]
+    numero = {sid: i + 1 for i, sid in enumerate(ids)}
+
+    # [sourceId] → [n] ; un identifiant inconnu est retiré (aucune référence inventée)
+    def citer(m):
+        refs = [numero[x.strip()] for x in m[1].split(",") if x.strip() in numero]
+        return "".join(f' <span class="citation">[{n}]</span>' for n in refs)
+
+    paragraphes = "\n".join(
+        "<p>" + re.sub(r"\s*\[([^\]]+)\]", citer, echapper(par)) + "</p>"
+        for par in re.split(r"\n\s*\n|\n", synthese) if par.strip()
+    )
+    sources = "\n".join(f"""<li>
+<p class="source-title">[{i + 1}] {echapper(p['fiche']['titre'])}</p>
+<p class="meta">{echapper(p['fiche'].get('auteur'))} · {echapper(p['fiche'].get('date_reponse') or 'date non renseignée')}<br>{echapper(p['fiche'].get('destinataire'))}</p>
+<blockquote>{multiligne(p['texte'][:extrait_max] + ('…' if len(p['texte']) > extrait_max else ''))}</blockquote>
+<p><a href="{echapper(p['fiche']['url_source'])}">Lire la fiche officielle</a></p>
+</li>""" for i, (_, p) in enumerate(trouves))
+
+    return f"""<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{echapper(question)}</title>
+<style>
+body {{ font: 15px/1.7 Georgia, serif; color: #233b34; background: #fffef9; max-width: 760px; margin: 40px auto; padding: 0 16px; }}
+h1 {{ font-size: 24px; line-height: 1.3; margin: 6px 0 24px; }}
+h2 {{ font-size: 17px; margin-top: 32px; border-bottom: 1px solid #e3e5dc; padding-bottom: 6px; }}
+.label {{ font: 11px/1.4 system-ui, sans-serif; letter-spacing: 1.2px; color: #71836a; text-transform: uppercase; }}
+.citation {{ color: #647f4a; font-size: 13px; }}
+blockquote {{ margin: 8px 0; padding: 10px 16px; border-left: 2px solid #c6d2b9; background: #f0f3e9; color: #56634e; font-size: 13px; }}
+ol {{ padding-left: 0; list-style: none; }}
+li {{ margin-bottom: 22px; }}
+.source-title {{ font-weight: bold; margin: 0; }}
+.meta {{ font-size: 13px; color: #69745f; margin: 2px 0; }}
+a {{ color: #365735; }}
+footer {{ font: 12px/1.6 system-ui, sans-serif; color: #7e8974; margin-top: 32px; border-top: 1px solid #e3e5dc; padding-top: 12px; }}
+@media print {{ body {{ margin: 0; background: white; }} blockquote {{ break-inside: avoid; }} }}
+</style>
+</head>
+<body>
+<p class="label">Question</p>
+<h1>{echapper(question)}</h1>
+<p class="label">Synthèse documentée</p>
+{paragraphes}
+{f'<h2>Sources utilisées</h2>{chr(10)}<ol>{chr(10)}{sources}{chr(10)}</ol>' if trouves else ''}
+<footer>
+<p>Réponse obtenue le {obtenue_le.strftime('%d/%m/%Y à %H:%M')}.</p>
+<p>À ADAPTER : nom de la source et avertissement (« Initiative indépendante… Vérifiez les sources et leurs dates. »).</p>
+</footer>
+</body>
+</html>
+"""
+
+def exporter_reponse(question, synthese, trouves, prefixe="reponse"):
+    maintenant = dt.datetime.now()
+    nom = f"{prefixe}-{maintenant:%Y-%m-%d-%H%M}.html"   # ex. reponse-2026-09-28-1432.html
+    with open(nom, "w", encoding="utf-8") as f:
+        f.write(reponse_html(question, synthese, trouves, maintenant))
+    try:
+        from google.colab import files
+        files.download(nom)                          # propose le fichier au navigateur
+    except ImportError:
+        print("Fichier écrit :", nom)                # hors Colab
+    return nom
+
+exporter_reponse(question, synthese, trouves)
 ```
 
 Ce prototype ne fait que la recherche par le sens. L'application y ajoute :
