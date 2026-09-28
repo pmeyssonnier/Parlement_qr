@@ -10,6 +10,9 @@ import { contentHash, indexConfig } from "./index-config";
 import { retentionSummary } from "./retention";
 
 type Db = SupabaseClient<Database>;
+// PostgREST errors name the constraint, timeout or permission at fault; they
+// carry no credentials. Without them a failed import cannot be diagnosed.
+const cause = (error: { code?: string; message: string }) => `${error.code ?? "?"} ${error.message}`;
 type Item = { q: Question; hash: string; passages: ReturnType<typeof passages>; texts: string[] };
 
 // Well under the embeddings API limits (2 048 inputs, 300 000 tokens per request).
@@ -41,7 +44,7 @@ async function readyHashes(db: Db, items: Item[], model: string | null) {
     });
     if (error)
       throw new Error(
-        "Lecture des contenus stockés impossible : appliquez la migration 005_deduplicate_documents.sql.",
+        `Lecture des contenus stockés impossible (${cause(error)}) : appliquez la migration 005_deduplicate_documents.sql.`,
       );
     const counts = new Map(data.map(row => [row.content_hash, row.ready_passages]));
     for (const item of chunk) if (counts.get(item.hash) === item.passages.length) ready.add(item.hash);
@@ -93,7 +96,8 @@ async function main() {
     .single();
   if (error || !version)
     throw new Error(
-      "Impossible de créer la version. Appliquez la migration 008_index_config.sql et vérifiez les accès Supabase.",
+      `Impossible de créer la version${error ? ` (${cause(error)})` : ""}. ` +
+        "Appliquez la migration 008_index_config.sql et vérifiez les accès Supabase.",
     );
   try {
     let stored = 0;
@@ -113,7 +117,7 @@ async function main() {
         batch.map(item => ({ content_hash: item.hash, question_id: item.q.id, document: item.q })),
         { onConflict: "content_hash", ignoreDuplicates: true },
       );
-      if (de) throw new Error("Échec de l’enregistrement des fiches.");
+      if (de) throw new Error(`Échec de l’enregistrement des fiches : ${cause(de)}`);
       const rows = batch.flatMap(item =>
         item.passages.map((p, i) => ({
           content_hash: item.hash,
@@ -133,7 +137,7 @@ async function main() {
         const { error: pe } = await db
           .from("document_passages")
           .upsert(chunk, { onConflict: "content_hash,id", ignoreDuplicates: true });
-        if (pe) throw new Error("Échec de l’enregistrement des passages.");
+        if (pe) throw new Error(`Échec de l’enregistrement des passages : ${cause(pe)}`);
       }
       stored += batch.length;
       console.log(`Enregistré : ${stored}/${missing.length} fiches nouvelles ou modifiées`);
@@ -146,7 +150,7 @@ async function main() {
             .slice(from, from + REFERENCE_CHUNK)
             .map(item => ({ version_id: version.id, question_id: item.q.id, content_hash: item.hash })),
         );
-      if (re) throw new Error("Échec de la composition de la version.");
+      if (re) throw new Error(`Échec de la composition de la version : ${cause(re)}`);
     }
     const { error: activationError } = await db.rpc("activate_corpus", {
       p_id: version.id,
