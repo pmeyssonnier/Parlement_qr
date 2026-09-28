@@ -232,7 +232,8 @@ officiels tels quels.
 - les mots vides et les synonymes de `search.ts`, selon votre domaine ;
 - la configuration `'french'` de PostgreSQL si la source est dans une autre langue ;
 - le seuil de 0,35, à vérifier avec un jeu de questions de test (voir
-  `web/scripts/audit-search.ts` et `data/search-audit.json`).
+  `web/scripts/search-cases.ts`, `web/scripts/audit-search.ts` et
+  `data/search-audit.json`).
 
 ## Étape 6 — Rédiger une réponse qui cite ses sources
 

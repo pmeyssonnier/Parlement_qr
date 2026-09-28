@@ -159,13 +159,14 @@ indique ce qui manque sans afficher les secrets.
 | `npm run import:data -- --validate-only` | Valide un corpus sans rien importer |
 | `npm run import:data` | Importe et active un corpus dans Supabase (appels OpenAI facturés) |
 | `npm run export:data` | Exporte le corpus actif de Supabase |
-| `npm run audit:search` | Rejoue les cas de référence de la recherche |
+| `npm run audit:search` | Rejoue les cas de référence de la recherche (`scripts/search-cases.ts`) : rang, MRR, écarts connus. `--case=<id>` pour un seul cas, `--remote` sur Supabase, `--ai` avec synthèse (facturée) |
 | `python scripts/test-collector.py` | Teste le collecteur Python |
 
 Sous Windows PowerShell, si `npm` est bloqué par la stratégie d'exécution, utilisez `npm.cmd`.
 
 La CI (`.github/workflows/check.yml`) lance Biome, le contrôle TypeScript, les tests
-unitaires, la validation du corpus, le build et les tests Playwright.
+unitaires, la validation du corpus, les cas de recherche (`audit:search` sur
+`data/corpus-refreshed.json`), le build et les tests Playwright, sans Supabase ni OpenAI.
 
 ## Documentation
 

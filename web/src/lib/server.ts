@@ -163,6 +163,18 @@ export async function findHits(query: string, useEmbeddings: boolean, timings?: 
   });
   return vector ? hits : filterLexicalHits(hits, query);
 }
+/**
+ * Extracts shown when the synthesis fails: a new search without AI, not the
+ * hybrid hits. Their semantic neighbours were only filtered by the lexical
+ * thresholds, which can keep a document sharing a word with the question.
+ */
+export async function fallbackAnswer(
+  query: string,
+  requestId: string,
+  search: (query: string) => Promise<Hit[]> = q => findHits(q, false),
+) {
+  return extractiveAnswer(await search(query), requestId);
+}
 export async function answer(
   message: string,
   history: { content: string }[],
@@ -222,7 +234,10 @@ export async function answer(
               ? "AI_UNKNOWN_CITATION"
               : "AI_OUTPUT_INVALID";
     console.error(JSON.stringify({ requestId, code }));
-    const fallback = extractiveAnswer(filterLexicalHits(hits, query), requestId);
+    // If that search fails too, the hybrid hits filtered as before still answer.
+    const fallback = await fallbackAnswer(query, requestId).catch(() =>
+      extractiveAnswer(filterLexicalHits(hits, query), requestId),
+    );
     fallback.notice =
       "La synthèse par IA est indisponible ou n’a pas passé la vérification des références. Voici les extraits officiels disponibles.";
     return fallback;
