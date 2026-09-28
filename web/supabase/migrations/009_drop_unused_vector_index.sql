@@ -1,0 +1,12 @@
+-- Run once after 008_index_config.sql in the Supabase SQL editor, before the
+-- reindex (web/ACTUALISATION.md, « Réindexation »).
+--
+-- The HNSW index on document_passages.embedding is never used: since 006,
+-- search_passages computes the exact distance of every answer passage of the
+-- active version (no ORDER BY distance LIMIT, the only form HNSW serves); its
+-- scan counter stays at 0. It still has to place every new vector in its graph:
+-- on Supabase Free, a batch of 100 passages then exceeded the statement timeout
+-- (57014, run 20 of the refresh workflow, 28 September 2026). Measured locally
+-- on 3 000 vectors: 100 passages inserted in 516 ms with the index, 15 ms
+-- without. Dropping it also frees its storage (several tens of MB).
+drop index if exists public.document_passages_vector;

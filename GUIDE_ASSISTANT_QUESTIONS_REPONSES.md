@@ -19,7 +19,7 @@ fiches produit…
 | Validation des données | **zod** | 4 | Format des fiches, des requêtes et de la sortie de l'IA |
 | Icônes | **lucide-react** | 1 | Interface |
 | Base de données | **Supabase** : PostgreSQL et client `@supabase/supabase-js` | Formule Free, région West EU (Irlande) | Fiches, passages, versions, quotas |
-| Recherche par le sens | Extension **pgvector** (index HNSW, distance cosinus `<=>`) | 0.8 | Vecteurs de 1 536 dimensions |
+| Recherche par le sens | Extension **pgvector** (distance cosinus `<=>`, calculée exactement) | 0.8 | Vecteurs de 1 536 dimensions |
 | Recherche par mots | **Recherche plein texte de PostgreSQL** (`tsvector`, configuration `french`, index GIN) | — | Mots-clés, pondération du titre |
 | Vecteurs | **OpenAI** `text-embedding-3-small` (SDK `openai`) | SDK 7 | Vectoriser les passages et les questions |
 | Rédaction des réponses | **OpenAI** `gpt-5-mini` (API Responses, sortie structurée) | Réflexion `low` | Synthèse avec références |
@@ -173,7 +173,7 @@ administratifs) et les lignes d'en-tête (catégorie, produit, date…).
 | Table | Contenu |
 |---|---|
 | `question_documents` | Une ligne par contenu distinct (`content_hash`) avec la fiche complète en JSON |
-| `document_passages` | Les passages : `content`, `search_text`, `embedding vector(1536)`, index plein texte et index HNSW |
+| `document_passages` | Les passages : `content`, `search_text`, `embedding vector(1536)`, index plein texte. Pas d'index HNSW : la recherche calcule la distance exacte, et l'index ralentissait les imports sur Supabase Free (migration 009) |
 | `corpus_versions` | Une ligne par import (nombre de fiches, méthode, version active) |
 | `version_questions` | La composition de chaque version (fiche → contenu) |
 
