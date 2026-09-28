@@ -1,6 +1,14 @@
 import { nature, toSource } from "./documents";
 import { dateLabel } from "./format";
-import { type ChatResponse, documentedParagraphsSchema, generatedSchema, type Hit, MAX_PARAGRAPHS } from "./schema";
+import {
+  type ChatResponse,
+  documentedParagraphsSchema,
+  generatedSchema,
+  type Hit,
+  MAX_PARAGRAPHS,
+  type Source,
+} from "./schema";
+import { focusedExcerpts } from "./search";
 
 const relevanceInstructions = `
 Les extraits sont sélectionnés automatiquement dans le corpus de l'application, et non fournis par l'utilisateur. Une proximité de vocabulaire ne prouve pas leur pertinence.
@@ -12,6 +20,27 @@ Pour chaque mesure, conserve explicitement son bénéficiaire (personnel, usager
 Une relance conserve le contexte utile, mais une nouvelle question explicite sur un autre sujet remplace le sujet précédent.
 Ne crée pas de paragraphe ni de réserve sur des mesures hors du périmètre demandé. Le champ limits doit respecter les mêmes règles que les paragraphes : aucune ambiguïté inventée sur les bénéficiaires.
 `;
+
+const sectionRank = (hit: Hit) => (hit.passage.section === "question" ? 0 : 1);
+/**
+ * One source per question, whose excerpts are the parts of its cited passages
+ * that bear on each focus (each paragraph citing it, or the user's question),
+ * in document order. `sourceIdOf` maps each passage id to its source id.
+ */
+function groupedSources(cited: { hit: Hit; focuses: string[] }[]) {
+  const groups = new Map<string, { hit: Hit; focuses: string[] }[]>();
+  for (const entry of cited) groups.set(entry.hit.question.id, [...(groups.get(entry.hit.question.id) ?? []), entry]);
+  const sourceIdOf = new Map<string, string>();
+  const sources: Source[] = [...groups.values()].map(entries => {
+    const [first] = entries as [{ hit: Hit; focuses: string[] }];
+    for (const { hit } of entries) sourceIdOf.set(hit.passage.id, first.hit.passage.id);
+    const excerpts = [...entries]
+      .sort((a, b) => sectionRank(a.hit) - sectionRank(b.hit) || a.hit.passage.order - b.hit.passage.order)
+      .flatMap(({ hit, focuses }) => focusedExcerpts(hit.passage.text, focuses));
+    return { ...toSource(first.hit), excerpts };
+  });
+  return { sources, sourceIdOf };
+}
 
 function insufficientAnswer(requestId: string, mode: ChatResponse["mode"]): ChatResponse {
   return {
@@ -29,28 +58,29 @@ function insufficientAnswer(requestId: string, mode: ChatResponse["mode"]): Chat
   };
 }
 
-export function extractiveAnswer(hits: Hit[], requestId: string): ChatResponse {
+export function extractiveAnswer(hits: Hit[], requestId: string, query = ""): ChatResponse {
   const responseHits = hits.filter(h => h.passage.section === "reponse").slice(0, 3);
   if (!responseHits.length) return insufficientAnswer(requestId, "extraits");
-  // One paragraph per question: its passages are shown together instead of
-  // repeating the same heading for the first and second passages of a document.
+  // One paragraph and one source per question: its passages are shown
+  // together, cut around the words of the user's question.
+  const { sources, sourceIdOf } = groupedSources(responseHits.map(hit => ({ hit, focuses: [query] })));
   const groups = new Map<string, Hit[]>();
   for (const hit of responseHits) groups.set(hit.question.id, [...(groups.get(hit.question.id) ?? []), hit]);
   return {
     mode: "extraits",
     status: "documente",
     paragraphs: [...groups.values()].map(group => {
-      const { question } = group[0] as Hit;
+      const first = group[0] as Hit;
+      const { question } = first;
       return {
         text:
           nature(question) === "incompetence"
             ? `La réponse du ${dateLabel(question.date_reponse)} indique une absence de compétence du destinataire. Elle n’apporte pas de réponse sur le fond.`
             : `${group.length > 1 ? "Passages" : "Passage"} de la réponse du ${dateLabel(question.date_reponse)} :`,
-        sourceIds: group.map(h => h.passage.id),
+        sourceIds: [sourceIdOf.get(first.passage.id) ?? first.passage.id],
       };
     }),
-    // Numbered in the order of the paragraphs that show them.
-    sources: [...groups.values()].flat().map(toSource),
+    sources,
     notice:
       "Voici des extraits exacts des réponses parlementaires. Ils décrivent les informations publiées à leur date, pas nécessairement la situation actuelle.",
     requestId,
@@ -67,14 +97,21 @@ export function validateGenerated(raw: unknown, hits: Hit[], requestId: string):
     if (paragraph.sourceIds.some(id => !allowed.has(id))) throw new Error("Référence inconnue");
     if (!paragraph.sourceIds.length) throw new Error("Affirmation sans source");
   }
-  const sources = [...new Set(paragraphs.flatMap(p => p.sourceIds))].flatMap(id => {
+  // One source per question, cut around the paragraphs that cite it; the
+  // paragraphs then cite the source of each passage, once.
+  const cited = [...new Set(paragraphs.flatMap(p => p.sourceIds))].flatMap(id => {
     const hit = allowed.get(id);
-    return hit ? [toSource(hit)] : [];
+    const focuses = paragraphs.filter(p => p.sourceIds.includes(id)).map(p => p.text);
+    return hit ? [{ hit, focuses }] : [];
   });
+  const { sources, sourceIdOf } = groupedSources(cited);
   return {
     mode: "ia",
     status: result.status,
-    paragraphs,
+    paragraphs: paragraphs.map(p => ({
+      ...p,
+      sourceIds: [...new Set(p.sourceIds.map(id => sourceIdOf.get(id) ?? id))],
+    })),
     sources,
     notice: result.limits || "Synthèse assistée par IA. Consultez les sources et leurs dates.",
     requestId,

@@ -46,6 +46,94 @@ export function lexicalQuery(query: string) {
     .slice(0, 40)
     .join(" OR ");
 }
+/**
+ * The parts of a passage that bear on each focus (the question, or each
+ * paragraph citing it), in passage order: whole sentences, at most about
+ * `max` characters each, « … » where cut. Overlapping parts are merged and
+ * line breaks are kept.
+ */
+export function focusedExcerpts(text: string, focuses: string[], max = 700): string[] {
+  const clean = text.replace(/[ \t]+/g, " ").trim();
+  // A stored passage can itself start mid-sentence (lowercase): mark it too.
+  const cutBefore = (excerpt: string) => /^\p{Ll}/u.test(excerpt);
+  if (clean.length <= max) return [cutBefore(clean) ? `… ${clean}` : clean];
+  // Sentences; a long run without punctuation (a list) is cut between words.
+  const pieces: string[] = [];
+  for (const sentence of clean.match(/[^.!?;:]*[.!?;:]+\s*|[^.!?;:]+/g) ?? [clean]) {
+    let current = "";
+    for (const word of sentence.split(/(?<=\s)/)) {
+      if (current && current.length + word.length > 250) {
+        pieces.push(current);
+        current = "";
+      }
+      current += word;
+    }
+    if (current) pieces.push(current);
+  }
+  const pieceTerms = pieces.map(piece => tokens(piece));
+  const windows = (focuses.length ? focuses : [""]).map(focus => {
+    const wanted = new Set(tokens(focus));
+    const matches = pieceTerms.map(terms => terms.filter(t => wanted.has(t)).length);
+    // From the most relevant piece, grow towards the more relevant neighbour.
+    let start = matches.indexOf(Math.max(...matches));
+    let end = start + 1;
+    let length = pieces[start]?.length ?? 0;
+    for (;;) {
+      const before = pieces[start - 1];
+      const after = pieces[end];
+      const canBefore = before !== undefined && length + before.length <= max;
+      const canAfter = after !== undefined && length + after.length <= max;
+      if (!canBefore && !canAfter) break;
+      if (canBefore && (!canAfter || (matches[start - 1] ?? 0) > (matches[end] ?? 0))) {
+        start--;
+        length += before.length;
+      } else {
+        end++;
+        length += after?.length ?? 0;
+      }
+    }
+    return [start, end] as [number, number];
+  });
+  const merged: [number, number][] = [];
+  for (const [start, end] of windows.sort((a, b) => a[0] - b[0])) {
+    const last = merged.at(-1);
+    if (last && start <= last[1]) last[1] = Math.max(last[1], end);
+    else merged.push([start, end]);
+  }
+  return merged.map(([start, end]) => {
+    const excerpt = pieces.slice(start, end).join("").trim();
+    return `${start > 0 || cutBefore(excerpt) ? "… " : ""}${excerpt}${end < pieces.length ? " …" : ""}`;
+  });
+}
+/**
+ * Passages given to the model: the hits, then other answer passages of the
+ * same questions that mention the query. The search returns at most two
+ * passages per question, while a long ministerial answer often gives its
+ * figures in another one; the MP's question adds words, not facts, and is
+ * skipped. One more passage per question in turn, best questions first; the
+ * three best may get three.
+ */
+export function contextHits(hits: Hit[], query: string, limit = 12): Hit[] {
+  const wanted = new Set(tokens(expanded(query)));
+  const seen = new Set(hits.map(hit => hit.passage.id));
+  const candidates = [...new Map(hits.map(hit => [hit.question.id, hit])).values()].map(hit => ({
+    hit,
+    extra: passages(hit.question).filter(
+      passage =>
+        !seen.has(passage.id) && passage.section === "reponse" && tokens(passage.text).some(t => wanted.has(t)),
+    ),
+  }));
+  const result = [...hits];
+  for (let round = 0; round < 3; round++) {
+    for (const [rank, { hit, extra }] of candidates.entries()) {
+      const passage = extra[round];
+      if (!passage || (round > 0 && rank >= 3)) continue;
+      if (result.length >= limit) return result;
+      result.push({ passage, question: hit.question, score: hit.score });
+    }
+  }
+  return result;
+}
 // Tokenizing a whole question is the costly step: cache it per question object.
 const documentTermsCache = new WeakMap<Question, Set<string>>();
 function documentTerms(q: Question) {

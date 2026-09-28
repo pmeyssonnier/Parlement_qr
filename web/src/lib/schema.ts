@@ -46,7 +46,8 @@ export const sourceSchema = z.object({
   recipient: z.string(),
   date: z.iso.date().nullable(),
   url: z.url(),
-  excerpt: z.string(),
+  /** Parts of the cited passages that bear on the answer, in document order. */
+  excerpts: z.array(z.string()).min(1),
   nature: natureSchema,
 });
 export type Source = z.infer<typeof sourceSchema>;

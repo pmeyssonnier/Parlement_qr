@@ -29,8 +29,8 @@ export function answerHtml({ question, response, durationMs, at }: ExportInput) 
       const excerpts =
         mode === "extraits"
           ? p.sourceIds
-              .map(id => sources.find(s => s.id === id))
-              .map(s => (s ? `<blockquote>${multiline(s.excerpt)}</blockquote>` : ""))
+              .flatMap(id => sources.find(s => s.id === id)?.excerpts ?? [])
+              .map(excerpt => `<blockquote>${multiline(excerpt)}</blockquote>`)
               .join("")
           : "";
       return `<p>${escapeHtml(p.text)}${citations}</p>${excerpts}`;
@@ -42,7 +42,7 @@ export function answerHtml({ question, response, durationMs, at }: ExportInput) 
 <p class="source-title">[${i + 1}] ${escapeHtml(shortTitle(s.title))}</p>
 <p class="meta">${escapeHtml(s.author)} · ${escapeHtml(dateLabel(s.date))}<br>${escapeHtml(s.recipient)}</p>
 ${s.nature === "incompetence" ? '<p class="warning">Cette réponse indique une absence de compétence du destinataire.</p>' : ""}
-<blockquote>${multiline(s.excerpt)}</blockquote>
+${s.excerpts.map(excerpt => `<blockquote>${multiline(excerpt)}</blockquote>`).join("\n")}
 <p><a href="${escapeHtml(s.url)}">Lire la fiche officielle</a></p>
 </li>`,
     )

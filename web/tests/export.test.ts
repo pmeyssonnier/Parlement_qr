@@ -16,7 +16,7 @@ const response: ChatResponse = {
       recipient: "Elke Van den Brandt - Ministre",
       date: "2026-09-20",
       url: "https://www.parlement.brussels/weblex-quest-det/?moncode=170245&base=1",
-      excerpt: "Il n’est pas possible…\nDeuxième ligne",
+      excerpts: ["Il n’est pas possible…\nDeuxième ligne"],
       nature: "fond",
     },
   ],

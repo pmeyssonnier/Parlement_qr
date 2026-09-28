@@ -37,7 +37,7 @@ async function main() {
       : localSearch(corpus.questions, query);
     // Judged down to the sources a reader sees without AI, not only the questions found.
     const questionOf = new Map(hits.map(h => [h.passage.id, h.question.moncode]));
-    const shown = extractiveAnswer(hits, "audit").sources.flatMap(s => questionOf.get(s.id) ?? []);
+    const shown = extractiveAnswer(hits, "audit", query).sources.flatMap(s => questionOf.get(s.id) ?? []);
     const result = withDisplay(evaluateCase(c, distinctQuestions(hits)), c, shown);
     results.push(result);
     const status = result.pass ? (result.gap ? "RÉSOLU" : "OK") : result.gap ? "ÉCART CONNU" : "ÉCHEC";

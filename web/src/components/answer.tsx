@@ -21,7 +21,9 @@ function SourceCard({ source, index }: { source: Source; index: number }) {
         {source.nature === "incompetence" && (
           <p className="warning">Cette réponse indique une absence de compétence du destinataire.</p>
         )}
-        <blockquote>{source.excerpt}</blockquote>
+        {source.excerpts.map(excerpt => (
+          <blockquote key={excerpt}>{excerpt}</blockquote>
+        ))}
         <a href={source.url} target="_blank" rel="noreferrer">
           Lire la fiche officielle <ArrowUpRight size={14} aria-hidden="true" />
         </a>
@@ -63,7 +65,11 @@ export function Answer({
               ))}
           </p>
           {mode === "extraits" &&
-            p.sourceIds.map(id => <blockquote key={id}>{sources.find(s => s.id === id)?.excerpt}</blockquote>)}
+            p.sourceIds.flatMap(id =>
+              (sources.find(s => s.id === id)?.excerpts ?? []).map(excerpt => (
+                <blockquote key={`${id}-${excerpt}`}>{excerpt}</blockquote>
+              )),
+            )}
         </div>
       ))}
       {sources.length > 0 && (
