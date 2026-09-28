@@ -43,7 +43,7 @@ test("client : chaque paragraphe et chaque source sont vérifiés", () => {
   // Rendered as href: a javascript: or data: link must never reach the page.
   assert.equal(isChatResponse(withSource({ url: "javascript:alert(1)" })), false);
   assert.equal(isChatResponse(withSource({ url: "http://www.parlement.brussels/x" })), false);
-  assert.equal(isChatResponse(withSource({ excerpt: undefined })), false);
+  assert.equal(isChatResponse(withSource({ excerpts: [] })), false);
   assert.equal(isChatResponse(withSource({ nature: "autre" })), false);
   assert.equal(isChatResponse({ ...response, paragraphs: [{ text: "x" }] }), false);
   assert.equal(isChatResponse({ ...response, requestId: undefined }), false);

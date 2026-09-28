@@ -8,7 +8,7 @@ import { corpus } from "./corpus";
 import type { Database } from "./database.types";
 import { nature } from "./documents";
 import { generatedSchema, type Hit, type QuotaGrant, quotaGrantSchema, searchRowSchema } from "./schema";
-import { contextualQuery, filterLexicalHits, lexicalQuery, localSearch } from "./search";
+import { contextHits, contextualQuery, filterLexicalHits, lexicalQuery, localSearch } from "./search";
 import { type Timings, timed } from "./timing";
 import { ttlCache } from "./ttl-cache";
 
@@ -173,7 +173,7 @@ export async function fallbackAnswer(
   requestId: string,
   search: (query: string) => Promise<Hit[]> = q => findHits(q, false),
 ) {
-  return extractiveAnswer(await search(query), requestId);
+  return extractiveAnswer(await search(query), requestId, query);
 }
 export async function answer(
   message: string,
@@ -185,13 +185,14 @@ export async function answer(
   const query = contextualQuery(message, history);
   const hits = await findHits(query, useAi, timings);
   if (!useAi || !hits.length) {
-    const result = extractiveAnswer(hits, requestId);
+    const result = extractiveAnswer(hits, requestId, query);
     if (aiEnabled() && !useAi)
       result.notice =
         "La limite quotidienne de synthèses par IA est atteinte. La recherche continue sans IA, à partir des mots-clés de votre question.";
     return result;
   }
   const model = process.env.CHAT_MODEL || "gpt-5-mini";
+  const context = contextHits(hits, query);
   try {
     const response = await timed(timings, "generation", () =>
       openai().responses.parse(
@@ -204,7 +205,7 @@ export async function answer(
           input: JSON.stringify({
             question: message,
             contexteUtilisateur: history,
-            sources: hits.map(h => ({
+            sources: context.map(h => ({
               sourceId: h.passage.id,
               titre: h.question.titre,
               auteur: h.question.auteur,
@@ -220,7 +221,7 @@ export async function answer(
         { timeout: 30000 },
       ),
     );
-    return validateGenerated(response.output_parsed, hits, requestId);
+    return validateGenerated(response.output_parsed, context, requestId);
   } catch (error) {
     // Never expose upstream error payloads, prompt contents or credentials.
     const code =
@@ -236,7 +237,7 @@ export async function answer(
     console.error(JSON.stringify({ requestId, code }));
     // If that search fails too, the hybrid hits filtered as before still answer.
     const fallback = await fallbackAnswer(query, requestId).catch(() =>
-      extractiveAnswer(filterLexicalHits(hits, query), requestId),
+      extractiveAnswer(filterLexicalHits(hits, query), requestId, query),
     );
     fallback.notice =
       "La synthèse par IA est indisponible ou n’a pas passé la vérification des références. Voici les extraits officiels disponibles.";

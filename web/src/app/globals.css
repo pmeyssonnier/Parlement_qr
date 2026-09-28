@@ -850,3 +850,7 @@ textarea:focus-visible {
     transition: none !important;
   }
 }
+/* Several excerpts of one question under the same paragraph. */
+.answer-paragraph blockquote + blockquote {
+  margin-top: 8px;
+}

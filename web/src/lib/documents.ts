@@ -76,7 +76,7 @@ export function toSource(hit: Hit): Source {
     recipient: hit.question.destinataire,
     date: hit.question.date_reponse,
     url: safeSourceUrl(hit.question.url_source),
-    excerpt: hit.passage.text,
+    excerpts: [hit.passage.text],
     nature: nature(hit.question),
   };
 }

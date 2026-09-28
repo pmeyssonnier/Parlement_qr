@@ -4,7 +4,14 @@ import { extractiveAnswer, validateGenerated } from "../src/lib/answer";
 import { corpus } from "../src/lib/corpus";
 import { nature, passages, safeSourceUrl, validateCorpus } from "../src/lib/documents";
 import { chatInput, chatResponseSchema } from "../src/lib/schema";
-import { contextualQuery, filterLexicalHits, lexicalQuery, localSearch } from "../src/lib/search";
+import {
+  contextHits,
+  contextualQuery,
+  filterLexicalHits,
+  focusedExcerpts,
+  lexicalQuery,
+  localSearch,
+} from "../src/lib/search";
 import { fallbackAnswer, localQuota } from "../src/lib/server";
 
 const [sample] = corpus.questions;
@@ -203,24 +210,82 @@ test("quota anti-abus : refus sans consommer les autres compteurs", () => {
   assert.equal(localQuota([["t:b", 2, 1000]], now), false);
 });
 
-test("sans IA : un paragraphe par fiche, avec ses passages", () => {
-  const hits = localSearch(corpus.questions, "STIB forte chaleur");
-  const result = extractiveAnswer(hits, "test");
+test("sans IA : un paragraphe et une source par fiche, extraits ciblés", () => {
+  const query = "STIB forte chaleur";
+  const hits = localSearch(corpus.questions, query);
+  const result = extractiveAnswer(hits, "test", query);
   const fiches = new Set(hits.slice(0, 3).map(h => h.question.id));
   assert.equal(result.paragraphs.length, fiches.size);
-  assert.deepEqual(
-    [...result.paragraphs.flatMap(p => p.sourceIds)].sort(),
-    hits
-      .slice(0, 3)
-      .map(h => h.passage.id)
-      .sort(),
-  );
-  // Sources are numbered in the order of the paragraphs that show them.
+  assert.equal(result.sources.length, fiches.size);
+  // Each paragraph cites its own source, numbered in paragraph order.
   assert.deepEqual(
     result.sources.map(s => s.id),
     result.paragraphs.flatMap(p => p.sourceIds),
   );
-  assert.ok(result.paragraphs.some(p => p.sourceIds.length > 1 && p.text.startsWith("Passages de la réponse")));
+  const grouped = result.paragraphs.findIndex(p => p.text.startsWith("Passages de la réponse"));
+  assert.ok(grouped >= 0);
+  assert.equal(result.sources[grouped]?.excerpts.length, 2);
+  for (const excerpt of result.sources.flatMap(s => s.excerpts)) assert.ok(excerpt.length <= 710);
+  assert.ok(chatResponseSchema.safeParse(result).success);
+});
+
+test("extraits ciblés : phrases entières autour des mots cités, sauts de ligne gardés", () => {
+  const filler = "Phrase de contexte sans rapport avec le sujet. ".repeat(30);
+  const text = `${filler}\nLa ligne 55 compte 12 000 voyageurs par jour.\n${filler}`;
+  const [excerpt, ...rest] = focusedExcerpts(text, ["fréquentation voyageurs ligne 55"]);
+  assert.equal(rest.length, 0);
+  assert.ok(excerpt);
+  assert.match(excerpt, /La ligne 55 compte 12 000 voyageurs par jour\./);
+  assert.match(excerpt, /^… /);
+  assert.match(excerpt, / …$/);
+  assert.ok(excerpt.length <= 710);
+  assert.match(excerpt, /\n/);
+  // Two focuses far apart give two excerpts, in passage order; a short passage is kept whole.
+  const two = focusedExcerpts(`Début sur les trams. ${filler}${filler}Fin sur les bus.`, ["bus", "trams"]);
+  assert.equal(two.length, 2);
+  assert.match(two[0] ?? "", /trams/);
+  assert.match(two[1] ?? "", /bus/);
+  assert.deepEqual(focusedExcerpts("Texte court.", ["x"]), ["Texte court."]);
+});
+
+test("contexte envoyé à l'IA : autres passages de réponse des fiches retrouvées", () => {
+  const long = corpus.questions.find(q => passages(q).filter(p => p.section === "reponse").length >= 3);
+  assert.ok(long, "une fiche de test à trois passages de réponse");
+  const all = passages(long);
+  const [first] = all.filter(p => p.section === "reponse");
+  assert.ok(first);
+  const hits = [{ passage: first, question: long, score: 1 }];
+  const words = long.titre;
+  const context = contextHits(hits, words);
+  assert.equal(context[0], hits[0]);
+  assert.ok(context.length > 1);
+  assert.ok(context.every(h => h.passage.section === "reponse"));
+  assert.equal(new Set(context.map(h => h.passage.id)).size, context.length);
+  assert.equal(contextHits(hits, words, 1).length, 1);
+});
+
+test("synthèse IA : une source par fiche, citations renumérotées", () => {
+  const long = corpus.questions.find(q => passages(q).filter(p => p.section === "reponse").length >= 2);
+  assert.ok(long);
+  const [a, b] = passages(long).filter(p => p.section === "reponse");
+  assert.ok(a && b);
+  const hits = [a, b].map(passage => ({ passage, question: long, score: 1 }));
+  const result = validateGenerated(
+    {
+      status: "documente",
+      paragraphs: [
+        { text: "Premier point.", sourceIds: [a.id, b.id] },
+        { text: "Second point.", sourceIds: [b.id] },
+      ],
+      limits: "",
+    },
+    hits,
+    "test",
+  );
+  assert.equal(result.sources.length, 1);
+  assert.deepEqual(result.paragraphs[0]?.sourceIds, [a.id]);
+  assert.deepEqual(result.paragraphs[1]?.sourceIds, [a.id]);
+  assert.ok((result.sources[0]?.excerpts.length ?? 0) >= 2);
   assert.ok(chatResponseSchema.safeParse(result).success);
 });
 

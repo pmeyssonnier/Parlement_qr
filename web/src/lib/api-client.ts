@@ -29,7 +29,9 @@ function isSource(v: unknown) {
     // Rendered as href: only https links, never javascript: or data: ones.
     isString(v.url) &&
     v.url.startsWith("https://") &&
-    isString(v.excerpt) &&
+    Array.isArray(v.excerpts) &&
+    v.excerpts.length > 0 &&
+    v.excerpts.every(isString) &&
     natures.includes(v.nature as string)
   );
 }
