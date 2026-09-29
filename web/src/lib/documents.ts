@@ -22,6 +22,13 @@ export function validateCorpus(raw: unknown) {
   for (const q of corpus.questions) q.url_source = safeSourceUrl(q.url_source);
   return corpus;
 }
+/** Most recent of the dates of a question (reception, publication, answer), as active_corpus_info() does. */
+export function latestDate(q: Question): string | null {
+  return [q.date_reception, q.date_publication, q.date_reponse].reduce<string | null>(
+    (latest, date) => (date && (!latest || date > latest) ? date : latest),
+    null,
+  );
+}
 export function nature(q: Question): Nature {
   if (!q.reponse?.trim()) return "absente";
   if (

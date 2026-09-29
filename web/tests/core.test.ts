@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { extractiveAnswer, validateGenerated } from "../src/lib/answer";
 import { corpus } from "../src/lib/corpus";
-import { nature, passages, safeSourceUrl, validateCorpus } from "../src/lib/documents";
+import { latestDate, nature, passages, safeSourceUrl, validateCorpus } from "../src/lib/documents";
 import { chatInput, chatResponseSchema } from "../src/lib/schema";
 import {
   contextHits,
@@ -12,7 +12,7 @@ import {
   lexicalQuery,
   localSearch,
 } from "../src/lib/search";
-import { fallbackAnswer, localQuota } from "../src/lib/server";
+import { corpusInfo, fallbackAnswer, localQuota, localRelease, semanticSearchEnabled } from "../src/lib/server";
 
 const [sample] = corpus.questions;
 assert.ok(sample);
@@ -299,4 +299,42 @@ test("synthèse IA en échec : nouvelle recherche sans IA, pas les résultats hy
   assert.equal(result.status, "insuffisant");
   const found = await fallbackAnswer("STIB forte chaleur", "req", async q => localSearch(corpus.questions, q));
   assert.equal(found.status, "documente");
+});
+
+test("quota rendu : une question sans réponse ne compte pas, jamais sous zéro", () => {
+  const now = 5_000_000;
+  const both: [string, number, number][] = [
+    ["rendu:session", 2, 1000],
+    ["rendu:ip", 2, 1000],
+  ];
+  assert.equal(localQuota(both, now), true);
+  assert.equal(localQuota(both, now), true);
+  assert.equal(localQuota(both, now), false);
+  localRelease(["rendu:session", "rendu:ip"], now);
+  assert.equal(localQuota(both, now), true, "une utilisation a été rendue");
+  assert.equal(localQuota(both, now), false);
+  // Given back more often than reserved: the counter stops at zero, so two uses remain.
+  localRelease(["rendu:session", "rendu:session", "rendu:session", "rendu:ip", "rendu:ip", "rendu:ip"], now);
+  assert.equal(localQuota(both, now), true);
+  assert.equal(localQuota(both, now), true);
+  assert.equal(localQuota(both, now), false);
+  // An expired counter is not touched.
+  localRelease(["rendu:session"], now + 2000);
+});
+
+test("date du document le plus récent : réception, publication ou réponse", () => {
+  const base = { ...sample, date_reception: "2026-01-05", date_publication: null, date_reponse: null };
+  assert.equal(latestDate(base), "2026-01-05");
+  assert.equal(latestDate({ ...base, date_publication: "2026-03-15" }), "2026-03-15");
+  assert.equal(latestDate({ ...base, date_publication: "2026-03-15", date_reponse: "2026-02-10" }), "2026-03-15");
+});
+
+test("informations du corpus local : dernière date, sans Supabase", async () => {
+  const info = await corpusInfo();
+  assert.equal(info.origin, "local");
+  const dates = corpus.questions.flatMap(q => latestDate(q) ?? []).sort();
+  assert.equal(info.latestDocument, dates.at(-1));
+  assert.match(info.latestDocument ?? "", /^\d{4}-\d{2}-\d{2}$/);
+  // No vector search without Supabase, whatever the configuration of the version.
+  assert.equal(await semanticSearchEnabled(async () => "passages-1;text-embedding-3-small;1536"), false);
 });

@@ -209,12 +209,17 @@ export type Database = {
           count: number
           extracted_at: string
           id: string
+          latest_document: string | null
           method: string
         }[]
       }
       fold_accents: { Args: { p: string }; Returns: string }
       passage_fts: { Args: { p_search_text: string }; Returns: unknown }
       prune_corpus_versions: { Args: { p_keep: number }; Returns: number }
+      release_chat_quota: {
+        Args: { p_ai: boolean; p_ip: string; p_reserved_at: string; p_session: string }
+        Returns: undefined
+      }
       ready_documents: {
         Args: { p_hashes: string[]; p_model: string }
         Returns: {
@@ -245,6 +250,7 @@ export type Database = {
           section: string
         }[]
       }
+      schema_version: { Args: never; Returns: number }
       search_words: { Args: { p: string }; Returns: string }
       version_documents: { Args: { p_version: string }; Returns: Json[] }
     }

@@ -60,6 +60,7 @@ export function Sidebar({
           </p>
           <p>{isDemoCorpus(corpus) ? "Échantillon exploratoire · Français" : "Documents parlementaires · Français"}</p>
           <small>Collecte du {dateLabel(corpus.extractedAt.slice(0, 10))}</small>
+          {corpus.latestDocument && <small>Documents jusqu’au {dateLabel(corpus.latestDocument)}</small>}
         </div>
         <p className="independent">
           Une initiative indépendante.

@@ -119,7 +119,8 @@ Détails dans [web/ACTUALISATION.md](web/ACTUALISATION.md).
 | `web/src/app/` | Page d'accueil et routes serveur (`/api/chat`, `/api/health`) |
 | `web/src/components/` | Interface du chat |
 | `web/src/lib/` | Recherche, génération, quotas, schémas et client de l'API |
-| `web/supabase/migrations/` | Schéma PostgreSQL, à appliquer dans l'ordre (001 → 009) |
+| `web/supabase/tests/` | Tests SQL des migrations 008 et 010, rejoués par la CI sur une base pgvector jetable (`run.sh`, jamais sur Supabase) |
+| `web/supabase/migrations/` | Schéma PostgreSQL, à appliquer dans l'ordre (001 → 010) |
 | `web/scripts/` | Import, export et actualisation du corpus, audit de la recherche |
 | `web/tests/` | Tests unitaires (`node:test`) et de navigateur (Playwright) |
 | `web/data/` | Corpus d'échantillon et copies des pages collectées |
@@ -167,6 +168,10 @@ Sous Windows PowerShell, si `npm` est bloqué par la stratégie d'exécution, ut
 La CI (`.github/workflows/check.yml`) lance Biome, le contrôle TypeScript, les tests
 unitaires, la validation du corpus, les cas de recherche (`audit:search` sur
 `data/corpus-refreshed.json`), le build et les tests Playwright, sans Supabase ni OpenAI.
+Un second job rejoue les migrations et leurs tests SQL sur une base PostgreSQL et pgvector
+jetable. Les migrations 010 et suivantes inscrivent leur numéro dans `schema_migrations` :
+`/api/health` compare la version lue en base (`schema`) à celle qu'attend le code
+(`schemaExpected`).
 
 ## Documentation
 

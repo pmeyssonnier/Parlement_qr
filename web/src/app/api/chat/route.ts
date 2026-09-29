@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { type NextRequest, NextResponse } from "next/server";
 import { permittedOrigins } from "@/lib/origins";
 import { chatInput } from "@/lib/schema";
-import { aiEnabled, answer, reserveQuota, sessionFromCookie } from "@/lib/server";
+import { aiEnabled, answer, type QuotaGrant, releaseQuota, reserveQuota, sessionFromCookie } from "@/lib/server";
 import { failureCode, type Timings, timed } from "@/lib/timing";
 
 export const runtime = "nodejs";
@@ -21,6 +21,10 @@ export async function POST(request: NextRequest) {
   const timings: Timings = {};
   const started = performance.now();
   const total = () => ({ ...timings, total: Math.round(performance.now() - started) });
+  // Set once the quota is reserved, so that a failure can give it back.
+  let ip = "unknown";
+  let reservedAt = new Date();
+  let grant: QuotaGrant | undefined;
   try {
     // Bound streamed input, including requests without a Content-Length header.
     const reader = request.body?.getReader();
@@ -40,10 +44,11 @@ export async function POST(request: NextRequest) {
     const input = chatInput.safeParse(JSON.parse(Buffer.concat(parts).toString("utf8")));
     if (!input.success) return fail("Écrivez une question de 3 à 1 500 caractères.", 400);
     // Trust Vercel's platform header only on Vercel; local clients share one bucket.
-    const ip = process.env.VERCEL
+    ip = process.env.VERCEL
       ? request.headers.get("x-vercel-forwarded-for")?.split(",")[0]?.trim() || "unknown"
       : "local";
-    const grant = await timed(timings, "quota", () => reserveQuota(session.id, ip, aiEnabled()));
+    reservedAt = new Date();
+    grant = await timed(timings, "quota", () => reserveQuota(session.id, ip, aiEnabled()));
     if (grant === "refuse")
       return fail(
         "La limite de questions est atteinte. Réessayez plus tard ; les documents restent consultables.",
@@ -65,6 +70,11 @@ export async function POST(request: NextRequest) {
     // Only a random request ID, application-owned codes and durations enter
     // operational logs: the cause says which step failed (QUOTA_UNAVAILABLE…).
     console.error(JSON.stringify({ requestId, code: "CHAT_UNAVAILABLE", cause: failureCode(error), ms: total() }));
+    // Nothing was answered: the question does not count against the quota.
+    if (grant)
+      await releaseQuota(session.id, ip, grant, reservedAt).catch((releaseError: unknown) =>
+        console.error(JSON.stringify({ requestId, code: "QUOTA_RELEASE_FAILED", cause: failureCode(releaseError) })),
+      );
     return fail(
       "Le service est momentanément indisponible. Vous pouvez consulter les sources et réessayer plus tard.",
       503,
