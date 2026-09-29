@@ -1,7 +1,8 @@
-import { ArrowUp } from "lucide-react";
-import type { RefObject } from "react";
+import { ArrowUp, Mic } from "lucide-react";
+import { type RefObject, useEffect } from "react";
 import { MAX_QUESTION_LENGTH, MIN_QUESTION_LENGTH } from "@/lib/limits";
 import type { CorpusSummary } from "./types";
+import { useDictation } from "./use-dictation";
 
 export function Composer({
   corpus,
@@ -20,13 +21,23 @@ export function Composer({
   onSend: () => void;
   onShowScope: () => void;
 }) {
+  const dictation = useDictation(input, onChange);
+  const { cancel } = dictation;
+  // A question being answered is no longer dictated into.
+  useEffect(() => {
+    if (busy) cancel();
+  }, [busy, cancel]);
+  const send = () => {
+    cancel();
+    onSend();
+  };
   return (
     <div className="composer-zone">
       <form
         className="composer"
         onSubmit={e => {
           e.preventDefault();
-          onSend();
+          send();
         }}
       >
         <label htmlFor="question" className="sr-only">
@@ -43,7 +54,7 @@ export function Composer({
           onKeyDown={e => {
             if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
               e.preventDefault();
-              onSend();
+              send();
             }
           }}
         />
@@ -54,6 +65,19 @@ export function Composer({
           </span>
           <div>
             <span className="character-count">{input.length}/1 500</span>
+            {dictation.supported && (
+              <button
+                type="button"
+                className={`mic${dictation.listening ? " listening" : ""}`}
+                onClick={dictation.toggle}
+                disabled={busy}
+                aria-pressed={dictation.listening}
+                aria-label="Dicter votre question"
+                title="Dicter votre question (transcrite par votre navigateur)"
+              >
+                <Mic size={18} aria-hidden="true" />
+              </button>
+            )}
             <button
               className="send"
               type="submit"
@@ -65,6 +89,9 @@ export function Composer({
           </div>
         </div>
       </form>
+      <p className="dictation-status" role="status">
+        {dictation.listening ? "Je vous écoute… Parlez, puis touchez le micro pour arrêter." : dictation.message}
+      </p>
       <p className="scope-note">
         {corpus.count} questions · {corpus.answerCount} réponses disponibles. Ce corpus ne couvre pas tous les travaux
         parlementaires.{" "}

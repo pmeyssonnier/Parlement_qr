@@ -391,6 +391,43 @@ textarea:focus-visible {
   height: 34px;
   border-radius: 7px;
 }
+.mic {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 7px;
+  border: 1px solid #d5dbcb;
+  background: none;
+  color: var(--green);
+}
+.mic:hover:not(:disabled) {
+  background: var(--light);
+}
+.mic:disabled {
+  opacity: 0.5;
+}
+.mic.listening {
+  background: var(--green);
+  color: white;
+  animation: mic-pulse 1.4s ease-out infinite;
+}
+@keyframes mic-pulse {
+  0% {
+    box-shadow: 0 0 0 0 #204d4066;
+  }
+  100% {
+    box-shadow: 0 0 0 10px #204d4000;
+  }
+}
+.dictation-status {
+  min-height: 15px;
+  margin: 7px 0 0;
+  font-size: 11px;
+  line-height: 1.4;
+  text-align: center;
+  color: #6f7e63;
+}
 .scope-note {
   font-size: 10px;
   color: #9a9f92;
@@ -835,7 +872,8 @@ textarea:focus-visible {
   .user-question h2 {
     font-size: 24px;
   }
-  .send {
+  .send,
+  .mic {
     width: 40px;
     height: 40px;
   }
