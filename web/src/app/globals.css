@@ -179,8 +179,12 @@ textarea:focus-visible {
   margin: 7px 0 13px;
 }
 .corpus-card small {
+  display: block;
   font-size: 9px;
   color: #868c80;
+}
+.corpus-card small + small {
+  margin-top: 3px;
 }
 .independent {
   font-size: 10px;

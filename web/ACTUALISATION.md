@@ -20,7 +20,7 @@ Copiez leurs valeurs directement depuis votre configuration locale, sans les
 publier dans un fichier ou une conversation. Les variables Vercel ne sont pas
 transmises automatiquement à GitHub Actions.
 
-Avant la première exécution, appliquez dans l'ordre les migrations 003 à 009 de
+Avant la première exécution, appliquez dans l'ordre les migrations 003 à 010 de
 `supabase/migrations/` dans l'éditeur SQL de Supabase.
 
 Dans Actions → Refresh parliamentary corpus → Run workflow, mettez expand à 0
@@ -46,6 +46,17 @@ Pour suspendre, passez cette variable à false. Un lancement manuel reste possib
    lors d'une exécution suivante.
 5. Import : les fiches inchangées sont recopiées dans Supabase avec leurs embeddings,
    sans appel OpenAI ; seules les fiches nouvelles ou modifiées sont vectorisées.
+
+## Version du schéma et fraîcheur du corpus
+
+Les migrations sont appliquées à la main. Depuis la migration 010, chacune inscrit son
+numéro dans `schema_migrations`, et `/api/health` donne :
+- `schema` : la dernière migration appliquée dans la base ;
+- `schemaExpected` : celle qu'attend le code déployé. S'ils diffèrent, le journal Vercel
+  contient `SCHEMA_VERSION_MISMATCH` : appliquez les migrations manquantes dans l'ordre ;
+- `latestDocument` : la date la plus récente parmi les fiches du corpus (réception,
+  publication ou réponse). La date de collecte ne dit pas jusqu'où vont les documents ;
+  la page d'accueil affiche aussi « Documents jusqu'au … ».
 
 ## Rattrapage de la législature
 

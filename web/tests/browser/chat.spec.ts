@@ -44,3 +44,15 @@ test("API rejette les origines tierces et les messages excessifs", async ({ requ
   });
   expect(long.status()).toBe(400);
 });
+test("/api/health : corpus, dernière date et version du schéma attendue", async ({ request }) => {
+  const response = await request.get("/api/health");
+  expect(response.status()).toBe(200);
+  const health = await response.json();
+  expect(health.status).toBe("ok");
+  expect(health.documents).toBeGreaterThan(0);
+  expect(health.latestDocument).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  // Local recette: no Supabase, so no vector search and no schema to read.
+  expect(health.semantic).toBe(false);
+  expect(health.schema).toBeNull();
+  expect(health.schemaExpected).toBeGreaterThanOrEqual(10);
+});

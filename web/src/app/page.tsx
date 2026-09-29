@@ -3,8 +3,8 @@ import { aiEnabled, cachedCorpusInfo } from "@/lib/server";
 export const dynamic = "force-dynamic";
 export default async function Page() {
   try {
-    const { count, answerCount, extractedAt, method } = await cachedCorpusInfo();
-    return <Chat corpus={{ count, answerCount, extractedAt, method, ai: aiEnabled() }} />;
+    const { count, answerCount, extractedAt, latestDocument, method } = await cachedCorpusInfo();
+    return <Chat corpus={{ count, answerCount, extractedAt, latestDocument, method, ai: aiEnabled() }} />;
   } catch {
     return (
       <main className="unavailable">

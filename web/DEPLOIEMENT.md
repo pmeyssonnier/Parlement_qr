@@ -65,6 +65,10 @@ Ouvrez l'URL fournie, authentifiez-vous si la protection le demande, puis vérif
 
 - 106 questions et 94 réponses disponibles (ou les nouveaux chiffres du corpus actif) ;
 - `/api/health` : status ok, documents 106, answers 94, mode ia ;
+- dans la même réponse : `schema` égal à `schemaExpected` (sinon une migration manque, ou le
+  code est plus ancien que la base : appliquez les migrations dans l'ordre), `semantic` à
+  true en mode ia (recherche par vecteurs active) et `latestDocument`, la date du
+  document le plus récent du corpus ;
 - une question connue, puis une relance ;
 - un sujet absent ;
 - les liens officiels et l'affichage sur téléphone.

@@ -6,9 +6,10 @@ import { zodTextFormat } from "openai/helpers/zod";
 import { extractiveAnswer, instructions, validateGenerated } from "./answer";
 import { corpus } from "./corpus";
 import type { Database } from "./database.types";
-import { nature } from "./documents";
+import { latestDate, nature } from "./documents";
 import { DEFAULT_EMBEDDING_MODEL, EMBEDDING_DIMENSIONS, questionEmbeddingModel } from "./embedding";
 import { generatedSchema, type Hit, type QuotaGrant, quotaGrantSchema, searchRowSchema } from "./schema";
+import { SCHEMA_VERSION } from "./schema-version";
 import { contextHits, contextualQuery, filterLexicalHits, lexicalQuery, localSearch } from "./search";
 import { type Timings, timed } from "./timing";
 import { ttlCache } from "./ttl-cache";
@@ -57,6 +58,13 @@ export function localQuota(entries: [key: string, limit: number, windowMs: numbe
   }
   return true;
 }
+/** Gives back one use of each bucket, for a request that delivered nothing. */
+export function localRelease(keys: string[], now = Date.now()) {
+  for (const key of keys) {
+    const bucket = buckets.get(key);
+    if (bucket && bucket.expires > now && bucket.count > 0) bucket.count--;
+  }
+}
 function integerEnv(key: string, fallback: number, max: number) {
   const parsed = Number(process.env[key] || fallback);
   return Number.isInteger(parsed) && parsed > 0 ? Math.min(parsed, max) : fallback;
@@ -97,6 +105,27 @@ export async function reserveQuota(sessionId: string, ip: string, paid: boolean)
     ? "ia"
     : "extraits";
 }
+/**
+ * Gives back the question reserved at `reservedAt` when the request failed
+ * without any answer: hourly session and address uses, and the daily AI uses
+ * when the grant was « ia ». A « refuse » grant reserved nothing.
+ */
+export async function releaseQuota(sessionId: string, ip: string, grant: QuotaGrant, reservedAt: Date) {
+  if (grant === "refuse") return;
+  const ai = grant === "ia";
+  const db = database();
+  if (db) {
+    const { error } = await db.rpc("release_chat_quota", {
+      p_session: signature(sessionId),
+      p_ip: signature(ip),
+      p_ai: ai,
+      p_reserved_at: reservedAt.toISOString(),
+    });
+    if (error) throw new Error("QUOTA_RELEASE_UNAVAILABLE");
+    return;
+  }
+  localRelease([`session:${sessionId}`, `ip:${ip}`, ...(ai ? ["paid", `paid-ip:${ip}`] : [])]);
+}
 export async function corpusInfo() {
   const db = database();
   if (db) {
@@ -106,6 +135,8 @@ export async function corpusInfo() {
       count: data.count,
       answerCount: data.answer_count,
       extractedAt: data.extracted_at,
+      // Null until migration 010 is applied.
+      latestDocument: data.latest_document ? String(data.latest_document) : null,
       method: data.method,
       origin: "supabase" as const,
     };
@@ -114,9 +145,27 @@ export async function corpusInfo() {
     count: corpus.questions.length,
     answerCount: corpus.questions.filter(q => q.reponse?.trim()).length,
     extractedAt: corpus.extrait_le,
+    latestDocument: corpus.questions.reduce<string | null>((max, q) => {
+      const latest = latestDate(q);
+      return latest && (!max || latest > max) ? latest : max;
+    }, null),
     method: corpus.methode_echantillonnage,
     origin: "local" as const,
   };
+}
+/**
+ * Last migration applied to the database (schema_version(), from 010), null
+ * without Supabase or before 010. A value other than SCHEMA_VERSION means a
+ * migration is missing, or the code is older than the database.
+ */
+export async function schemaVersion(): Promise<number | null> {
+  const db = database();
+  if (!db) return null;
+  const { data, error } = await db.rpc("schema_version");
+  const version = error || typeof data !== "number" ? null : data;
+  if (version !== SCHEMA_VERSION)
+    console.error(JSON.stringify({ code: "SCHEMA_VERSION_MISMATCH", version, expected: SCHEMA_VERSION }));
+  return version;
 }
 // The corpus changes once a week: the home page does not need two queries,
 // one of them an exact count, on every view. /api/health stays uncached.
@@ -138,6 +187,16 @@ export async function questionModel(config: () => Promise<string | null> = activ
     console.error(JSON.stringify({ code: "INDEX_CONFIG_UNAVAILABLE" }));
     return null;
   }
+}
+/**
+ * Whether questions granted the AI get the semantic search: Supabase and the
+ * AI are enabled and the active version has vectors a question can be compared
+ * with. False means the lexical search only, e.g. a corpus imported without
+ * embeddings or the local demonstration corpus.
+ */
+export async function semanticSearchEnabled(config?: () => Promise<string | null>) {
+  if (!aiEnabled() || !database()) return false;
+  return (await questionModel(config)) !== null;
 }
 // A failed embedding call degrades to lexical search instead of failing the request.
 async function embed(query: string): Promise<number[] | null> {
