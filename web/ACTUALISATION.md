@@ -20,7 +20,7 @@ Copiez leurs valeurs directement depuis votre configuration locale, sans les
 publier dans un fichier ou une conversation. Les variables Vercel ne sont pas
 transmises automatiquement à GitHub Actions.
 
-Avant la première exécution, appliquez dans l'ordre les migrations 003 à 008 de
+Avant la première exécution, appliquez dans l'ordre les migrations 003 à 009 de
 `supabase/migrations/` dans l'éditeur SQL de Supabase.
 
 Dans Actions → Refresh parliamentary corpus → Run workflow, mettez expand à 0
@@ -149,15 +149,20 @@ Procédure :
    Supabase. La version active reste en ligne.
 2. Fusionnez le code qui l'utilise. N'attendez pas entre les deux étapes : l'ancien code
    d'import ne peut plus compléter un contenu déjà stocké.
-3. Lancez le workflow à la main avec `expand` à 0 et `max_embedding_mb` à 25. Pour le
+3. Appliquez `supabase/migrations/009_drop_unused_vector_index.sql`. Elle supprime
+   l'index vectoriel HNSW, que la recherche n'utilise pas (elle calcule la distance
+   exacte). Il ralentissait chaque insertion de vecteur : le 28 septembre 2026, la
+   première réindexation (exécution n° 20) a dépassé le délai maximal d'une requête
+   Supabase (erreur 57014, `statement timeout`) dès le premier lot de passages.
+4. Lancez le workflow à la main avec `expand` à 0 et `max_embedding_mb` à 25. Pour le
    corpus de 2 689 fiches (environ 8 300 passages et 16 Mo de texte) : environ 90
    appels, 4 millions de tokens, soit environ 0,10 $ avec text-embedding-3-small.
-4. Le journal doit indiquer « 0 déjà stockées, 2 689 nouvelles ou modifiées », puis
+5. Le journal doit indiquer « 0 déjà stockées, 2 689 nouvelles ou modifiées », puis
    « Corpus activé ».
 
-Stockage : la réindexation ajoute une copie complète des passages, index compris,
-soit environ 165 Mo. La base passe d'environ 200 Mo à environ 360 Mo, sous la limite
-de 500 Mo de l'offre Free. Les anciens contenus sont supprimés quand plus aucune
+Stockage : la migration 009 libère l'index HNSW (plusieurs dizaines de Mo). La
+réindexation ajoute ensuite une copie complète des passages et de leur index plein
+texte. La base reste nettement sous la limite de 500 Mo de l'offre Free. Les anciens contenus sont supprimés quand plus aucune
 version conservée ne les utilise, soit après deux actualisations hebdomadaires.
 Vérifiez la taille avec les requêtes de mesure du README.
 

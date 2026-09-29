@@ -65,7 +65,7 @@ conservées :
 |---|---|
 | `document_passages` (passages, vecteurs et index) | 155 Mo |
 | — dont données (textes et vecteurs) | ~75 Mo |
-| — dont index vectoriel HNSW et index plein texte | ~80 Mo |
+| — dont index vectoriel HNSW et index plein texte | ~80 Mo (l'index HNSW, inutilisé, est supprimé par la migration 009) |
 | `question_documents` (fiches complètes) | 9 Mo |
 | `version_questions` (liste des fiches de chaque version) | 2 Mo |
 | Autres tables et système Supabase | ~10 Mo |
@@ -119,7 +119,7 @@ Détails dans [web/ACTUALISATION.md](web/ACTUALISATION.md).
 | `web/src/app/` | Page d'accueil et routes serveur (`/api/chat`, `/api/health`) |
 | `web/src/components/` | Interface du chat |
 | `web/src/lib/` | Recherche, génération, quotas, schémas et client de l'API |
-| `web/supabase/migrations/` | Schéma PostgreSQL, à appliquer dans l'ordre (001 → 008) |
+| `web/supabase/migrations/` | Schéma PostgreSQL, à appliquer dans l'ordre (001 → 009) |
 | `web/scripts/` | Import, export et actualisation du corpus, audit de la recherche |
 | `web/tests/` | Tests unitaires (`node:test`) et de navigateur (Playwright) |
 | `web/data/` | Corpus d'échantillon et copies des pages collectées |
