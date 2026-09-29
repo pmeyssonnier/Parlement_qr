@@ -7,6 +7,7 @@ import { DEFAULT_EMBEDDING_MODEL, EMBEDDING_DIMENSIONS } from "../src/lib/embedd
 import type { Question } from "../src/lib/schema";
 import { assertBudgetFits, embeddingBatches, ImportBudget, positiveLimit } from "./import-budget";
 import { contentHash, indexConfig } from "./index-config";
+import { RATE_LIMIT_ATTEMPTS, withRateLimitRetry } from "./rate-limit";
 import { retentionSummary } from "./retention";
 
 type Db = SupabaseClient<Database>;
@@ -107,7 +108,14 @@ async function main() {
       let vectors: (string | null)[] = texts.map(() => null);
       if (client && model) {
         budget.reserve(texts);
-        const response = await client.embeddings.create({ model, dimensions: EMBEDDING_DIMENSIONS, input: texts });
+        // The call is reserved once: a request refused with 429 is not billed.
+        const response = await withRateLimitRetry(
+          () => client.embeddings.create({ model, dimensions: EMBEDDING_DIMENSIONS, input: texts }),
+          (delay, attempt) =>
+            console.log(
+              `Limite de débit OpenAI atteinte : nouvelle tentative dans ${Math.ceil(delay / 1000)} s (${attempt}/${RATE_LIMIT_ATTEMPTS - 1}).`,
+            ),
+        );
         if (response.data.length !== texts.length) throw new Error("Réponse OpenAI incomplète.");
         vectors = response.data.sort((a, b) => a.index - b.index).map(d => JSON.stringify(d.embedding));
       }
