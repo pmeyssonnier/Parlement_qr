@@ -56,3 +56,56 @@ test("/api/health : corpus, dernière date et version du schéma attendue", asyn
   expect(health.schema).toBeNull();
   expect(health.schemaExpected).toBeGreaterThanOrEqual(10);
 });
+
+// A recognition that hears « STIB en cas de chaleur » as soon as it starts, so that the test
+// does not depend on a microphone nor on the browser's speech service.
+const fakeRecognition = () => {
+  class FakeRecognition {
+    lang = "";
+    continuous = false;
+    interimResults = false;
+    maxAlternatives = 1;
+    onresult: ((event: unknown) => void) | null = null;
+    onerror: ((event: { error: string }) => void) | null = null;
+    onend: (() => void) | null = null;
+    start() {
+      setTimeout(() => this.onresult?.({ results: [[{ transcript: "STIB en cas de chaleur" }]] }), 30);
+    }
+    stop() {
+      setTimeout(() => this.onend?.(), 0);
+    }
+    abort() {
+      this.onend?.();
+    }
+  }
+  Object.assign(window, { SpeechRecognition: FakeRecognition, webkitSpeechRecognition: FakeRecognition });
+};
+
+test("dictée : le micro remplit la question sans l'envoyer", async ({ page }) => {
+  await page.addInitScript(fakeRecognition);
+  await page.goto("/");
+  const mic = page.getByRole("button", { name: "Dicter votre question" });
+  await expect(mic).toHaveAttribute("aria-pressed", "false");
+  await page.locator("#question").fill("Que fait la");
+  await mic.click();
+  await expect(mic).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator(".dictation-status")).toContainText("Je vous écoute");
+  await expect(page.locator("#question")).toHaveValue("Que fait la STIB en cas de chaleur");
+  await mic.click();
+  await expect(mic).toHaveAttribute("aria-pressed", "false");
+  await expect(page.locator(".dictation-status")).toBeEmpty();
+  // Nothing was sent: the person reads and corrects first.
+  await expect(page.getByText("Sources utilisées")).toHaveCount(0);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  await page.getByRole("button", { name: "Envoyer la question" }).click();
+  await expect(page.getByText("Sources utilisées")).toBeVisible();
+});
+
+test("dictée : pas de bouton micro quand le navigateur ne sait pas dicter", async ({ page }) => {
+  await page.addInitScript(() => {
+    Object.assign(window, { SpeechRecognition: undefined, webkitSpeechRecognition: undefined });
+  });
+  await page.goto("/");
+  await expect(page.getByRole("button", { name: "Envoyer la question" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Dicter votre question" })).toHaveCount(0);
+});

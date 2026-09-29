@@ -73,6 +73,10 @@ function PrivacyPanel({ ai }: { ai: boolean }) {
           : "La synthèse par IA est désactivée. Votre question est traitée par le serveur pour rechercher les extraits."}
       </p>
       <p>
+        La dictée par le micro est facultative : c’est votre navigateur (ou son éditeur) qui transcrit votre voix, pas
+        l’application, qui ne reçoit que le texte une fois la question envoyée.
+      </p>
+      <p>
         Évitez de saisir des données personnelles ou sensibles. Le service fournit une aide documentaire, pas un avis
         juridique personnalisé.
       </p>
