@@ -123,6 +123,12 @@ s'il s'agit de la législature complète ou d'une sélection thématique.
   nouvelles, et 300 appels. Le dépassement est détecté **avant** toute écriture, et le
   message donne le volume prévu. Pour une réindexation complète, lancez le workflow à la
   main avec `max_embedding_mb` relevé (voir « Réindexation »).
+- Limite de débit OpenAI : le compte est limité à 1 000 000 de tokens par minute
+  (erreur 429). Une requête refusée n'est pas facturée : l'import attend le délai
+  annoncé par OpenAI et réessaie, jusqu'à 8 tentatives par lot, et le journal affiche
+  « Limite de débit OpenAI atteinte : nouvelle tentative dans … s ». Une réindexation
+  complète (environ 4 millions de tokens) prend donc quelques minutes de plus. Un
+  compte sans crédit (`insufficient_quota`) n'est pas réessayé.
 - Modèle fixé pour le workflow : text-embedding-3-small.
 - Durée maximale de la tâche : 60 minutes ; exécutions sérialisées.
 
@@ -159,6 +165,12 @@ Procédure :
    appels, 4 millions de tokens, soit environ 0,10 $ avec text-embedding-3-small.
 5. Le journal doit indiquer « 0 déjà stockées, 2 689 nouvelles ou modifiées », puis
    « Corpus activé ».
+6. Si l'exécution s'arrête (limite de débit OpenAI, réseau), relancez-la telle quelle :
+   les fiches déjà enregistrées sont reprises sans nouvel appel OpenAI, et seules les
+   autres sont vectorisées. La version de préparation abandonnée est supprimée
+   automatiquement par la rétention. Le 29 septembre 2026, la première tentative
+   avec la migration 009 a enregistré 1 934 fiches sur 2 689 en 2 minutes, puis s'est
+   arrêtée sur une limite de débit (erreur 429) : d'où l'attente automatique ci-dessus.
 
 Stockage : la migration 009 libère l'index HNSW (plusieurs dizaines de Mo). La
 réindexation ajoute ensuite une copie complète des passages et de leur index plein
