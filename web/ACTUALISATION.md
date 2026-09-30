@@ -64,7 +64,7 @@ numéro dans `schema_migrations`, et `/api/health` donne :
 
 Le nombre de questions ajoutées par exécution vaut 300 par défaut :
 
-- lancement manuel : champ **expand** (0 = actualiser seulement, 500 au plus) ;
+- lancement manuel : champ **expand** (0 = actualiser seulement, 800 au plus) ;
 - exécution planifiée : variable de dépôt `CORPUS_WEEKLY_ADD`, 300 si elle est absente.
 
 Le rattrapage de la législature est terminé depuis le 25 septembre 2026 (2 578 fiches,
