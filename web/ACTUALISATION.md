@@ -43,7 +43,9 @@ Pour suspendre, passez cette variable à false. Un lancement manuel reste possib
 4. Ajout de questions **absentes du corpus**, des plus récentes aux plus anciennes :
    les nouvelles questions d'abord, puis l'historique de la législature. Une fiche
    dont le texte de question n'est pas encore publié est écartée ; elle sera retentée
-   lors d'une exécution suivante.
+   lors d'une exécution suivante. Il en va de même d'une page sans aucun bloc de
+   question (motif `question_block_missing` dans `fiches_ecartees`) ; au-delà de 10 pages
+   sans bloc, l'exécution s'arrête sans remplacer le corpus (mise en page modifiée ?).
 5. Import : les fiches inchangées sont recopiées dans Supabase avec leurs embeddings,
    sans appel OpenAI ; seules les fiches nouvelles ou modifiées sont vectorisées.
 

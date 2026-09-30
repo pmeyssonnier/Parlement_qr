@@ -64,6 +64,13 @@ class CollectorTests(unittest.TestCase):
         with self.assertRaises(collector.MissingQuestionText):
             collector.parse_record(row,raw)
 
+    def test_page_without_question_block_has_its_own_error(self):
+        row=['']*16
+        row[2]='<a href="/?moncode=162860">fiche</a>'
+        raw='<section id="weblex-quest-det-fr"><table><tr><td><b>Réponse</b></td><td>Texte</td></tr></table></section>'
+        with self.assertRaises(collector.MissingQuestionBlock):
+            collector.parse_record(row,raw)
+
     def test_missing_cell_is_not_treated_as_empty(self):
         row=['']*16
         row[2]='<a href="/?moncode=123">fiche</a>'
