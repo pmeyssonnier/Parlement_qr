@@ -27,6 +27,9 @@ def full_legislature(short):
 class MissingQuestionText(ValueError):
     """The official question cell exists but contains no published text."""
 
+class MissingQuestionBlock(ValueError):
+    """The page has the usual structure but no question block at all."""
+
 def clean(value):
     value = re.sub(r'<!--.*?-->|<script\b.*?</script>|<style\b.*?</style>', '', value, flags=re.S)
     value = re.sub(r'<(?:br\b[^>]*|/p|/li|/tr|/div)>', '\n', value, flags=re.I)
@@ -64,7 +67,7 @@ def parse_record(row, raw, legislature='2024-2029'):
     section = re.sub(r'<!--.*?-->', '', match[0], flags=re.S)
     blocks = {html.unescape(label): clean(body) for label, body in re.findall(r'<td[^>]*>\s*<b>(Question|R(?:é|&eacute;)ponse)\s*(?:&nbsp;|\s)*</b>\s*(?:</td>)?\s*<td[^>]*>(.*?)</td>', section, re.S)}
     if 'Question' not in blocks:
-        raise ValueError('Question manquante : ' + code)
+        raise MissingQuestionBlock('Question manquante : ' + code)
     if not blocks['Question']:
         raise MissingQuestionText('Texte de question vide : ' + code)
     def field(label):
@@ -281,6 +284,7 @@ def main():
         print('Revérifiée', code_of(row))
     added = 0
     skipped = []
+    blockless = 0
     for row in candidates:
         if added >= to_add or downloads >= args.max_downloads:
             break
@@ -292,6 +296,19 @@ def main():
                                 url_source=BASE+'/weblex-quest-det/?moncode='+code+'&base=1'))
             print('Écartée (texte de question vide sur le site) :', code)
             in_a_row = 0
+            continue
+        except MissingQuestionBlock:
+            # A page without any question block (seen on 19-24): set it aside like an empty
+            # text. Only for new questions, and capped: many at once means the layout changed.
+            code = code_of(row)
+            skipped.append(dict(moncode=code, reason='question_block_missing',
+                                url_source=BASE+'/weblex-quest-det/?moncode='+code+'&base=1'))
+            print('Écartée (aucun bloc de question sur la page) :', code)
+            in_a_row = 0
+            blockless += 1
+            if blockless > args.max_empty_texts:
+                raise ValueError(f'{blockless} pages sans bloc de question : structure des pages modifiée ? '
+                                 'Corpus non remplacé.')
             continue
         except NETWORK_ERRORS as error:
             postpone(row, error)
