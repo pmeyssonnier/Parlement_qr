@@ -109,3 +109,32 @@ test("dictée : pas de bouton micro quand le navigateur ne sait pas dicter", asy
   await expect(page.getByRole("button", { name: "Envoyer la question" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Dicter votre question" })).toHaveCount(0);
 });
+
+test("mode sombre : l'interrupteur bascule le thème et le choix est conservé", async ({ page }) => {
+  await page.goto("/");
+  const html = page.locator("html");
+  const toggle = page.getByRole("switch", { name: "Mode sombre" });
+  await page.evaluate(() => localStorage.removeItem("pq-theme"));
+  await page.emulateMedia({ colorScheme: "light" });
+  await page.reload();
+  await expect(html).toHaveAttribute("data-theme", "light");
+  await expect(toggle).toHaveAttribute("aria-checked", "false");
+  expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe("rgb(248, 248, 242)");
+  await toggle.click();
+  await expect(html).toHaveAttribute("data-theme", "dark");
+  await expect(toggle).toHaveAttribute("aria-checked", "true");
+  expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe("rgb(18, 26, 23)");
+  await page.reload();
+  await expect(html).toHaveAttribute("data-theme", "dark");
+  await page.getByRole("switch", { name: "Mode sombre" }).click();
+  await expect(html).toHaveAttribute("data-theme", "light");
+});
+
+test("mode sombre : sans choix enregistré, la préférence du système s'applique", async ({ page }) => {
+  await page.emulateMedia({ colorScheme: "dark" });
+  await page.goto("/");
+  await page.evaluate(() => localStorage.removeItem("pq-theme"));
+  await page.reload();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await expect(page.getByRole("switch", { name: "Mode sombre" })).toHaveAttribute("aria-checked", "true");
+});

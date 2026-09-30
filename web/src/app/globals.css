@@ -1,11 +1,74 @@
 :root {
   --ink: #233b34;
   --green: #204d40;
+  --green-hover: #2d624f;
+  --green-text: #204d40;
   --muted: #777e77;
+  --muted-light: #7c8376;
+  --faint: #939a8a;
+  --text-strong: #56634e;
+  --accent-strong: #264b39;
+  --accent-text: #6f7e63;
+  --accent-muted: #63835a;
+  --accent-border: #8ca37a;
   --line: #e3e5dc;
+  --line-strong: #d5dbcb;
+  --quote-border: #c6d2b9;
   --cream: #f8f8f2;
   --paper: #fffef9;
+  --surface: #fffefb;
+  --sidebar: #f0f2e9;
   --light: #eff2e9;
+  --hover: #e6ecde;
+  --selected: #e2e8da;
+  --focus: #9cae75;
+  --warning-text: #876231;
+  --warning-bg: #f7efdd;
+  --error-text: #8a493b;
+  --error-bg: #f7eae2;
+  --backdrop: #142a2266;
+  --shadow-soft: #33452b06;
+  --shadow-panel: #173f3720;
+  --pulse: #204d4066;
+  --pulse-off: #204d4000;
+  color-scheme: light;
+}
+/* Dark theme: data-theme is set before the first paint by the script of
+   app/layout.tsx (saved choice, otherwise the system preference). */
+:root[data-theme="dark"] {
+  --ink: #e6ede8;
+  --green: #2d624f;
+  --green-hover: #3a7863;
+  --green-text: #8fc7a4;
+  --muted: #a4afa6;
+  --muted-light: #97a49a;
+  --faint: #86938a;
+  --text-strong: #c5d3c8;
+  --accent-strong: #b4dcc2;
+  --accent-text: #9fbf8a;
+  --accent-muted: #7fa878;
+  --accent-border: #5f8a6d;
+  --line: #2b3831;
+  --line-strong: #3a4a41;
+  --quote-border: #3f5546;
+  --cream: #121a17;
+  --paper: #18221e;
+  --surface: #1c2722;
+  --sidebar: #151e1a;
+  --light: #202c26;
+  --hover: #263329;
+  --selected: #2c3b32;
+  --focus: #9cae75;
+  --warning-text: #e7c27d;
+  --warning-bg: #3a2f1c;
+  --error-text: #f0a58f;
+  --error-bg: #3d231f;
+  --backdrop: #000000a6;
+  --shadow-soft: #00000033;
+  --shadow-panel: #00000066;
+  --pulse: #8fc7a466;
+  --pulse-off: #8fc7a400;
+  color-scheme: dark;
 }
 * {
   box-sizing: border-box;
@@ -39,7 +102,7 @@ button:focus-visible,
 a:focus-visible,
 summary:focus-visible,
 textarea:focus-visible {
-  outline: 3px solid #9cae75;
+  outline: 3px solid var(--focus);
   outline-offset: 4px;
 }
 .app-shell {
@@ -49,7 +112,7 @@ textarea:focus-visible {
 .sidebar {
   width: 268px;
   flex-shrink: 0;
-  background: #f0f2e9;
+  background: var(--sidebar);
   border-right: 1px solid var(--line);
   padding: 34px 22px 24px;
   display: flex;
@@ -73,7 +136,7 @@ textarea:focus-visible {
   height: 43px;
   display: grid;
   place-items: center;
-  border: 1px solid #c2cdc0;
+  border: 1px solid var(--line-strong);
   border-radius: 12px;
 }
 .brand-light {
@@ -81,14 +144,14 @@ textarea:focus-visible {
   font-weight: 400;
 }
 .brand-dot {
-  color: #8c9a59;
+  color: var(--accent-text);
 }
 .sidebar-caption {
   font-size: 8px;
   letter-spacing: 1.3px;
   margin-top: 23px;
   white-space: nowrap;
-  color: #7b8377;
+  color: var(--muted-light);
 }
 .new-chat {
   margin: 35px 0 37px;
@@ -105,12 +168,12 @@ textarea:focus-visible {
 }
 .new-chat:hover,
 .send:hover {
-  background: #2d624f;
+  background: var(--green-hover);
 }
 .nav-label {
   font-size: 9px;
   letter-spacing: 1.5px;
-  color: #909588;
+  color: var(--muted-light);
   margin: 0 13px 14px;
 }
 .nav-item {
@@ -124,20 +187,20 @@ textarea:focus-visible {
   border-radius: 6px;
   font-size: 12px;
   text-align: left;
-  color: #6a756b;
+  color: var(--text-strong);
   margin: 3px 0;
 }
 .nav-item.active {
-  background: #e2e8da;
-  color: #264b39;
+  background: var(--selected);
+  color: var(--accent-strong);
 }
 .nav-item:hover {
-  background: #e5eadf;
+  background: var(--hover);
 }
 .nav-dot {
   height: 5px;
   width: 5px;
-  background: #567451;
+  background: var(--accent-muted);
   border-radius: 50%;
   margin-left: auto;
 }
@@ -146,7 +209,7 @@ textarea:focus-visible {
   padding-top: 35px;
 }
 .corpus-card {
-  border: 1px solid #dbe0d2;
+  border: 1px solid var(--line-strong);
   padding: 17px 14px;
   border-radius: 8px;
 }
@@ -156,14 +219,14 @@ textarea:focus-visible {
   gap: 6px;
   font-size: 8px;
   letter-spacing: 1.15px;
-  color: #718265;
+  color: var(--accent-text);
 }
 .live-label span,
 .green-dot,
 .eyebrow > span {
   width: 5px;
   height: 5px;
-  background: #63835a;
+  background: var(--accent-muted);
   border-radius: 50%;
   display: inline-block;
 }
@@ -175,13 +238,13 @@ textarea:focus-visible {
 }
 .corpus-card p {
   font-size: 10px;
-  color: #7c8376;
+  color: var(--muted-light);
   margin: 7px 0 13px;
 }
 .corpus-card small {
   display: block;
   font-size: 9px;
-  color: #868c80;
+  color: var(--muted-light);
 }
 .corpus-card small + small {
   margin-top: 3px;
@@ -189,14 +252,14 @@ textarea:focus-visible {
 .independent {
   font-size: 10px;
   line-height: 1.7;
-  color: #848b7f;
+  color: var(--muted-light);
   margin: 18px 1px 8px;
 }
 .privacy-button {
   border: 0;
   background: none;
   font-size: 10px;
-  color: #667361;
+  color: var(--text-strong);
   padding: 0;
   text-decoration: underline;
   text-underline-offset: 3px;
@@ -215,7 +278,7 @@ textarea:focus-visible {
   align-items: center;
   justify-content: space-between;
   gap: 20px;
-  color: #798178;
+  color: var(--muted-light);
   font-size: 12px;
 }
 .topbar > div {
@@ -226,10 +289,10 @@ textarea:focus-visible {
 .version-badge {
   font-size: 8px;
   letter-spacing: 1px;
-  border: 1px solid #dfe3d6;
+  border: 1px solid var(--line);
   border-radius: 4px;
   padding: 7px 9px;
-  color: #7c876e;
+  color: var(--accent-text);
   white-space: nowrap;
 }
 .workspace {
@@ -246,7 +309,7 @@ textarea:focus-visible {
   gap: 8px;
   font-size: 9px;
   letter-spacing: 1.8px;
-  color: #768565;
+  color: var(--accent-text);
 }
 .intro h1 {
   font-family: Georgia, "Times New Roman", serif;
@@ -258,17 +321,17 @@ textarea:focus-visible {
 }
 .intro h1 em {
   font-weight: 400;
-  color: #6d7c58;
+  color: var(--accent-text);
 }
 .intro > p {
-  color: #83897f;
+  color: var(--muted-light);
   font-size: 13px;
   line-height: 1.85;
   margin-bottom: 39px;
 }
 .suggestions-label {
   font-size: 9px;
-  color: #939a8a;
+  color: var(--faint);
   letter-spacing: 1.5px;
   margin-bottom: 13px;
 }
@@ -282,7 +345,7 @@ textarea:focus-visible {
   display: flex;
   flex-direction: column;
   background: var(--paper);
-  border: 1px solid #e0e4d7;
+  border: 1px solid var(--line);
   border-radius: 8px;
   padding: 17px;
   min-height: 149px;
@@ -291,14 +354,14 @@ textarea:focus-visible {
     transform 0.2s;
 }
 .suggestions > button:hover {
-  border-color: #91a17d;
+  border-color: var(--accent-border);
   transform: translateY(-2px);
 }
 .suggestion-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  color: #828b76;
+  color: var(--muted-light);
   font-size: 10px;
   gap: 8px;
   width: 100%;
@@ -308,11 +371,11 @@ textarea:focus-visible {
   font-weight: 400;
   line-height: 1.55;
   margin: 17px 0 15px;
-  color: #465844;
+  color: var(--text-strong);
 }
 .suggestion-index {
   font-size: 9px;
-  color: #b2b8a7;
+  color: var(--faint);
   margin-top: auto;
   font-family: monospace;
 }
@@ -321,7 +384,7 @@ textarea:focus-visible {
   justify-content: center;
   gap: 26px;
   margin: 23px 0 40px;
-  color: #8c9682;
+  color: var(--muted-light);
   font-size: 10px;
 }
 .trust-row > span {
@@ -334,14 +397,14 @@ textarea:focus-visible {
   padding-top: 10px;
 }
 .composer {
-  background: #fffefb;
-  border: 1px solid #d5dbcb;
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
   border-radius: 12px;
   padding: 19px 18px 12px;
-  box-shadow: 0 4px 15px #33452b06;
+  box-shadow: 0 4px 15px var(--shadow-soft);
 }
 .composer:focus-within {
-  border-color: #8ca37a;
+  border-color: var(--accent-border);
 }
 .composer textarea {
   width: 100%;
@@ -352,11 +415,11 @@ textarea:focus-visible {
   background: none;
   font-size: 13px;
   line-height: 1.6;
-  color: #324b3b;
+  color: var(--text-strong);
   outline: none;
 }
 .composer textarea::placeholder {
-  color: #92998a;
+  color: var(--faint);
 }
 .composer-bottom {
   display: flex;
@@ -365,7 +428,7 @@ textarea:focus-visible {
   gap: 10px;
   margin-top: 10px;
   font-size: 10px;
-  color: #8c9485;
+  color: var(--muted-light);
 }
 .composer-bottom > span {
   display: flex;
@@ -379,7 +442,7 @@ textarea:focus-visible {
 }
 .character-count {
   font-size: 9px;
-  color: #b0b5a8;
+  color: var(--faint);
 }
 .send {
   display: grid;
@@ -397,9 +460,9 @@ textarea:focus-visible {
   width: 34px;
   height: 34px;
   border-radius: 7px;
-  border: 1px solid #d5dbcb;
+  border: 1px solid var(--line-strong);
   background: none;
-  color: var(--green);
+  color: var(--green-text);
 }
 .mic:hover:not(:disabled) {
   background: var(--light);
@@ -414,10 +477,10 @@ textarea:focus-visible {
 }
 @keyframes mic-pulse {
   0% {
-    box-shadow: 0 0 0 0 #204d4066;
+    box-shadow: 0 0 0 0 var(--pulse);
   }
   100% {
-    box-shadow: 0 0 0 10px #204d4000;
+    box-shadow: 0 0 0 10px var(--pulse-off);
   }
 }
 .dictation-status {
@@ -426,11 +489,11 @@ textarea:focus-visible {
   font-size: 11px;
   line-height: 1.4;
   text-align: center;
-  color: #6f7e63;
+  color: var(--accent-text);
 }
 .scope-note {
   font-size: 10px;
-  color: #9a9f92;
+  color: var(--faint);
   line-height: 1.6;
   text-align: center;
   margin: 13px 0 0;
@@ -439,7 +502,7 @@ textarea:focus-visible {
   border: 0;
   background: none;
   padding: 0;
-  color: #6f7e63;
+  color: var(--accent-text);
   text-decoration: underline;
   font-size: inherit;
 }
@@ -450,7 +513,7 @@ textarea:focus-visible {
   gap: 20px;
   padding: 17px 43px;
   font-size: 9px;
-  color: #9ca292;
+  color: var(--faint);
 }
 .mobile-menu {
   display: none;
@@ -468,7 +531,7 @@ textarea:focus-visible {
 .user-question > span {
   font-size: 9px;
   letter-spacing: 1.6px;
-  color: #8e9880;
+  color: var(--muted-light);
 }
 .user-question h2 {
   font-family: Georgia, serif;
@@ -486,14 +549,14 @@ textarea:focus-visible {
   gap: 10px;
   font-size: 9px;
   letter-spacing: 1.2px;
-  color: #71836a;
+  color: var(--accent-text);
 }
 .mini-brand {
   display: grid;
   place-items: center;
   width: 27px;
   height: 27px;
-  background: #e6ecde;
+  background: var(--hover);
   border-radius: 6px;
 }
 .answer-paragraph > p {
@@ -504,16 +567,16 @@ textarea:focus-visible {
 .answer-paragraph blockquote {
   margin: 0;
   padding: 13px 18px;
-  border-left: 2px solid #c6d2b9;
-  color: #56634e;
-  background: #f0f3e9;
+  border-left: 2px solid var(--quote-border);
+  color: var(--text-strong);
+  background: var(--light);
   font-size: 12px;
   line-height: 1.85;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
 .citation {
-  color: #647f4a;
+  color: var(--accent-text);
   font-size: 11px;
   margin-left: 5px;
 }
@@ -529,9 +592,9 @@ textarea:focus-visible {
   margin-bottom: 12px;
 }
 .source-card {
-  border: 1px solid #dde3d5;
+  border: 1px solid var(--line);
   border-radius: 7px;
-  background: #fffefa;
+  background: var(--surface);
   margin: 7px 0;
 }
 .source-card summary {
@@ -557,11 +620,11 @@ textarea:focus-visible {
 .source-card small {
   font-size: 10px;
   display: block;
-  color: #8a927f;
+  color: var(--muted-light);
   margin-top: 5px;
 }
 .source-number {
-  background: #e8eede;
+  background: var(--hover);
   font-size: 10px;
   width: 21px;
   height: 21px;
@@ -579,23 +642,23 @@ textarea:focus-visible {
   margin: 12px 0;
   font-size: 12px;
   line-height: 1.8;
-  color: #626f59;
+  color: var(--text-strong);
 }
 .recipient {
   font-size: 11px;
-  color: #7e8974;
+  color: var(--muted-light);
 }
 .source-expanded a {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   font-size: 11px;
-  color: #365735;
+  color: var(--text-strong);
 }
 .answer-notice {
   font-size: 10px;
   line-height: 1.7;
-  color: #8d9783;
+  color: var(--muted-light);
   margin-top: 15px;
 }
 .answer-footer {
@@ -606,7 +669,7 @@ textarea:focus-visible {
   gap: 8px 16px;
   margin-top: 10px;
   font-size: 10px;
-  color: #8d9783;
+  color: var(--muted-light);
 }
 .export-answer {
   display: inline-flex;
@@ -616,7 +679,7 @@ textarea:focus-visible {
   border: 1px solid var(--line);
   border-radius: 6px;
   background: var(--paper);
-  color: #365735;
+  color: var(--text-strong);
   font-size: 11px;
   cursor: pointer;
 }
@@ -624,16 +687,16 @@ textarea:focus-visible {
   background: var(--light);
 }
 .warning {
-  color: #876231;
+  color: var(--warning-text);
   font-size: 11px;
-  background: #f7efdd;
+  background: var(--warning-bg);
   padding: 10px;
 }
 .error {
   padding: 16px;
-  background: #f7eae2;
+  background: var(--error-bg);
   border-radius: 8px;
-  color: #8a493b;
+  color: var(--error-text);
   line-height: 1.7;
 }
 .loading {
@@ -641,14 +704,14 @@ textarea:focus-visible {
   align-items: center;
   gap: 10px;
   margin: 22px 0;
-  color: #768467;
+  color: var(--accent-text);
   font-size: 12px;
 }
 .loading-dot {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #839568;
+  background: var(--accent-muted);
   animation: pulse 1s ease-in-out infinite;
 }
 .info-dialog {
@@ -661,7 +724,7 @@ textarea:focus-visible {
   padding: 35px;
 }
 .info-dialog::backdrop {
-  background: #142a2266;
+  background: var(--backdrop);
 }
 .info-dialog h2 {
   font:
@@ -671,7 +734,7 @@ textarea:focus-visible {
 .info-dialog p {
   font-size: 13px;
   line-height: 1.8;
-  color: #69745f;
+  color: var(--text-strong);
 }
 .info-dialog a {
   font-size: 12px;
@@ -785,7 +848,7 @@ textarea:focus-visible {
     top: 64px;
     bottom: 0;
     height: calc(100dvh - 64px);
-    box-shadow: 20px 0 40px #173f3720;
+    box-shadow: 20px 0 40px var(--shadow-panel);
   }
   .mobile-menu {
     display: grid;
@@ -895,4 +958,46 @@ textarea:focus-visible {
 /* Several excerpts of one question under the same paragraph. */
 .answer-paragraph blockquote + blockquote {
   margin-top: 8px;
+}
+
+.theme-switch {
+  position: relative;
+  width: 46px;
+  height: 26px;
+  flex: none;
+  padding: 0;
+  border: 1px solid var(--line-strong);
+  border-radius: 13px;
+  background: var(--surface);
+}
+.theme-switch:hover {
+  border-color: var(--accent-border);
+}
+.theme-switch-knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--green);
+  color: #fff;
+  transition: transform 0.2s ease;
+}
+:root[data-theme="dark"] .theme-switch-knob {
+  transform: translateX(20px);
+}
+.theme-icon-dark,
+:root[data-theme="dark"] .theme-icon-light {
+  display: none;
+}
+:root[data-theme="dark"] .theme-icon-dark {
+  display: block;
+}
+@media (prefers-reduced-motion: reduce) {
+  .theme-switch-knob {
+    transition: none;
+  }
 }

@@ -8,6 +8,7 @@ import { Conversation, type Turn } from "./conversation";
 import { InfoDialog } from "./info-dialog";
 import { Intro } from "./intro";
 import { Sidebar } from "./sidebar";
+import { ThemeToggle } from "./theme-toggle";
 import { type CorpusSummary, isDemoCorpus, type Panel } from "./types";
 
 /** Client timeout, just under the route's maxDuration (60 s). */
@@ -86,7 +87,10 @@ export function Chat({ corpus }: { corpus: CorpusSummary }) {
             </button>
             <span>Le Parlement, à portée de question</span>
           </div>
-          <span className="version-badge">{isDemoCorpus(corpus) ? "VERSION DÉMONSTRATION" : "VERSION BÊTA"}</span>
+          <div>
+            <ThemeToggle />
+            <span className="version-badge">{isDemoCorpus(corpus) ? "VERSION DÉMONSTRATION" : "VERSION BÊTA"}</span>
+          </div>
         </header>
         <main id="main" className={turns.length ? "workspace conversation" : "workspace"}>
           {turns.length ? <Conversation turns={turns} busy={busy} /> : <Intro busy={busy} onAsk={send} />}
