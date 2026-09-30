@@ -4,3 +4,11 @@
 
 # Raw copies of official pages: keep their original bytes (CRLF and lone CR).
 web/data/source-snapshots/** -text
+
+# Raw copies of official pages are data, not project code: keep them out of
+# GitHub's language statistics (otherwise the repository shows up as "HTML").
+web/data/source-snapshots/** linguist-vendored
+sources/** linguist-vendored
+liste_source.html linguist-vendored
+question_source.html linguist-vendored
+source_test.html linguist-vendored
