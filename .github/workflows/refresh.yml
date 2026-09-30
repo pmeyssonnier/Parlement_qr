@@ -49,7 +49,7 @@ jobs:
       # manual run with a higher max_embedding_mb. The cost is capped by the
       # bytes; the call cap only stops a runaway loop (a full reindex of
       # 8 300 passages takes about 90 calls).
-      IMPORT_MAX_RECORDS: '6000'
+      IMPORT_MAX_RECORDS: '15000'
       IMPORT_KEEP_VERSIONS: '2'
       IMPORT_MAX_EMBEDDING_CALLS: '300'
       IMPORT_MAX_EMBEDDING_BYTES: ${{ format('{0}000000', inputs.max_embedding_mb || '3') }}
@@ -90,7 +90,7 @@ jobs:
           echo "Préréglage : ${SELECTION_NAME:-aucun} (législature et filtre ci-dessous ignorés s'il y en a un)"
           echo "Législature : $LEGISLATURE ; filtre : ${TITLE_FILTER:-aucun} ; ajouts : $EXPAND"
           python scripts/refresh-corpus.py --file data/corpus-active.json --expand "$EXPAND" \
-            --max-records 6000 --max-downloads 900 --legislature "$LEGISLATURE" --title-filter "$TITLE_FILTER" \
+            --max-records 15000 --max-downloads 900 --legislature "$LEGISLATURE" --title-filter "$TITLE_FILTER" \
             --title-filter-label "$TITLE_FILTER_LABEL" --selection "$SELECTION_NAME"
       - run: npm run import:data -- --file=data/corpus-refreshed.json --validate-only
       - name: Import and atomically activate
