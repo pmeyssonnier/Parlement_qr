@@ -46,7 +46,7 @@ Le workflow `.github/workflows/refresh.yml` actualise le corpus :
   `CORPUS_REFRESH_ENABLED` passée à `true` ;
 - **à la demande** : Actions → Refresh parliamentary corpus → *Run workflow*
   (et non *Re-run*, qui rejoue l'ancien code), champ `expand` = nombre de questions
-  à ajouter (300 par défaut, 500 au plus, 0 pour actualiser seulement).
+  à ajouter (300 par défaut, 800 au plus, 0 pour actualiser seulement).
 
 Chaque exécution revérifie les fiches susceptibles d'avoir changé, ajoute les
 questions absentes, puis n'envoie à OpenAI que les fiches nouvelles ou modifiées

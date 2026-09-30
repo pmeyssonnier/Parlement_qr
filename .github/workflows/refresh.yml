@@ -10,7 +10,7 @@ on:
           - Schaerbeek 2019-2024 (voiries régionales)
         default: Actualisation de la législature en cours
       expand:
-        description: 'Questions absentes du corpus à ajouter, des plus récentes aux plus anciennes (0 = actualiser seulement, 500 au plus)'
+        description: 'Questions absentes du corpus à ajouter, des plus récentes aux plus anciennes (0 = actualiser seulement, 800 au plus)'
         default: '300'
         required: true
       legislature:
