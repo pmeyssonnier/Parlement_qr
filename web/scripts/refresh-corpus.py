@@ -161,7 +161,7 @@ def main():
     parser.add_argument('--expand', type=int, default=0,
                         help='Add up to this many questions absent from the corpus, most recent first (maximum 500 per run)')
     parser.add_argument('--full', action='store_true', help='Download every current question again')
-    parser.add_argument('--max-records', type=int, default=6000, help='Maximum corpus size, checked before any page download')
+    parser.add_argument('--max-records', type=int, default=15000, help='Maximum corpus size, checked before any page download')
     parser.add_argument('--max-downloads', type=int, default=900, help='Maximum question pages downloaded in this run')
     parser.add_argument('--max-network-failures', type=int, default=10,
                         help='Maximum question pages postponed after network errors before the run stops')

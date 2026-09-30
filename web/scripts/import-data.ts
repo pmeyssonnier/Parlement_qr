@@ -61,7 +61,7 @@ async function main() {
   const config = indexConfig(model);
   const items = corpus.questions.map(q => toItem(q, config));
   const passageCount = items.reduce((n, item) => n + item.passages.length, 0);
-  const maxRecords = positiveLimit(process.env.IMPORT_MAX_RECORDS, 6000);
+  const maxRecords = positiveLimit(process.env.IMPORT_MAX_RECORDS, 15000);
   const keepVersions = positiveLimit(process.env.IMPORT_KEEP_VERSIONS, 2);
   if (corpus.questions.length > maxRecords) throw new Error("Plafond de fiches dépassé avant import.");
   const budget = new ImportBudget(

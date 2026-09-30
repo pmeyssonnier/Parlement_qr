@@ -111,7 +111,7 @@ s'il s'agit de la législature complète ou d'une sélection thématique.
 
 ## Plafonds par exécution
 
-- Corpus : 6 000 fiches au plus. Au-delà, arrêt sans suppression du corpus.
+- Corpus : 15 000 fiches au plus (offre Supabase Pro ; 6 000 sur l'offre Free, limitée à 500 Mo). Au-delà, arrêt sans suppression du corpus.
 - Téléchargements : l'index et au plus 900 pages. Les fiches à revérifier passent en
   premier ; les ajouts utilisent le reste.
 - Site injoignable : 5 tentatives pour l'index (pauses de 5, 10, 20 puis 40 s), 3 pour
