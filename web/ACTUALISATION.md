@@ -259,6 +259,8 @@ affichés sur la page d'accueil sont mis en cache et se mettent à jour en
 
 ## Parité des recherches SQL et locale
 
+Résultat et décisions : [CONCLUSION_PARITE.md](CONCLUSION_PARITE.md).
+
 La recherche existe en deux versions : `search_passages` (SQL, utilisée en production via Supabase,
 `supabase/migrations/006` et `007`) et `localSearch` (TypeScript, `src/lib/search.ts`, utilisée par
 `npm run audit:search` et en secours). Le commentaire de la migration 006 dit que le classement est
