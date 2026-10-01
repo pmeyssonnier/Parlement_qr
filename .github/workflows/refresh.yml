@@ -14,7 +14,7 @@ on:
         default: '300'
         required: true
       legislature:
-        description: 'Législature à collecter, comme dans le nom de l’index (24-29 = en cours ; 19-24 = précédente). Les fiches des autres législatures sont conservées telles quelles.'
+        description: 'Législature à collecter, comme dans le nom de l’index (24-29 = en cours ; 19-24 = précédente ; les autres sont refusées : format des fiches non validé). Les fiches des autres législatures sont conservées telles quelles.'
         default: '24-29'
         required: true
       title_filter:
