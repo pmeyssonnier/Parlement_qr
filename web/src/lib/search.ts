@@ -1,4 +1,5 @@
-import { passages } from "./documents";
+import { newStemmer } from "snowball-stemmers";
+import { passages, searchText } from "./documents";
 import type { Hit, Passage, Question } from "./schema";
 
 const stop = new Set(
@@ -7,18 +8,50 @@ const stop = new Set(
   ),
 );
 export function normalize(s: string) {
-  return s
-    .normalize("NFD")
-    .replace(/\p{Diacritic}/gu, "")
-    .toLowerCase();
+  return (
+    s
+      .normalize("NFD")
+      .replace(/\p{Diacritic}/gu, "")
+      .toLowerCase()
+      // Ligatures do not decompose: « œuvre » must read « oeuvre », as search_passages (fold_accents) does.
+      .replace(/œ/g, "oe")
+      .replace(/æ/g, "ae")
+  );
 }
 /** Words of a text: accent-free, lowercase, without stop words, as written. */
 function words(s: string): string[] {
   return (normalize(s).match(/[a-z0-9]{2,}/g) || []).filter(w => !stop.has(w));
 }
-/** The local search's naive plural: a final « s » goes, beyond four letters. */
+const french = newStemmer("french");
+const roots = new Map<string, string>();
+/**
+ * The root of a word, as PostgreSQL's French configuration computes it (Snowball), so that the local
+ * search and search_passages match the same words. Words starting with a digit (« 2eme ») stay as they are.
+ */
 function stem(w: string) {
-  return w.length > 4 ? w.replace(/s$/, "") : w;
+  let root = roots.get(w);
+  if (root === undefined) {
+    root = /^\d/.test(w) ? w : french.stem(w);
+    roots.set(w, root);
+  }
+  return root;
+}
+// PostgreSQL's French stop list (tsearch_data/french.stop), without the accented entries, which
+// never match: search_passages folds accents before indexing.
+const postgresStop = new Set(
+  "au aux avec ce ces dans de des du elle en et eux il je la le leur lui ma mais me mes moi mon ne nos notre nous on ou par pas pour qu que qui sa se ses son sur ta te tes toi ton tu un une vos votre vous suis es est sommes sont serai seras sera serons serez seront serais serait serions seriez seraient fus fut furent sois soit soyons soyez soient fusse fusses fussions fussiez fussent ayant ayante ayantes ayants eu eue eues eus ai as avons avez ont aurai auras aura aurons aurez auront aurais aurait aurions auriez auraient avais avait avions aviez avaient eut eurent aie aies ait ayons ayez aient eusse eusses eussions eussiez eussent".split(
+    " ",
+  ),
+);
+/**
+ * Roots of the words of a text as search_passages indexes them: without PostgreSQL's own stop words,
+ * but with the application's (« concernant », for one, is indexed and matches a query word of the same root).
+ */
+function indexedRoots(s: string): string[] {
+  // PostgreSQL's parser reads « vélos/trottinettes » or « /vélos » as one file name: its words are not
+  // indexed on their own. (Other compound tokens, URLs and e-mail addresses are not reproduced.)
+  const text = normalize(s).replace(/\/?[a-z0-9]+(?:\/[a-z0-9]+)+|\/[a-z0-9]+/g, " ");
+  return (text.match(/[a-z0-9]{2,}/g) || []).filter(w => !postgresStop.has(w)).map(stem);
 }
 export function tokens(s: string): string[] {
   return [...new Set(words(s).map(stem))];
@@ -34,12 +67,21 @@ function expanded(s: string) {
     (/\b(voter?|elections?)\b/.test(n) ? " élections électoral inscription" : "")
   );
 }
-const queryGeneric = new Set(["mesure", "action", "prevu", "prevoit", "realisee", "effectivement", "informe"]);
-const filterGeneric = new Set(
-  "mesure action prevu prevoit realisee effectivement informe selon ministerielle ministre deputee proposition reprendre sans ete ont cas forte fort".split(
-    " ",
-  ),
+// Generic words are listed as written and compared by root, like the terms they are compared with.
+const queryGeneric = new Set(
+  ["mesure", "action", "prevu", "prevoit", "realisee", "effectivement", "informe"].map(stem),
 );
+const filterGeneric = new Set(
+  "mesure action prevu prevoit realisee effectivement informe selon ministerielle ministre deputee proposition reprendre sans ete ont cas forte fort"
+    .split(" ")
+    .map(stem),
+);
+/** The query terms search_passages scores: one per root, in the order written, with the word as written. */
+function lexicalTerms(query: string): [term: string, word: string][] {
+  const terms = new Map<string, string>();
+  for (const word of words(expanded(query))) if (!terms.has(stem(word))) terms.set(stem(word), word);
+  return [...terms].filter(([term]) => !queryGeneric.has(term)).slice(0, 40);
+}
 export function lexicalQuery(query: string) {
   // websearch_to_tsquery otherwise requires every word of a natural-language
   // question to occur together, including wording absent from the source.
@@ -47,11 +89,7 @@ export function lexicalQuery(query: string) {
   // stems them itself (PostgreSQL's French stemmer), and stemming a word the local
   // search has already shortened gives another root (« terminus » → « terminu » no
   // longer matches « terminus », nor « bruxellois », « usagers », « processus »…).
-  const terms = new Map<string, string>();
-  for (const word of words(expanded(query))) if (!terms.has(stem(word))) terms.set(stem(word), word);
-  return [...terms]
-    .filter(([term]) => !queryGeneric.has(term))
-    .slice(0, 40)
+  return lexicalTerms(query)
     .map(([, word]) => word)
     .join(" OR ");
 }
@@ -185,9 +223,12 @@ export function contextualQuery(message: string, history: { content: string }[])
   }
   return [...context, message].join(" ");
 }
+// The local search follows search_passages (migration 007), the search of production:
+// the same documents, terms, weights, selection and order, so that the two answer alike.
+// The roots are PostgreSQL's too (Snowball French).
 type IndexedDocument = {
   q: Question;
-  passages: { passage: Passage; terms: Set<string> }[];
+  passages: { passage: Passage; terms: Set<string>; roots: string[] }[];
   all: Set<string>;
   title: Set<string>;
 };
@@ -199,54 +240,73 @@ function searchIndex(questions: readonly Question[]): SearchIndex {
   const cached = indexes.get(questions);
   if (cached) return cached;
   const documentFrequency = new Map<string, number>();
-  const documents = questions.map(q => {
-    const all = new Set(tokens(`${q.titre} ${q.auteur} ${q.question} ${q.reponse || ""}`));
+  const documents: IndexedDocument[] = [];
+  for (const q of questions) {
+    const own = passages(q);
+    // Only questions with an answer passage are searched.
+    if (!own.some(p => p.section === "reponse")) continue;
+    // What is indexed is each passage's search text: title, author, recipient and the passage itself.
+    const indexed = own.map(passage => ({
+      passage,
+      terms: new Set(indexedRoots(searchText(q, passage))),
+      // Every word of the passage text, by root, in order: ts_rank_cd counts their occurrences.
+      roots: indexedRoots(passage.text),
+    }));
+    const all = new Set(indexed.flatMap(p => [...p.terms]));
     for (const term of all) documentFrequency.set(term, (documentFrequency.get(term) ?? 0) + 1);
-    return {
-      q,
-      passages: passages(q).map(passage => ({ passage, terms: new Set(tokens(passage.text)) })),
-      all,
-      title: new Set(tokens(`${q.titre} ${q.auteur}`)),
-    };
-  });
+    documents.push({ q, passages: indexed, all, title: new Set(indexedRoots(q.titre)) });
+  }
   const index = { documents, documentFrequency };
   indexes.set(questions, index);
   return index;
 }
+function compareIds(a: string, b: string) {
+  return a < b ? -1 : a > b ? 1 : 0;
+}
 export function localSearch(questions: readonly Question[], query: string, limit = 6): Hit[] {
-  const terms = tokens(expanded(query));
-  const original = tokens(query);
-  if (!original.length) return [];
+  const terms = lexicalTerms(query).map(([term]) => term);
+  if (!terms.length) return [];
+  const wanted = new Set(terms);
   const { documents, documentFrequency } = searchIndex(questions);
   const idf = (term: string) => Math.log(1 + documents.length / (1 + (documentFrequency.get(term) ?? 0)));
-  const ranked = documents
-    .map(doc => {
-      if (!original.some(t => doc.all.has(t))) return { doc, score: 0 };
-      const score =
+  const lexical = documents
+    .map(doc => ({
+      doc,
+      score:
         terms.reduce((n, t) => n + (doc.all.has(t) ? idf(t) * (doc.title.has(t) ? 3 : 1) : 0), 0) /
-        Math.sqrt(terms.length);
-      return { doc, score };
+        Math.sqrt(terms.length),
+    }))
+    .filter(d => d.score > 0);
+  // Rank fusion as in SQL, without a vector: 1 / (60 + rank), ties sharing the rank (rank()).
+  const max = Math.max(1, Math.min(limit, 8));
+  const selected = lexical
+    .map(({ doc, score }) => {
+      const rank = 1 + lexical.filter(other => other.score > score + 1e-9).length;
+      return { doc, fused: 1 / (60 + rank), leader: rank === 1 };
     })
-    .filter(d => d.score >= 0.5)
-    .sort((a, b) => b.score - a.score);
-  const top = ranked[0];
-  if (!top) return [];
-  const results: Hit[] = [];
-  for (const { doc, score } of ranked.filter(d => d.score >= top.score * 0.42).slice(0, 3)) {
-    const answers = doc.passages.filter(p => p.passage.section === "reponse");
-    const pool = answers.length ? answers : doc.passages;
-    const best = pool
-      .map(p => ({
-        passage: p.passage,
-        question: doc.q,
-        score: score + terms.filter(t => p.terms.has(t)).reduce((n, t) => n + idf(t), 0),
-      }))
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 2);
-    results.push(...best);
-  }
+    .sort((a, b) => Number(b.leader) - Number(a.leader) || b.fused - a.fused || compareIds(a.doc.q.id, b.doc.q.id))
+    .slice(0, max)
+    .sort((a, b) => b.fused - a.fused || compareIds(a.doc.q.id, b.doc.q.id));
+  const rows = selected.flatMap(({ doc, fused }, documentRank) =>
+    doc.passages
+      .filter(p => p.passage.section === "reponse")
+      // The passages with the most occurrences of query words first, then in passage order: with
+      // an OR query ts_rank_cd gives each occurrence its own cover, so its rank is their sum.
+      .map(p => ({ p, matched: p.roots.filter(root => wanted.has(root)).length }))
+      .sort((a, b) => b.matched - a.matched || a.p.passage.order - b.p.passage.order)
+      .slice(0, 2)
+      .map(({ p }, passageRank) => ({
+        hit: { passage: p.passage, question: doc.q, score: fused } satisfies Hit,
+        documentRank,
+        passageRank,
+      })),
+  );
+  // The two best passages of the first question, then the best passage of each following
+  // question, then their second passages.
+  const position = (r: (typeof rows)[number]) => (r.documentRank === 0 ? 0 : r.passageRank + 1);
+  rows.sort((a, b) => position(a) - position(b) || a.documentRank - b.documentRank || a.passageRank - b.passageRank);
   return filterLexicalHits(
-    results.sort((a, b) => b.score - a.score),
+    rows.slice(0, max).map(r => r.hit),
     query,
   ).slice(0, limit);
 }

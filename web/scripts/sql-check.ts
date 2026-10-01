@@ -7,8 +7,6 @@ import { evaluateCase, searchCases } from "./search-cases";
 import {
   compareRows,
   type Difference,
-  documentedProblem,
-  KNOWN_KINDS,
   type Row,
   randomQueries,
   rareTitleWords,
@@ -140,9 +138,7 @@ async function main() {
   const reports: string[] = [];
   const counts = { cas: 0, hasard: 0, rare: 0 };
   const tally = new Map<string, number>();
-  const knownTally = new Map<string, number>();
   let failing = 0;
-  let known = 0;
   queries.forEach((query, i) => {
     const sqlHits: Hit[] = (sql.get(i) ?? []).map(r => ({
       passage: {
@@ -185,33 +181,15 @@ async function main() {
     }
     counts[query.group]++;
     if (!differences.length) return;
-    // A known kind is documented by a migration: it stays known only while the SQL rows keep that property.
-    const sqlRows = production.map(h => ({ id: h.passage.id, question_id: h.passage.questionId, score: h.score }));
-    const notes = new Map<Difference, string>();
-    const unknown = differences.filter(d => {
-      const reason = KNOWN_KINDS[d.kind];
-      if (!reason) return true;
-      const broken = documentedProblem(d.kind, sqlRows);
-      if (broken) {
-        d.detail = `${d.detail} ; la propriété documentée n'est pas tenue (${broken})`;
-        return true;
-      }
-      notes.set(d, reason);
-      return false;
-    });
-    for (const d of differences) {
-      const target = unknown.includes(d) ? tally : knownTally;
-      target.set(d.kind, (target.get(d.kind) ?? 0) + 1);
-    }
-    if (unknown.length) failing++;
-    else known++;
+    for (const d of differences) tally.set(d.kind, (tally.get(d.kind) ?? 0) + 1);
+    failing++;
     reports.push(
       [
-        `${unknown.length ? "ÉCART" : "ÉCART CONNU"} ${query.label} (${query.group}) : « ${query.text} »`,
+        `ÉCART ${query.label} (${query.group}) : « ${query.text} »`,
         `  termes envoyés au SQL : ${lexicalQuery(query.text) || "(aucun)"}`,
         `  local : ${JSON.stringify(local.map(h => [h.passage.id, round6(h.score)]))}`,
         `  SQL   : ${JSON.stringify(production.map(h => [h.passage.id, round6(h.score)]))}`,
-        ...differences.map(d => `  - ${d.kind}${notes.has(d) ? " (connu)" : ""} : ${d.detail}`),
+        ...differences.map(d => `  - ${d.kind} : ${d.detail}`),
       ].join("\n"),
     );
   });
@@ -224,7 +202,7 @@ async function main() {
   for (const problem of problems) console.log(`CONTRAT ${problem}`);
   console.log(
     `Parité : ${queries.length} requêtes (${counts.cas} cas de l'audit, ${counts.hasard} au hasard, graine ${SEED}, ${counts.rare} mots rares) : ` +
-      `${failing} écart(s) inconnu(s)${tally.size ? ` [${[...tally].map(([k, v]) => `${v} ${k}`).join(", ")}]` : ""}, ${known} requête(s) à écarts connus seulement${knownTally.size ? ` [${[...knownTally].map(([k, v]) => `${v} ${k}`).join(", ")}]` : ""}, ` +
+      `${failing} requête(s) en écart${tally.size ? ` [${[...tally].map(([k, v]) => `${v} ${k}`).join(", ")}]` : ""}, ` +
       `${problems.length} problème(s) de contrat.`,
   );
   if (failing || problems.length) process.exitCode = 1;

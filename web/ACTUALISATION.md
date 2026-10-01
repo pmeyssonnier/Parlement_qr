@@ -296,13 +296,16 @@ titres du corpus avec une graine fixe (`SEED` dans `scripts/sql-check.ts`), et d
 compare pas les scores : on vérifie seulement que la fonction répond, respecte la limite (1, 6, au plus 8) et ne
 renvoie que des passages de réponse. Chaque écart affiche la requête, les termes envoyés au SQL et les deux listes.
 
-Un écart est « connu » par catégorie (`KNOWN_KINDS`, `scripts/sql-parity.ts`), et seulement si une migration le
-documente : `scores` (006 : la SQL renvoie un rang fusionné `1/(60+rang)`, le local une somme d'IDF) et `ordre`
-(007 : première fiche avec ses deux passages, puis le meilleur de chaque fiche suivante, puis les seconds passages).
-Il est affiché « (connu) » sans faire échouer, mais seulement tant que la propriété documentée tient sur les lignes
-de la SQL (`documentedProblem` : scores de la forme `1/(60+rang)`, partagés par les passages d'une fiche, non
-croissants ; ordre 007 respecté). Toute autre catégorie (`questions`, `premiere-question`, `passages`, `local-vide`,
-`sql-vide`, `attendu`) fait échouer : un écart inconnu est un bogue à décider, pas à masquer.
+La recherche locale (`localSearch`, `src/lib/search.ts`) suit `search_passages` (migration 007), la recherche
+de la production : mêmes fiches (celles qui ont une réponse), mêmes mots (`lexicalQuery()`), même IDF et titre
+pondéré ×3, même rang fusionné `1/(60+rang)`, mêmes six fiches retenues, même choix et même ordre des passages.
+Les racines sont celles de PostgreSQL (Snowball français, paquet `snowball-stemmers`), la liste de mots vides de
+PostgreSQL sert à l'indexation, les ligatures se lisent comme `fold_accents` (« œuvre » → « oeuvre »), et un
+« vélos/trottinettes » est un nom de fichier pour l'analyseur de PostgreSQL, donc non indexé mot à mot. Ce qui
+n'est pas reproduit : les autres jetons composés de l'analyseur (URL, adresses, mots à trait d'union).
+
+Aucun écart n'est toléré : tout écart fait échouer le contrôle. Un écart documenté pourrait être déclaré connu,
+mais il n'y en a plus aucun ; en ajouter un demande une décision, pas un réglage.
 
 ### Dans la CI
 

@@ -62,18 +62,22 @@ export function randomQueries(vocabulary: readonly string[], count: number, seed
 export function rareTitleWords(questions: readonly Question[], limit: number, seed: number) {
   const owners = new Map<string, Set<string>>();
   const everywhere = new Map<string, number>();
+  const words = new Map<string, string>();
   for (const q of questions) {
     for (const w of new Set(tokens(`${q.titre} ${q.auteur} ${q.question} ${q.reponse ?? ""}`))) {
       everywhere.set(w, (everywhere.get(w) ?? 0) + 1);
     }
-    for (const w of new Set(tokens(q.titre))) {
-      if (w.length < 5 || !/^[a-z]+$/.test(w) || !q.reponse?.trim()) continue;
-      owners.set(w, (owners.get(w) ?? new Set()).add(q.moncode));
+    // The word as written (what a user types), counted by root (what the searches compare).
+    for (const w of new Set(normalize(q.titre).match(/[a-z]{5,}/g) ?? [])) {
+      const root = tokens(w)[0];
+      if (!root || !q.reponse?.trim()) continue;
+      owners.set(root, (owners.get(root) ?? new Set()).add(q.moncode));
+      words.set(root, w);
     }
   }
   const candidates = [...owners]
     .filter(([w, set]) => set.size === 1 && everywhere.get(w) === 1)
-    .map(([word, set]) => ({ word, moncode: [...set][0] as string }))
+    .map(([root, set]) => ({ word: words.get(root) as string, moncode: [...set][0] as string }))
     .sort((a, b) => a.word.localeCompare(b.word));
   const random = seededRandom(seed);
   for (let i = candidates.length - 1; i > 0; i--) {
@@ -150,76 +154,4 @@ export function compareRows(local: Row[], sql: Row[]): Difference[] {
     }
   });
   return differences;
-}
-
-export type SqlRow = Row & { question_id: string };
-
-/**
- * Differences the migrations document, by kind. A known kind is reported without failing the check, but
- * only while the documented property holds (see documentedProblem): a SQL that stops doing what its
- * migration says fails. Every other kind fails. Add a kind only for a difference that is documented.
- */
-export const KNOWN_KINDS: Partial<Record<DifferenceKind, string>> = {
-  scores:
-    "documenté par 006 : la SQL renvoie un rang fusionné (RRF, 1/(60+rang), commun aux passages d'une fiche), " +
-    "le local une somme d'IDF ; les valeurs ne se comparent pas",
-  ordre:
-    "documenté par 007 : la SQL place les deux passages de la première fiche, puis le meilleur de chacune des " +
-    "suivantes, puis leurs seconds passages ; le local trie par score",
-};
-
-/** Reciprocal-rank-fusion score as 006 computes it without a vector: 1 / (60 + rank), rank >= 1. */
-export function rrfRank(score: number): number | null {
-  const rank = 1 / score - 60;
-  return Math.abs(rank - Math.round(rank)) < 1e-6 && Math.round(rank) >= 1 ? Math.round(rank) : null;
-}
-
-/**
- * Checks, on the rows the SQL returned, the property that documents a known kind. Returns the problem,
- * or null when the documented behaviour holds.
- * - scores (006): every score is 1/(60+rank), the passages of one question share it, and the questions,
- *   in order of first appearance, never rise in score.
- * - ordre (007): the first question comes first (two passages at most), then every other question once,
- *   and only then second passages.
- */
-export function documentedProblem(kind: DifferenceKind, rows: readonly SqlRow[]): string | null {
-  if (kind === "scores") {
-    const byQuestion = new Map<string, number>();
-    let previous = Number.POSITIVE_INFINITY;
-    for (const row of rows) {
-      if (rrfRank(row.score) === null) return `score ${round6(row.score)} de ${row.id} : pas de la forme 1/(60+rang)`;
-      const known = byQuestion.get(row.question_id);
-      if (known !== undefined && round6(known) !== round6(row.score))
-        return `${row.question_id} : scores différents entre ses passages`;
-      if (known === undefined) {
-        if (row.score > previous + 1e-12)
-          return `${row.question_id} : score plus élevé que celui d'une fiche mieux classée`;
-        previous = row.score;
-        byQuestion.set(row.question_id, row.score);
-      }
-    }
-    return null;
-  }
-  if (kind === "ordre") {
-    const counts = new Map<string, number>();
-    let secondPassages = false;
-    rows.forEach(row => {
-      counts.set(row.question_id, (counts.get(row.question_id) ?? 0) + 1);
-    });
-    const first = rows[0]?.question_id;
-    const seen = new Set<string>();
-    let index = 0;
-    // The first question's passages open the list.
-    while (index < rows.length && rows[index]?.question_id === first) seen.add(rows[index++]?.question_id as string);
-    for (; index < rows.length; index++) {
-      const question = (rows[index] as SqlRow).question_id;
-      if (question === first) return `${first} : un passage de la première fiche après d'autres fiches`;
-      if (seen.has(question)) secondPassages = true;
-      else if (secondPassages) return `${question} : un premier passage après des seconds passages`;
-      else seen.add(question);
-    }
-    for (const [question, count] of counts) if (count > 2) return `${question} : plus de deux passages`;
-    return null;
-  }
-  return null;
 }

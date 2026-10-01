@@ -5,12 +5,9 @@ import {
   compareRows,
   copyField,
   copyRow,
-  documentedProblem,
-  KNOWN_KINDS,
   randomQueries,
   rareTitleWords,
   round6,
-  rrfRank,
   seededRandom,
   titleVocabulary,
 } from "../scripts/sql-parity";
@@ -81,21 +78,4 @@ test("psql : SQL_CHECK_PSQL est obligatoire et seule une base locale est accept�
   }
   assert.throws(() => assertLocalDatabase({ PGHOSTADDR: "203.0.113.7" }), /base locale/);
   assert.throws(() => assertLocalDatabase({ PGSERVICE: "supabase" }), /PGSERVICE/);
-});
-
-test("écarts connus : seulement scores et ordre, et seulement si la propriété documentée tient", () => {
-  assert.deepEqual(Object.keys(KNOWN_KINDS).sort(), ["ordre", "scores"]);
-  assert.equal(rrfRank(1 / 61), 1);
-  assert.equal(rrfRank(1 / 63), 3);
-  assert.equal(rrfRank(8.31), null);
-  const row = (question_id: string, id: string, score: number) => ({ id, question_id, score });
-  const ok = [row("a", "a0", 1 / 61), row("a", "a1", 1 / 61), row("b", "b0", 1 / 62), row("b", "b1", 1 / 62)];
-  assert.equal(documentedProblem("scores", ok), null);
-  assert.match(documentedProblem("scores", [row("a", "a0", 8.31)]) ?? "", /1\/\(60\+rang\)/);
-  assert.match(documentedProblem("scores", [row("a", "a0", 1 / 62), row("b", "b0", 1 / 61)]) ?? "", /plus élevé/);
-  assert.match(documentedProblem("scores", [row("a", "a0", 1 / 61), row("a", "a1", 1 / 62)]) ?? "", /différents/);
-  assert.equal(documentedProblem("ordre", ok), null);
-  const bad = [row("a", "a0", 1), row("b", "b0", 1), row("b", "b1", 1), row("c", "c0", 1)];
-  assert.match(documentedProblem("ordre", bad) ?? "", /premier passage après des seconds/);
-  assert.equal(documentedProblem("questions", ok), null);
 });
