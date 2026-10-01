@@ -95,7 +95,11 @@ dans une PR.
 les champs suivants s'appliquent :
 
 - **legislature** : la législature à collecter, comme dans le nom de l'index du site
-  (`19-24` pour 2019-2024) ;
+  (`19-24` pour 2019-2024). Seules `19-24` et `24-29` sont acceptées : le format des fiches des
+  législatures plus anciennes (par exemple `09-14`) n'a pas été validé, et la collecte refuse
+  ces codes avant tout téléchargement. Pour en ouvrir une autre, comparez d'abord ses pages à
+  celles que lit `parse_record`, puis ajoutez son code à `SUPPORTED_LEGISLATURES`
+  (`scripts/refresh-corpus.py`) dans une PR ;
 - **title_filter** : une expression sur le titre français ou néerlandais, par exemple
   `Schaerbeek|Schaarbeek|Meiser|Josaphat` (majuscules indifférentes) ;
 - **title_filter_label** (facultatif) : le libellé du filtre affiché aux visiteurs, par

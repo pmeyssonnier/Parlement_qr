@@ -13,6 +13,9 @@ from pathlib import Path
 
 BASE = 'https://www.parlement.brussels'
 CURRENT_LEGISLATURE = '24-29'
+# Legislatures whose pages have been checked against parse_record. Older legislatures (such as 09-14)
+# may use another page layout: add a code here only after comparing its pages with these ones.
+SUPPORTED_LEGISLATURES = ('19-24', '24-29')
 
 def index_url(legislature):
     return BASE + '/prb_includes/weblex/data/dos_qu_legis_' + legislature + '.json'
@@ -196,6 +199,9 @@ def main():
         parser.error('--max-records and --max-downloads must be positive, the other --max-* options at least 0')
     if not re.fullmatch(r'\d{2}-\d{2}', args.legislature):
         parser.error('--legislature must look like 24-29')
+    if args.legislature not in SUPPORTED_LEGISLATURES:
+        parser.error(f'--legislature {args.legislature} is not supported: the page layout of that legislature has '
+                     f'not been validated (supported: {", ".join(SUPPORTED_LEGISLATURES)})')
     try:
         title_filter = re.compile(args.title_filter, re.I) if args.title_filter else None
     except re.error as error:

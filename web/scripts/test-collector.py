@@ -255,6 +255,14 @@ class CollectorTests(unittest.TestCase):
         with self.assertRaises(SystemExit):
             self.run_collector([current],rows,pages,'--selection','inconnue')
 
+    def test_unvalidated_legislature_is_refused_before_any_download(self):
+        for code in ('09-14','14-19','99-99'):
+            with self.subTest(code=code), patch.object(collector,'download') as download:
+                with patch('sys.argv',['refresh','--legislature',code]), self.assertRaises(SystemExit):
+                    collector.main()
+                download.assert_not_called()
+        self.assertEqual(collector.SUPPORTED_LEGISLATURES,('19-24','24-29'))
+
     def test_legislature_names(self):
         self.assertEqual(collector.full_legislature('19-24'),'2019-2024')
         self.assertEqual(collector.full_legislature('89-95'),'1989-1995')
