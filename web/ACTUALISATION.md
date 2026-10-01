@@ -255,3 +255,55 @@ GitHub Actions selon vos préférences. Aucun message Slack ou email n'est envoy
 par le script. Les nouvelles réponses sont interrogeables dès l'activation ; les compteurs
 affichés sur la page d'accueil sont mis en cache et se mettent à jour en
 10 minutes au plus. Un nouveau déploiement Vercel n'est pas nécessaire.
+
+## Parité des recherches SQL et locale
+
+La recherche existe en deux versions : `search_passages` (SQL, utilisée en production via Supabase,
+`supabase/migrations/006` et `007`) et `localSearch` (TypeScript, `src/lib/search.ts`, utilisée par
+`npm run audit:search` et en secours). Le commentaire de la migration 006 dit que le classement est
+« comme la recherche locale » : `npm run check:sql` le vérifie, sur une base PostgreSQL **locale et
+jetable**, jamais sur Supabase et sans OpenAI (vecteurs de substitution calculés en SQL, aucun coût).
+
+### Lancer le contrôle en local
+
+```bash
+# PostgreSQL 16 avec pgvector (Ubuntu : apt-get install postgresql postgresql-16-pgvector)
+createdb parite
+export SQL_CHECK_PSQL=psql PGHOST=localhost PGUSER=postgres PGPASSWORD=… PGDATABASE=parite
+npm run check:sql:setup            # rôles, migrations 001 à 010, corpus chargé et activé
+npm run check:sql                  # compare les deux recherches
+```
+
+- `SQL_CHECK_PSQL` désigne le client `psql` à utiliser ; sans lui, rien ne tourne. La connexion vient des
+  variables libpq usuelles ; `scripts/psql.ts` refuse toute base qui n'est pas sur la machine
+  (`PGHOST` distant, `PGSERVICE`).
+- `check:sql:setup` refuse une base qui contient déjà le schéma, sauf avec `--reset`. Il reproduit ce que
+  fournit Supabase, dont l'attribut `BYPASSRLS` du rôle `service_role` (les tables activent la sécurité par
+  ligne sans règle : sans lui, `service_role` ne lit aucune ligne). Il rejoue la migration 010 puis vérifie
+  les droits (`service_role` peut appeler `search_passages`, `anon` et `authenticated` non).
+- Corpus : `data/corpus-refreshed.json` (option `--file=`), le même que `audit:search`. Chargement mesuré :
+  environ 17 à 19 s pour 106 fiches (355 passages) ; le contrôle lui-même dure environ 7 s.
+- Les chiffres s'affichent avec le séparateur de `psql -At` : les booléens y sont `t` et `f`.
+
+### Ce qui est comparé
+
+Sans vecteur, le classement SQL est purement lexical : c'est ce que la parité compare, comme l'application
+le fait (`findHits` : `lexicalQuery()` envoyée au SQL, puis `filterLexicalHits()` sur les lignes) contre
+`localSearch(corpus, requête, 6)`. Les identifiants de passages et leur ordre, puis les scores arrondis à 6
+décimales. Les requêtes : les cas de l'audit (`scripts/search-cases.ts`), 100 requêtes de 1 à 4 mots tirés des
+titres du corpus avec une graine fixe (`SEED` dans `scripts/sql-check.ts`), et des mots rares cherchés seuls
+(la fiche attendue doit revenir des deux côtés). Avec des vecteurs de substitution, qui n'ont pas de sens, on ne
+compare pas les scores : on vérifie seulement que la fonction répond, respecte la limite (1, 6, au plus 8) et ne
+renvoie que des passages de réponse. Chaque écart affiche la requête, les termes envoyés au SQL et les deux listes.
+
+Un écart connu et documenté se déclare dans `KNOWN_GAPS` (`scripts/sql-parity.ts`, par étiquette de requête, avec sa
+raison) : il est affiché mais ne fait pas échouer le contrôle ; un écart déclaré qui n'existe plus fait échouer,
+pour qu'on le retire.
+
+### Dans la CI
+
+Le job `sql-parity` de `.github/workflows/check.yml` tourne sur un service `pgvector/pgvector:0.8.1-pg16`.
+Le job `changes` ne le lance que si la modification touche une migration, `src/lib/search*` ou `documents.ts`,
+`data/corpus-refreshed.json`, les scripts du contrôle ou `check.yml`. Il tourne aussi chaque nuit sur `main`
+(le job `check` non) et à la demande (*Actions → Application checks → Run workflow*). Le job `sql`
+(`supabase/tests/run.sh`) est inchangé : il teste les migrations, la parité complète ce test.

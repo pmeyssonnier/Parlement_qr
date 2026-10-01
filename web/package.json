@@ -14,7 +14,9 @@
     "import:data": "tsx --env-file-if-exists=.env.local scripts/import-data.ts",
     "check:config": "tsx --env-file-if-exists=.env.local scripts/check-config.ts",
     "export:data": "tsx --env-file-if-exists=.env.local scripts/export-corpus.ts",
-    "audit:search": "tsx --conditions=react-server --env-file-if-exists=.env.local scripts/audit-search.ts"
+    "audit:search": "tsx --conditions=react-server --env-file-if-exists=.env.local scripts/audit-search.ts",
+    "check:sql:setup": "tsx scripts/sql-setup.ts",
+    "check:sql": "tsx --conditions=react-server scripts/sql-check.ts"
   },
   "engines": {
     "node": ">=22"

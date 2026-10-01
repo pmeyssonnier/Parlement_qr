@@ -1,9 +1,17 @@
 name: Application checks
-on: [push, pull_request]
+on:
+  push:
+  pull_request:
+  # Every night on main (a scheduled run always uses the default branch), and on demand.
+  schedule:
+    - cron: '17 2 * * *'
+  workflow_dispatch:
 permissions:
   contents: read
 jobs:
   check:
+    # Not at night: the nightly run is for the SQL checks (sql, sql-parity).
+    if: github.event_name != 'schedule'
     runs-on: ubuntu-24.04
     # Local corpus, no AI: the checks never reach Supabase or OpenAI (no cost).
     env:
@@ -68,3 +76,86 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - run: web/supabase/tests/run.sh
+
+  # Does this change touch what the SQL/local search parity depends on? A migration, the search,
+  # the passages the import stores, the corpus the checks read, the check scripts or this workflow.
+  # Scheduled and manual runs always run the parity.
+  changes:
+    runs-on: ubuntu-24.04
+    outputs:
+      sql_parity: ${{ steps.filter.outputs.sql_parity }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - id: filter
+        env:
+          EVENT: ${{ github.event_name }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PUSH_BEFORE: ${{ github.event.before }}
+        run: |
+          set -euo pipefail
+          base=""
+          case "$EVENT" in
+            pull_request) base="$PR_BASE" ;;
+            push) base="$PUSH_BEFORE" ;;
+          esac
+          # Not a change event, or a base we cannot compare with (new branch, forced push): run it.
+          if [ -z "$base" ] || ! git cat-file -e "$base^{commit}" 2>/dev/null; then
+            echo "Pas de base de comparaison ($EVENT) : parité lancée."
+            echo "sql_parity=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          files=$(git diff --name-only "$base" "$GITHUB_SHA")
+          echo "$files"
+          pattern='^(web/supabase/migrations/|web/src/lib/(search|documents)|web/data/corpus-refreshed\.json$|web/scripts/(sql-setup|sql-check|sql-parity|psql|search-cases|index-config)\.ts$|\.github/workflows/check\.yml$)'
+          if grep -Eq "$pattern" <<<"$files"; then
+            echo "sql_parity=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Aucun fichier concerné : parité non lancée."
+            echo "sql_parity=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  # Parity of the two searches on a throwaway pgvector database, never Supabase and never OpenAI:
+  # the migrations apply in order, the local corpus is loaded with substitute vectors, then
+  # search_passages (SQL, production) and localSearch (TypeScript) must return the same
+  # passages. See web/ACTUALISATION.md, « Parité des recherches SQL et locale ».
+  sql-parity:
+    needs: changes
+    if: needs.changes.outputs.sql_parity == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: pgvector/pgvector:0.8.1-pg16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      # The service container above is the only database the scripts accept (scripts/psql.ts).
+      SQL_CHECK_PSQL: psql
+      PGHOST: localhost
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGDATABASE: postgres
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+      - name: Migrations and corpus on the throwaway database
+        run: npm run check:sql:setup
+      - name: Parity of search_passages and the local search
+        run: npm run check:sql
