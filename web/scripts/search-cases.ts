@@ -179,7 +179,6 @@ export const searchCases: SearchCase[] = [
     kind: "citoyen",
     question: "Où garer son vélo au bureau ?",
     expect: ["170128", "170115"],
-    gap: "« garer » et « bureau » absents (« stationnement », « bureaux ») : seuls les embeddings la retrouvent.",
   },
   {
     id: "pollution-hopitaux",
@@ -198,7 +197,6 @@ export const searchCases: SearchCase[] = [
     kind: "citoyen",
     question: "Les entrées du métro sont-elles sûres ?",
     expect: ["170112"],
-    gap: "« entrées » et « sûres » absents (« accès », « sécurité ») : seuls les embeddings la retrouvent.",
   },
   // Relances : le sujet de la question précédente est conservé.
   {

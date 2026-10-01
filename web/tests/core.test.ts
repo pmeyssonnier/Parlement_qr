@@ -91,8 +91,12 @@ test("recherche lexicale : les mots partent tels qu'écrits, pas déjà raccourc
   const query = "Quelles sont les mesures pour les usagers des trams et des bus ?";
   assert.equal(
     lexicalQuery(query).split(" OR ").length,
-    tokens(`${query} STIB transports`).filter(t => t !== "mesure").length,
+    tokens(`${query} STIB transports`).filter(t => !tokens("mesures").includes(t)).length,
   );
+});
+test("les ligatures se lisent comme dans la SQL : œuvre → oeuvre", () => {
+  assert.equal(lexicalQuery("mise en œuvre"), "mise OR oeuvre");
+  assert.deepEqual(tokens("Œuvre et cœur"), tokens("oeuvre et coeur"));
 });
 test("les synonymes s’appliquent aussi aux mots accentués", () => {
   assert.match(lexicalQuery("Quand ont lieu les élections ?"), /electoral/);

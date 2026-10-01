@@ -255,3 +255,71 @@ GitHub Actions selon vos préférences. Aucun message Slack ou email n'est envoy
 par le script. Les nouvelles réponses sont interrogeables dès l'activation ; les compteurs
 affichés sur la page d'accueil sont mis en cache et se mettent à jour en
 10 minutes au plus. Un nouveau déploiement Vercel n'est pas nécessaire.
+
+## Parité des recherches SQL et locale
+
+La recherche existe en deux versions : `search_passages` (SQL, utilisée en production via Supabase,
+`supabase/migrations/006` et `007`) et `localSearch` (TypeScript, `src/lib/search.ts`, utilisée par
+`npm run audit:search` et en secours). Le commentaire de la migration 006 dit que le classement est
+« comme la recherche locale » : `npm run check:sql` le vérifie, sur une base PostgreSQL **locale et
+jetable**, jamais sur Supabase et sans OpenAI (vecteurs de substitution calculés en SQL, aucun coût).
+
+### Lancer le contrôle en local
+
+```bash
+# PostgreSQL 16 avec pgvector (Ubuntu : apt-get install postgresql postgresql-16-pgvector)
+createdb parite
+export SQL_CHECK_PSQL=psql PGHOST=localhost PGUSER=postgres PGPASSWORD=… PGDATABASE=parite
+npm run check:sql:setup            # rôles, migrations 001 à 010, corpus chargé et activé
+npm run check:sql                  # compare les deux recherches
+```
+
+- `SQL_CHECK_PSQL` désigne le client `psql` à utiliser ; sans lui, rien ne tourne. La connexion vient des
+  variables libpq usuelles ; `scripts/psql.ts` refuse toute base qui n'est pas sur la machine
+  (`PGHOST` distant, `PGSERVICE`).
+- `check:sql:setup` refuse une base qui contient déjà le schéma, sauf avec `--reset`. Il reproduit ce que
+  fournit Supabase, dont l'attribut `BYPASSRLS` du rôle `service_role` (les tables activent la sécurité par
+  ligne sans règle : sans lui, `service_role` ne lit aucune ligne). Il rejoue la migration 010 puis vérifie
+  les droits (`service_role` peut appeler `search_passages`, `anon` et `authenticated` non).
+- Corpus : `data/corpus-refreshed.json` (option `--file=`), le même que `audit:search`. Chargement mesuré :
+  environ 17 à 19 s pour 106 fiches (355 passages) ; le contrôle lui-même dure environ 7 s.
+- Les chiffres s'affichent avec le séparateur de `psql -At` : les booléens y sont `t` et `f`.
+
+### Ce qui est comparé
+
+Sans vecteur, le classement SQL est purement lexical : c'est ce que la parité compare, comme l'application
+le fait (`findHits` : `lexicalQuery()` envoyée au SQL, puis `filterLexicalHits()` sur les lignes) contre
+`localSearch(corpus, requête, 6)`. Les identifiants de passages et leur ordre, puis les scores arrondis à 6
+décimales. Les requêtes : les cas de l'audit (`scripts/search-cases.ts`), 100 requêtes de 1 à 4 mots tirés des
+titres du corpus avec une graine fixe (`SEED` dans `scripts/sql-check.ts`), et des mots rares cherchés seuls
+(la fiche attendue doit revenir des deux côtés). Avec des vecteurs de substitution, qui n'ont pas de sens, on ne
+compare pas les scores : on vérifie seulement que la fonction répond, respecte la limite (1, 6, au plus 8) et ne
+renvoie que des passages de réponse. Chaque écart affiche la requête, les termes envoyés au SQL et les deux listes.
+
+La recherche locale (`localSearch`, `src/lib/search.ts`) suit `search_passages` (migration 007), la recherche
+de la production : mêmes fiches (celles qui ont une réponse), mêmes mots (`lexicalQuery()`), même IDF et titre
+pondéré ×3, même rang fusionné `1/(60+rang)`, mêmes six fiches retenues, même choix et même ordre des passages.
+Les racines sont celles de PostgreSQL (Snowball français, paquet `snowball-stemmers`), la liste de mots vides de
+PostgreSQL sert à l'indexation, les ligatures se lisent comme `fold_accents` (« œuvre » → « oeuvre »), et un
+« vélos/trottinettes » est un nom de fichier pour l'analyseur de PostgreSQL, donc non indexé mot à mot. Ce qui
+n'est pas reproduit : les autres jetons composés de l'analyseur (URL, adresses, mots à trait d'union).
+
+Aucun écart n'est toléré : tout écart fait échouer le contrôle. Un écart documenté pourrait être déclaré connu,
+mais il n'y en a plus aucun ; en ajouter un demande une décision, pas un réglage.
+
+### Dans la CI
+
+Le job `sql-parity` de `.github/workflows/check.yml` tourne sur un service `pgvector/pgvector:0.8.1-pg16`.
+Le job `changes` ne le lance que si la modification touche une migration, `src/lib/search*` ou `documents.ts`,
+`data/corpus-refreshed.json`, les scripts du contrôle ou `check.yml`. Il tourne aussi chaque nuit sur `main`
+(le job `check` non) et à la demande (*Actions → Application checks → Run workflow*). Le job `sql`
+(`supabase/tests/run.sh`) est inchangé : il teste les migrations, la parité complète ce test.
+
+**Un seul niveau.** Durées mesurées en CI (1er octobre 2026, corpus de 106 fiches et 355 passages) : job
+`sql-parity` 1 min 15 au total, dont 13 s d'initialisation du conteneur, 15 s pour les migrations et le
+chargement du corpus et 32 s pour la parité. C'est largement sous les 3 minutes : un second niveau
+« léger » ne vaudrait pas sa complexité. À réexaminer si la durée dépasse 5 minutes, par exemple si
+`data/corpus-refreshed.json` grossit : le chargement coûte surtout les vecteurs de substitution (environ
+50 ms par passage), soit une trentaine de minutes pour les 38 000 passages du corpus de production, qui n'est
+pas celui que lit la CI. On séparerait alors un niveau léger (`run.sh` plus un échantillon, avec une option
+`--sample=N` de `sql-setup.ts`) du niveau complet.
