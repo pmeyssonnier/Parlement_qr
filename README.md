@@ -24,17 +24,16 @@ Avec Supabase, elle interroge le corpus actif (recherche plein texte et vectorie
 
 ## Corpus et actualisation
 
-Au 25 septembre 2026, **2 689 fiches** (8 332 passages) sont en ligne :
+Au 1er octobre 2026, **12 626 fiches** (39 071 passages) sont en ligne :
 
 | Législature | Couverture | Fiches |
 |---|---|---|
-| 2024-2029 | complète (rattrapage terminé) | 2 578 |
-| 2019-2024 | sélection thématique : titre citant Schaerbeek ou une de ses voiries régionales | 111 |
+| 2024-2029 | complète | 2 578 |
+| 2019-2024 | complète (chargée en entier le 1er octobre 2026) | 10 048 |
 
-Pour 2024-2029, seules 25 questions récentes n'y figurent pas encore, car leur texte
-n'est pas encore publié par le Parlement ; elles seront ajoutées automatiquement.
-Pour 2019-2024, une seule question retenue par le filtre est écartée pour la même
-raison.
+Douze fiches de 2019-2024 restent à l'écart : leur page n'a pas de texte de question.
+Le détail des étapes de croissance du corpus est dans
+[web/HISTORIQUE_CORPUS.md](web/HISTORIQUE_CORPUS.md).
 
 D'autres législatures ou sélections peuvent être ajoutées par **sélection
 thématique**, sans charger la législature entière : voir
@@ -58,25 +57,28 @@ import complet, et les deux précédentes sont conservées pour un retour arriè
 ### Stockage
 
 Depuis la migration 005, chaque fiche n'est stockée qu'une fois, quelle que soit la
-version qui l'utilise. Mesure du 25 septembre 2026, avec 2 406 fiches et 7 versions
-conservées :
+version qui l'utilise. Mesure du 1er octobre 2026, avec 12 626 fiches et 39 071
+passages dans la version active :
 
 | Élément | Taille |
 |---|---|
-| `document_passages` (passages, vecteurs et index) | 155 Mo |
-| — dont données (textes et vecteurs) | ~75 Mo |
-| — dont index vectoriel HNSW et index plein texte | ~80 Mo (l'index HNSW, inutilisé, est supprimé par la migration 009) |
-| `question_documents` (fiches complètes) | 9 Mo |
-| `version_questions` (liste des fiches de chaque version) | 2 Mo |
-| Autres tables et système Supabase | ~10 Mo |
-| **Base complète** | **176 Mo** |
+| `document_passages` (passages, vecteurs et index) | 402 Mo |
+| `question_documents` (fiches complètes) | 46 Mo |
+| `version_questions` (liste des fiches de chaque version) | 12 Mo |
+| `corpus_versions` et `quotas` | moins de 0,2 Mo |
+| **Base complète** | **471 Mo** |
 
-- Une fiche coûte environ **69 ko**, index compris.
-- Les versions de retour arrière ne coûtent presque rien : aucune fiche ne leur est
-  propre, toutes sont partagées avec la version active.
-- Projection : environ **196 Mo** avec le corpus actuel (2 689 fiches) et
-  **430 Mo** en fin de législature (environ 6 100 fiches), pour une limite de 500 Mo
-  avec l'offre Free de Supabase. À surveiller à partir de 2028.
+- Une fiche coûte environ **36 ko**, index compris (les trois tables du corpus, soit
+  460 Mo, divisées par 12 626 fiches), soit environ 10,5 ko par passage. La mesure du
+  25 septembre 2026 donnait 69 ko : l'écart vient probablement de la suppression de
+  l'index vectoriel HNSW inutilisé par la migration 009, non remesuré séparément.
+- Ces tailles comptent tout ce qui est stocké, y compris les contenus des versions de
+  retour arrière encore conservées ; leur coût propre se mesure avec la dernière requête
+  ci-dessous (non remesuré le 1er octobre).
+- Projection : environ **546 Mo** au plafond de 15 000 fiches (environ 36 ko par fiche),
+  soit environ 75 Mo de plus qu'aujourd'hui. La limite de l'offre Free (500 Mo) est
+  dépassée depuis le passage à l'offre Pro : vérifier le quota de disque dans
+  *Settings → Usage* de Supabase.
 
 Pour mesurer la place occupée, dans l'éditeur SQL de Supabase :
 
