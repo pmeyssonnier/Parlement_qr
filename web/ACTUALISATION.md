@@ -222,6 +222,39 @@ Ils s'appliquent à chaque lancement, y compris manuel. Plusieurs lancements
 peuvent donc cumuler des dépenses. Les appels du chat ont leurs propres limites.
 Une opération échouée peut avoir consommé une partie du budget avant l'arrêt.
 
+## Temps de la recherche vectorielle
+
+Mesure du 1er octobre 2026, **sur une base PostgreSQL locale jetable**, jamais sur Supabase : un ordre de
+grandeur, pas un chiffre de production. Depuis la migration 009, il n'y a plus d'index vectoriel : `search_passages`
+calcule la distance cosinus exacte de la question avec chaque passage de réponse de la version active.
+
+Montage : les 106 fiches du corpus de test copiées 110 fois, soit 39 050 passages (production : 39 071 ; dont
+24 310 passages de réponse) et 11 660 fiches, avec leurs vecteurs de 1 536 dimensions. PostgreSQL 16, pgvector,
+4 cœurs Xeon à 2,8 GHz, base « chaude » (5 mesures après un échauffement).
+
+| Ce qui est mesuré | Temps |
+|---|---|
+| `search_passages` avec vecteur et mots (comme la production) | 600 à 645 ms |
+| `search_passages` avec les mots seuls (sans vecteur) | 350 à 375 ms |
+| Distance cosinus seule, sur les 24 310 passages de réponse | 190 à 230 ms |
+
+La recherche par vecteurs ajoute donc environ 250 ms, soit près de la moitié du temps de la fonction, à environ
+9 microsecondes par passage. Le temps croît linéairement avec le nombre de passages : au plafond de 15 000 fiches
+(environ 47 000 passages), on attend environ 20 % de plus (extrapolation, non mesurée).
+
+Limites :
+
+- Autre machine que Supabase (processeur, charge partagée de l'offre Free) : les temps réels peuvent différer.
+- Données synthétiques : chaque mot apparaît 110 fois plus souvent qu'en réalité, ce qui peut gonfler la partie
+  « mots » ; la partie vecteurs ne dépend que du nombre et de la taille des vecteurs.
+- Non mesurés : l'appel à OpenAI qui vectorise la question, le réseau entre Vercel et Supabase, la synthèse du
+  modèle de langue. Les journaux Vercel détaillent la durée de chaque étape de `/api/chat` (dont l'étape
+  `embedding`) : c'est la mesure de référence en production.
+
+Refaire la mesure : `npm run check:sql:setup` sur une base jetable, copier les fiches avec leurs passages et leurs
+vecteurs jusqu'à la taille voulue, `analyze`, puis `\timing on` et plusieurs appels de `search_passages` avec le
+vecteur d'un passage existant (`\gset`). Ne jamais le faire sur Supabase.
+
 ## Garanties et suivi
 
 La nouvelle version devient active seulement après import complet et vérification
