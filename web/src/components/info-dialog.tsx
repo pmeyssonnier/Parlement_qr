@@ -1,5 +1,7 @@
 import { X } from "lucide-react";
 import { useEffect, useRef } from "react";
+import { CHANGELOG } from "@/lib/changelog";
+import { dateLabel } from "@/lib/format";
 import type { CorpusSummary, Panel } from "./types";
 
 export function InfoDialog({ panel, corpus, close }: { panel: Panel; corpus: CorpusSummary; close: () => void }) {
@@ -21,7 +23,13 @@ export function InfoDialog({ panel, corpus, close }: { panel: Panel; corpus: Cor
       <button type="button" className="close-dialog" onClick={close} aria-label="Fermer">
         <X size={20} />
       </button>
-      {panel === "method" ? <MethodPanel corpus={corpus} /> : <PrivacyPanel ai={corpus.ai} />}
+      {panel === "method" ? (
+        <MethodPanel corpus={corpus} />
+      ) : panel === "news" ? (
+        <NewsPanel />
+      ) : (
+        <PrivacyPanel ai={corpus.ai} />
+      )}
     </dialog>
   );
 }
@@ -50,6 +58,28 @@ function MethodPanel({ corpus: { count, answerCount, method, ai } }: { corpus: C
       <a href="https://www.parlement.brussels/interpellations-et-questions/" target="_blank" rel="noreferrer">
         Accéder à la source officielle ↗
       </a>
+    </>
+  );
+}
+
+function NewsPanel() {
+  return (
+    <>
+      <span className="eyebrow">HISTORIQUE</span>
+      <h2 id="dialog-title">Nouveautés</h2>
+      <ol className="news-list">
+        {CHANGELOG.map(release => (
+          <li key={release.date}>
+            <time dateTime={release.date}>{dateLabel(release.date)}</time>
+            <h3>{release.title}</h3>
+            <ul>
+              {release.items.map(item => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </li>
+        ))}
+      </ol>
     </>
   );
 }
