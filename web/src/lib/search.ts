@@ -12,14 +12,16 @@ export function normalize(s: string) {
     .replace(/\p{Diacritic}/gu, "")
     .toLowerCase();
 }
+/** Words of a text: accent-free, lowercase, without stop words, as written. */
+function words(s: string): string[] {
+  return (normalize(s).match(/[a-z0-9]{2,}/g) || []).filter(w => !stop.has(w));
+}
+/** The local search's naive plural: a final « s » goes, beyond four letters. */
+function stem(w: string) {
+  return w.length > 4 ? w.replace(/s$/, "") : w;
+}
 export function tokens(s: string): string[] {
-  return [
-    ...new Set(
-      (normalize(s).match(/[a-z0-9]{2,}/g) || [])
-        .filter(w => !stop.has(w))
-        .map(w => (w.length > 4 ? w.replace(/s$/, "") : w)),
-    ),
-  ];
+  return [...new Set(words(s).map(stem))];
 }
 // Match on the normalized text: without the u flag, \b treats accented
 // letters as word boundaries, so /\bélection/ never matched.
@@ -41,9 +43,16 @@ const filterGeneric = new Set(
 export function lexicalQuery(query: string) {
   // websearch_to_tsquery otherwise requires every word of a natural-language
   // question to occur together, including wording absent from the source.
-  return tokens(expanded(query))
-    .filter(term => !queryGeneric.has(term))
+  // The terms are the same as tokens() selects, but sent as written: search_passages
+  // stems them itself (PostgreSQL's French stemmer), and stemming a word the local
+  // search has already shortened gives another root (« terminus » → « terminu » no
+  // longer matches « terminus », nor « bruxellois », « usagers », « processus »…).
+  const terms = new Map<string, string>();
+  for (const word of words(expanded(query))) if (!terms.has(stem(word))) terms.set(stem(word), word);
+  return [...terms]
+    .filter(([term]) => !queryGeneric.has(term))
     .slice(0, 40)
+    .map(([, word]) => word)
     .join(" OR ");
 }
 /**
