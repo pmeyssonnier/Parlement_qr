@@ -1,5 +1,8 @@
 # Actualisation hebdomadaire du corpus
 
+L'historique des exécutions (fiches ajoutées, fiches manquantes, échecs) est dans
+[HISTORIQUE_CORPUS.md](HISTORIQUE_CORPUS.md).
+
 ## Préparation et activation
 
 Le workflow GitHub Actions `.github/workflows/refresh.yml` est préparé pour chaque
