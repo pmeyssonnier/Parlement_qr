@@ -296,9 +296,13 @@ titres du corpus avec une graine fixe (`SEED` dans `scripts/sql-check.ts`), et d
 compare pas les scores : on vérifie seulement que la fonction répond, respecte la limite (1, 6, au plus 8) et ne
 renvoie que des passages de réponse. Chaque écart affiche la requête, les termes envoyés au SQL et les deux listes.
 
-Un écart connu et documenté se déclare dans `KNOWN_GAPS` (`scripts/sql-parity.ts`, par étiquette de requête, avec sa
-raison) : il est affiché mais ne fait pas échouer le contrôle ; un écart déclaré qui n'existe plus fait échouer,
-pour qu'on le retire.
+Un écart est « connu » par catégorie (`KNOWN_KINDS`, `scripts/sql-parity.ts`), et seulement si une migration le
+documente : `scores` (006 : la SQL renvoie un rang fusionné `1/(60+rang)`, le local une somme d'IDF) et `ordre`
+(007 : première fiche avec ses deux passages, puis le meilleur de chaque fiche suivante, puis les seconds passages).
+Il est affiché « (connu) » sans faire échouer, mais seulement tant que la propriété documentée tient sur les lignes
+de la SQL (`documentedProblem` : scores de la forme `1/(60+rang)`, partagés par les passages d'une fiche, non
+croissants ; ordre 007 respecté). Toute autre catégorie (`questions`, `premiere-question`, `passages`, `local-vide`,
+`sql-vide`, `attendu`) fait échouer : un écart inconnu est un bogue à décider, pas à masquer.
 
 ### Dans la CI
 

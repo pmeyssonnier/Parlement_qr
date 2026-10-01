@@ -1,7 +1,6 @@
 import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { passages, searchText, validateCorpus } from "../src/lib/documents";
-import { EMBEDDING_DIMENSIONS } from "../src/lib/embedding";
 import { SCHEMA_VERSION } from "../src/lib/schema-version";
 import { contentHash, indexConfig } from "./index-config";
 import { psql, psqlValue } from "./psql";

@@ -11,6 +11,7 @@ import {
   focusedExcerpts,
   lexicalQuery,
   localSearch,
+  tokens,
 } from "../src/lib/search";
 import { corpusInfo, fallbackAnswer, localQuota, localRelease, semanticSearchEnabled } from "../src/lib/server";
 
@@ -77,9 +78,21 @@ test("une question sans réponse ne devient pas un extrait de réponse", () => {
 });
 
 test("recherche lexicale : mots-clés alternatifs sans syntaxe utilisateur ni termes génériques", () => {
-  assert.match(lexicalQuery("Comment les expatriés sont-ils informés de leur droit de vote ?"), /expatrie OR/);
-  assert.equal(lexicalQuery("Quelles sont les mesures concernant les cantines scolaires ?"), "cantine OR scolaire");
+  assert.match(lexicalQuery("Comment les expatriés sont-ils informés de leur droit de vote ?"), /expatries OR/);
+  assert.equal(lexicalQuery("Quelles sont les mesures concernant les cantines scolaires ?"), "cantines OR scolaires");
   assert.doesNotMatch(lexicalQuery('vote -"expatriés"'), /["-]/);
+});
+test("recherche lexicale : les mots partent tels qu'écrits, pas déjà raccourcis (le SQL les raccourcit lui-même)", () => {
+  // Le retrait local du « s » final changerait la racine du stemmer français de PostgreSQL.
+  for (const word of ["terminus", "bruxellois", "usagers", "processus", "emplois"]) {
+    assert.equal(lexicalQuery(`${word}`), word);
+  }
+  // Mêmes mots retenus que la recherche locale : seul l'écriture change.
+  const query = "Quelles sont les mesures pour les usagers des trams et des bus ?";
+  assert.equal(
+    lexicalQuery(query).split(" OR ").length,
+    tokens(`${query} STIB transports`).filter(t => t !== "mesure").length,
+  );
 });
 test("les synonymes s’appliquent aussi aux mots accentués", () => {
   assert.match(lexicalQuery("Quand ont lieu les élections ?"), /electoral/);

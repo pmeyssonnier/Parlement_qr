@@ -7,7 +7,8 @@ import { evaluateCase, searchCases } from "./search-cases";
 import {
   compareRows,
   type Difference,
-  KNOWN_GAPS,
+  documentedProblem,
+  KNOWN_KINDS,
   type Row,
   randomQueries,
   rareTitleWords,
@@ -137,9 +138,9 @@ async function main() {
 
   const sql = runSql(queries);
   const reports: string[] = [];
-  const resolved: string[] = [];
   const counts = { cas: 0, hasard: 0, rare: 0 };
   const tally = new Map<string, number>();
+  const knownTally = new Map<string, number>();
   let failing = 0;
   let known = 0;
   queries.forEach((query, i) => {
@@ -183,21 +184,34 @@ async function main() {
       }
     }
     counts[query.group]++;
-    const reason = KNOWN_GAPS[query.label];
-    if (!differences.length) {
-      if (reason) resolved.push(query.label);
-      return;
+    if (!differences.length) return;
+    // A known kind is documented by a migration: it stays known only while the SQL rows keep that property.
+    const sqlRows = production.map(h => ({ id: h.passage.id, question_id: h.passage.questionId, score: h.score }));
+    const notes = new Map<Difference, string>();
+    const unknown = differences.filter(d => {
+      const reason = KNOWN_KINDS[d.kind];
+      if (!reason) return true;
+      const broken = documentedProblem(d.kind, sqlRows);
+      if (broken) {
+        d.detail = `${d.detail} ; la propriété documentée n'est pas tenue (${broken})`;
+        return true;
+      }
+      notes.set(d, reason);
+      return false;
+    });
+    for (const d of differences) {
+      const target = unknown.includes(d) ? tally : knownTally;
+      target.set(d.kind, (target.get(d.kind) ?? 0) + 1);
     }
-    for (const d of differences) tally.set(d.kind, (tally.get(d.kind) ?? 0) + 1);
-    if (reason) known++;
-    else failing++;
+    if (unknown.length) failing++;
+    else known++;
     reports.push(
       [
-        `${reason ? "ÉCART CONNU" : "ÉCART"} ${query.label} (${query.group}) : « ${query.text} »${reason ? `\n  raison : ${reason}` : ""}`,
+        `${unknown.length ? "ÉCART" : "ÉCART CONNU"} ${query.label} (${query.group}) : « ${query.text} »`,
         `  termes envoyés au SQL : ${lexicalQuery(query.text) || "(aucun)"}`,
         `  local : ${JSON.stringify(local.map(h => [h.passage.id, round6(h.score)]))}`,
         `  SQL   : ${JSON.stringify(production.map(h => [h.passage.id, round6(h.score)]))}`,
-        ...differences.map(d => `  - ${d.kind} : ${d.detail}`),
+        ...differences.map(d => `  - ${d.kind}${notes.has(d) ? " (connu)" : ""} : ${d.detail}`),
       ].join("\n"),
     );
   });
@@ -208,14 +222,12 @@ async function main() {
   ];
   console.log(reports.join("\n"));
   for (const problem of problems) console.log(`CONTRAT ${problem}`);
-  if (resolved.length)
-    console.log(`Écarts connus désormais résolus, les retirer de KNOWN_GAPS : ${resolved.join(", ")}`);
   console.log(
     `Parité : ${queries.length} requêtes (${counts.cas} cas de l'audit, ${counts.hasard} au hasard, graine ${SEED}, ${counts.rare} mots rares) : ` +
-      `${failing} écart(s), ${known} écart(s) connu(s)${tally.size ? ` [${[...tally].map(([k, v]) => `${v} ${k}`).join(", ")}]` : ""}, ` +
+      `${failing} écart(s) inconnu(s)${tally.size ? ` [${[...tally].map(([k, v]) => `${v} ${k}`).join(", ")}]` : ""}, ${known} requête(s) à écarts connus seulement${knownTally.size ? ` [${[...knownTally].map(([k, v]) => `${v} ${k}`).join(", ")}]` : ""}, ` +
       `${problems.length} problème(s) de contrat.`,
   );
-  if (failing || problems.length || resolved.length) process.exitCode = 1;
+  if (failing || problems.length) process.exitCode = 1;
 }
 main().catch(e => {
   console.error(e instanceof Error ? e.message : "Contrôle SQL interrompu.");
