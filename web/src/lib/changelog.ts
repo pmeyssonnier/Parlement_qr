@@ -12,9 +12,10 @@ export type Release = {
 export const CHANGELOG: Release[] = [
   {
     date: "2026-10-01",
-    title: "Législature 2019-2024 : le corpus s’agrandit",
+    title: "Législature 2019-2024 : chargement terminé",
     items: [
-      "Les questions écrites de la législature 2019-2024 sont ajoutées par étapes, des plus récentes aux plus anciennes : le corpus passe de 4 489 à plus de 11 600 questions au cours de la journée.",
+      "Les questions écrites de la législature 2019-2024 sont ajoutées par étapes, des plus récentes aux plus anciennes : le corpus passe de 4 489 à 12 626 questions au cours de la journée, dont 10 048 de 2019-2024.",
+      "Douze fiches dont la page ne contient pas de texte de question restent à l’écart ; elles seront ajoutées si le Parlement publie leur texte.",
       "La mention « Documents jusqu’au… » du menu indique jusqu’où vont les documents consultables.",
     ],
   },

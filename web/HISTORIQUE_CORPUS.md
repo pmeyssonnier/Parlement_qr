@@ -3,7 +3,7 @@
 Journal des exécutions du workflow `Refresh parliamentary corpus` (`.github/workflows/refresh.yml`)
 depuis le début : combien de fiches ont été ajoutées, combien restaient à charger, et pourquoi
 certaines exécutions ont échoué. Reconstitué le 1er octobre 2026 à partir des journaux
-GitHub Actions des 39 exécutions terminées (les journaux ne sont conservés que 90 jours : ce
+GitHub Actions des 41 exécutions (du 24/09 au 01/10) (les journaux ne sont conservés que 90 jours : ce
 fichier garde la trace).
 
 La version destinée au public, en termes simples, est dans `src/lib/changelog.ts` (menu « Nouveautés »).
@@ -53,6 +53,8 @@ La version destinée au public, en termes simples, est dans `src/lib/changelog.t
 | #36 | 01/10 09:35 | 2019-2024 | 800 | n/d | ~2 549 | 10 089 |
 | #38 | 01/10 10:47 | 2019-2024 | 800 | n/d | ~1 749 | 10 889 |
 | #39 | 01/10 11:16 | 2019-2024 | 800 | n/d | ~949 | 11 689 |
+| #40 | 01/10 11:45 | 2019-2024 | 800 | n/d | ~149 | 12 489 |
+| #41 | 01/10 12:15 | 2019-2024 | 137 | 12 | 12 | 12 626 |
 
 Détails utiles :
 
@@ -63,6 +65,21 @@ Détails utiles :
 - Depuis le run #29, une partie des fiches enregistrées avait déjà été stockée par un run interrompu
   (#27) : elles sont reconnues par empreinte et ne sont pas renvoyées à OpenAI.
 - À chaque run, environ 4 à 5 Mo de texte partent chez OpenAI pour 800 fiches (quelques cents).
+
+Bilan du run #41 (dernier chargement) : 137 questions ajoutées, **12 écartées**, 12 encore absentes
+(ce sont les 12 écartées), 153 pages téléchargées, aucune page injoignable. Les valeurs `~` des
+runs #30 à #40 sont cohérentes avec ce bilan : 149 questions restaient avant le #41, soit
+137 ajoutées + 12 écartées.
+
+## Bilan du chargement de 2019-2024
+
+- Corpus final au 01/10/2026 : **12 626 fiches**, dont 2 578 de la législature 2024-2029 et
+  **10 048 de 2019-2024** (111 de la sélection Schaerbeek du 25/09, le reste chargé du 30/09 au 01/10).
+- 12 fiches de 2019-2024 restent à l'écart (pas de texte de question, ou pas de bloc de question sur
+  la page). Elles sont réessayées à chaque exécution et rejoindront le corpus si le site publie leur texte.
+- Index officiel 2019-2024 : environ 10 060 questions (10 048 chargées + 12 écartées).
+- 41 exécutions en 8 jours : 29 réussies (dont 23 ont ajouté des fiches, de 106 à 12 626) et 12 échecs
+  ou annulations, tous sans conséquence sur la version active.
 
 ## Exécutions échouées ou annulées
 
