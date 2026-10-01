@@ -8,7 +8,7 @@ export type CorpusSummary = {
   method: string;
   ai: boolean;
 };
-export type Panel = "method" | "privacy";
+export type Panel = "method" | "privacy" | "news";
 
 // The exploratory sample shipped with the repository has exactly 10 questions.
 export const isDemoCorpus = (corpus: CorpusSummary) => corpus.count === 10;

@@ -1,4 +1,4 @@
-import { ArrowUpRight, BookOpen, Landmark, Plus, Search } from "lucide-react";
+import { ArrowUpRight, BookOpen, Landmark, Plus, Search, Sparkles } from "lucide-react";
 import { dateLabel } from "@/lib/format";
 import { type CorpusSummary, isDemoCorpus, type Panel } from "./types";
 
@@ -40,6 +40,9 @@ export function Sidebar({
       </button>
       <button type="button" className="nav-item" onClick={() => onOpenPanel("method")}>
         <BookOpen size={17} aria-hidden="true" /> Sources et méthode
+      </button>
+      <button type="button" className="nav-item" onClick={() => onOpenPanel("news")}>
+        <Sparkles size={17} aria-hidden="true" /> Nouveautés
       </button>
       <a
         className="nav-item"

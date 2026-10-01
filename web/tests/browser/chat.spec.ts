@@ -32,6 +32,18 @@ test("absence de résultat et explication du périmètre", async ({ page }) => {
   await page.keyboard.press("Escape");
   await expect(page.getByRole("dialog")).not.toBeVisible();
 });
+test("menu Nouveautés : historique des mises à jour", async ({ page }) => {
+  await page.goto("/");
+  const menu = page.getByRole("button", { name: "Afficher le menu" });
+  if (await menu.isVisible()) await menu.click();
+  await page.getByRole("button", { name: "Nouveautés" }).click();
+  const dialog = page.getByRole("dialog");
+  await expect(dialog.getByRole("heading", { name: "Nouveautés" })).toBeVisible();
+  await expect(dialog.getByRole("heading", { level: 3 }).first()).toBeVisible();
+  await expect(dialog.getByText("Lancement de Parlement ouvert")).toBeAttached();
+  await page.keyboard.press("Escape");
+  await expect(dialog).not.toBeVisible();
+});
 test("API rejette les origines tierces et les messages excessifs", async ({ request }) => {
   const denied = await request.post("/api/chat", {
     headers: { origin: "https://evil.example" },
