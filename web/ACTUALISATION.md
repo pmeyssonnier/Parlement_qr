@@ -307,3 +307,12 @@ Le job `changes` ne le lance que si la modification touche une migration, `src/l
 `data/corpus-refreshed.json`, les scripts du contrôle ou `check.yml`. Il tourne aussi chaque nuit sur `main`
 (le job `check` non) et à la demande (*Actions → Application checks → Run workflow*). Le job `sql`
 (`supabase/tests/run.sh`) est inchangé : il teste les migrations, la parité complète ce test.
+
+**Un seul niveau.** Durées mesurées en CI (1er octobre 2026, corpus de 106 fiches et 355 passages) : job
+`sql-parity` 1 min 15 au total, dont 13 s d'initialisation du conteneur, 15 s pour les migrations et le
+chargement du corpus et 32 s pour la parité. C'est largement sous les 3 minutes : un second niveau
+« léger » ne vaudrait pas sa complexité. À réexaminer si la durée dépasse 5 minutes, par exemple si
+`data/corpus-refreshed.json` grossit : le chargement coûte surtout les vecteurs de substitution (environ
+50 ms par passage), soit une trentaine de minutes pour les 38 000 passages du corpus de production, qui n'est
+pas celui que lit la CI. On séparerait alors un niveau léger (`run.sh` plus un échantillon, avec une option
+`--sample=N` de `sql-setup.ts`) du niveau complet.
