@@ -209,12 +209,13 @@ qu'une fois ; une version du corpus n'est qu'une liste de références. Une vers
 retour arrière ne coûte que les fiches qui ont changé depuis. Le nettoyage supprime
 les contenus que plus aucune version n'utilise.
 
-Mesure du 25 septembre 2026 : base complète de 176 Mo pour 2 406 fiches, dont
-155 Mo pour `document_passages` (environ 75 Mo de données, environ 80 Mo d'index
-vectoriel et plein texte), soit environ 69 ko par fiche, index compris. Projection :
-environ 196 Mo avec le corpus du 25 septembre 2026 (2 689 fiches, dont 111 de la
-sélection 2019-2024) et environ 430 Mo pour 6 100 fiches en fin de législature : à surveiller avec l'offre Free de Supabase
-(500 Mo). Les requêtes de mesure figurent dans le README.
+Mesure du 1er octobre 2026 : base complète de 471 Mo pour 12 626 fiches et 39 071
+passages, dont 402 Mo pour `document_passages`, 46 Mo pour `question_documents` et 12 Mo
+pour `version_questions`, soit environ 36 ko par fiche, index compris (69 ko le
+25 septembre 2026, avant la suppression de l'index HNSW par la migration 009).
+Projection : environ 546 Mo au plafond de 15 000 fiches. Ces tailles incluent les
+contenus des versions de retour arrière conservées. Les requêtes de mesure figurent
+dans le README.
 
 Les plafonds OpenAI portent sur le volume et les appels, pas sur des euros.
 Ils s'appliquent à chaque lancement, y compris manuel. Plusieurs lancements
