@@ -2,5 +2,9 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
   "buildCommand": "npm run build",
-  "regions": ["dub1"]
+  "regions": ["dub1"],
+  "git": {
+    "deploymentEnabled": { "main": true, "**": false }
+  },
+  "ignoreCommand": "if [ -n \"$VERCEL_GIT_PREVIOUS_SHA\" ] && git cat-file -e \"$VERCEL_GIT_PREVIOUS_SHA^{commit}\"; then B=\"$VERCEL_GIT_PREVIOUS_SHA\"; else B=HEAD^; fi; git diff --quiet \"$B\" HEAD -- . ':(exclude)*.md' ':(exclude).claude/'"
 }
