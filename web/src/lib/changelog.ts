@@ -11,6 +11,15 @@ export type Release = {
 
 export const CHANGELOG: Release[] = [
   {
+    date: "2026-10-12",
+    title: "Nouvelles questions et recherche plus fiable",
+    items: [
+      "Le corpus passe de 12 626 à 12 689 questions : 63 nouvelles questions écrites ont été ajoutées lors des mises à jour des 5 et 12 octobre, et quelques fiches existantes ont été mises à jour.",
+      "La recherche retrouve mieux certains mots (« terminus », « bruxellois », « usagers », « œuvre »…) : sur nos cas de référence, la bonne fiche arrive en premier dans 93 % des cas, contre 89 % avant.",
+      "Une trentaine de fiches restent à l’écart tant que le Parlement n’a pas publié le texte de leur question ; elles seront ajoutées automatiquement.",
+    ],
+  },
+  {
     date: "2026-10-01",
     title: "Législature 2019-2024 : chargement terminé",
     items: [
