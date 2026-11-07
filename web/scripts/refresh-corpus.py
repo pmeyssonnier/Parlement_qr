@@ -170,7 +170,7 @@ def main():
                         help='Maximum question pages postponed after network errors before the run stops')
     parser.add_argument('--max-empty-texts', type=int, default=10,
                         help='Maximum current questions whose text is now empty on the site (previous version kept) before the run stops')
-    parser.add_argument('--max-missing-from-index', type=int, default=10,
+    parser.add_argument('--max-missing-from-index', type=int, default=30,
                         help='Maximum current questions missing from the index (previous version kept) before the run stops')
     parser.add_argument('--legislature', default=CURRENT_LEGISLATURE,
                         help='Legislature to collect, as in the index file name (24-29, 19-24…). Questions of other '

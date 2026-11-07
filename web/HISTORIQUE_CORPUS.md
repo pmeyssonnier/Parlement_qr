@@ -99,6 +99,9 @@ Aucune de ces exécutions n'a modifié le corpus en production : la version pré
 | #26 | 30/09 22:16 | collecte | `--expand` limité à 500 (relevé à 800 : PR nº 39) |
 | #27 | 30/09 22:24 | import | activation coupée au bout de 8 s (`statement_timeout` de `service_role` relevé à 120 s) |
 | #37 | 01/10 10:24 | collecte | site du Parlement injoignable (réessai réussi 20 minutes plus tard) |
+| #44 | 19/10 09:56 | collecte | 20 fiches de 2024-2029 absentes de l'index (seuil de 10 dépassé) ; pages vides côté Parlement |
+| #45 | 26/10 10:09 | collecte | idem : 20 fiches absentes de l'index |
+| #46 | 02/11 12:27 | collecte | idem : 19 fiches absentes de l'index (seuil relevé à 30 ensuite) |
 
 ## Comment compléter ce fichier
 
