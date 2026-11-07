@@ -11,6 +11,16 @@ export type Release = {
 
 export const CHANGELOG: Release[] = [
   {
+    date: "2026-11-07",
+    title: "Mise à jour du corpus après trois semaines d’interruption",
+    items: [
+      "Le corpus passe de 12 689 à 12 791 questions : 102 nouvelles questions écrites de la législature 2024-2029 ont été ajoutées.",
+      "Les mises à jour automatiques des 19 octobre, 26 octobre et 2 novembre n’ont pas pu aboutir ; celle du 7 novembre rattrape ces semaines.",
+      "Le Parlement a retiré de son site 19 fiches de la législature 2024-2029 : elles restent consultables ici dans leur dernière version connue.",
+      "Vingt-huit fiches récentes restent à l’écart tant que le Parlement n’a pas publié le texte de leur question ; elles seront ajoutées automatiquement.",
+    ],
+  },
+  {
     date: "2026-10-12",
     title: "Nouvelles questions et recherche plus fiable",
     items: [

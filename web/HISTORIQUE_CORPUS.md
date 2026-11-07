@@ -55,6 +55,9 @@ La version destinée au public, en termes simples, est dans `src/lib/changelog.t
 | #39 | 01/10 11:16 | 2019-2024 | 800 | n/d | ~949 | 11 689 |
 | #40 | 01/10 11:45 | 2019-2024 | 800 | n/d | ~149 | 12 489 |
 | #41 | 01/10 12:15 | 2019-2024 | 137 | 12 | 12 | 12 626 |
+| #42 (planifié) | 05/10 11:31 | 2024-2029 | 6 | 32 | 32 | 12 632 |
+| #43 (planifié) | 12/10 12:01 | 2024-2029 | 57 | 35 | 35 | 12 689 |
+| #47 (manuel) | 07/11 08:21 | 2024-2029 | 102 | 28 | 28 | 12 791 |
 
 Détails utiles :
 
@@ -65,6 +68,20 @@ Détails utiles :
 - Depuis le run #29, une partie des fiches enregistrées avait déjà été stockée par un run interrompu
   (#27) : elles sont reconnues par empreinte et ne sont pas renvoyées à OpenAI.
 - À chaque run, environ 4 à 5 Mo de texte partent chez OpenAI pour 800 fiches (quelques cents).
+
+Mises à jour de la législature en cours depuis la fin du chargement (ajoutés à la main le 7 novembre
+2026 à partir des journaux) :
+
+- Runs #42 et #43 (5 et 12 octobre) : 6 puis 57 questions ajoutées, soit 63 en tout (12 626 → 12 689).
+- Runs #44, #45 et #46 (19/10, 26/10, 02/11) : échec à la collecte (voir plus bas). Le corpus est resté à
+  12 689 fiches.
+- Run #47 (07/11, lancé à la main après le relèvement du seuil de 10 à 30 fiches absentes de l'index,
+  PR nº 50) : 102 questions ajoutées, 83 fiches revérifiées, 140 fiches « nouvelles ou modifiées »
+  enregistrées, 28 fiches écartées (texte de question vide sur le site, presque toutes très récentes ;
+  réessayées à chaque exécution) et **19 fiches conservées bien qu'absentes de l'index** : le
+  Parlement les a retirées (pages vides, vérifié le 7 novembre) ; elles gardent leur dernière version
+  connue. Corpus : 12 791 fiches, 39 544 passages, environ 0,69 Mo de texte envoyé à OpenAI.
+  Le chargement de 2019-2024 n'a pas bougé (10 048 fiches).
 
 Bilan du run #41 (dernier chargement) : 137 questions ajoutées, **12 écartées**, 12 encore absentes
 (ce sont les 12 écartées), 153 pages téléchargées, aucune page injoignable. Les valeurs `~` des
