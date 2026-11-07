@@ -137,8 +137,10 @@ s'il s'agit de la législature complète ou d'une sélection thématique.
   ou ligne incomplète, sans date de réception) **garde sa version précédente** et
   n'est pas téléchargée. Le journal affiche son code et le motif ; la liste est
   enregistrée dans `missing-from-index.json` de l'artefact, à côté de l'index reçu.
-  Au-delà de 10 fiches absentes (index probablement tronqué), l'exécution s'arrête
-  sans remplacer le corpus.
+  Au-delà de 30 fiches absentes (index probablement tronqué), l'exécution s'arrête
+  sans remplacer le corpus. (Seuil relevé de 10 à 30 en novembre 2026 : le Parlement a
+  retiré 19 fiches de 2024-2029 dont la page est restée vide, ce qui bloquait les
+  exécutions du 19/10, du 26/10 et du 02/11.)
 - Embeddings : au plus 3 000 000 d'octets UTF-8 de texte, soit environ 400 fiches
   nouvelles, et 300 appels. Le dépassement est détecté **avant** toute écriture, et le
   message donne le volume prévu. Pour une réindexation complète, lancez le workflow à la
