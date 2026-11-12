@@ -58,6 +58,7 @@ La version destinée au public, en termes simples, est dans `src/lib/changelog.t
 | #42 (planifié) | 05/10 11:31 | 2024-2029 | 6 | 32 | 32 | 12 632 |
 | #43 (planifié) | 12/10 12:01 | 2024-2029 | 57 | 35 | 35 | 12 689 |
 | #47 (manuel) | 07/11 08:21 | 2024-2029 | 102 | 28 | 28 | 12 791 |
+| #48 (planifié) | 09/11 12:54 | 2024-2029 | 0 | 28 | 28 | 12 791 |
 
 Détails utiles :
 
@@ -69,8 +70,8 @@ Détails utiles :
   (#27) : elles sont reconnues par empreinte et ne sont pas renvoyées à OpenAI.
 - À chaque run, environ 4 à 5 Mo de texte partent chez OpenAI pour 800 fiches (quelques cents).
 
-Mises à jour de la législature en cours depuis la fin du chargement (ajoutés à la main le 7 novembre
-2026 à partir des journaux) :
+Mises à jour de la législature en cours depuis la fin du chargement (ajoutés à la main les 7 et 12
+novembre 2026 à partir des journaux) :
 
 - Runs #42 et #43 (5 et 12 octobre) : 6 puis 57 questions ajoutées, soit 63 en tout (12 626 → 12 689).
 - Runs #44, #45 et #46 (19/10, 26/10, 02/11) : échec à la collecte (voir plus bas). Le corpus est resté à
@@ -82,6 +83,10 @@ Mises à jour de la législature en cours depuis la fin du chargement (ajoutés 
   Parlement les a retirées (pages vides, vérifié le 7 novembre) ; elles gardent leur dernière version
   connue. Corpus : 12 791 fiches, 39 544 passages, environ 0,69 Mo de texte envoyé à OpenAI.
   Le chargement de 2019-2024 n'a pas bougé (10 048 fiches).
+- Run #48 (09/11, planifié) : aucune question ajoutée ni modifiée (0 « nouvelle ou modifiée », 0 appel
+  OpenAI), 128 fiches revérifiées, 28 fiches toujours écartées (texte vide sur le site), 19 fiches
+  toujours conservées bien qu'absentes de l'index. Le seuil de 30 n'a pas été atteint : la collecte est
+  de nouveau normale. Corpus inchangé : 12 791 fiches, 39 544 passages.
 
 Bilan du run #41 (dernier chargement) : 137 questions ajoutées, **12 écartées**, 12 encore absentes
 (ce sont les 12 écartées), 153 pages téléchargées, aucune page injoignable. Les valeurs `~` des
